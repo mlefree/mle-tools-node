@@ -1,0 +1,33 @@
+import {LEVELS, loggerFactory, LoggerPerf} from '../../src';
+import {promisify} from 'util';
+import {expect} from 'chai';
+
+const sleep = promisify(setTimeout);
+
+describe('Logger', () => {
+
+    let perfLogger: LoggerPerf;
+
+    before(() => {
+        loggerFactory.setUp(true, LEVELS.DEBUG, LEVELS.DEBUG);
+        perfLogger = loggerFactory.getPerfLogger('Logger');
+    });
+
+    it('should log info', async () => {
+        loggerFactory.setUp(true, LEVELS.DEBUG, LEVELS.WARN);
+        const done = loggerFactory.getLogger().info('test1', 'test2', 123);
+        expect(!!done).eq(true);
+    });
+
+    it('should not log info..', async () => {
+        loggerFactory.setUp(true, LEVELS.ERROR, LEVELS.ERROR);
+        const done = loggerFactory.getLogger().info('test1', 'test2', 123);
+        expect(!!done).eq(false);
+    });
+
+    it('should push as direct', async () => {
+        perfLogger.inspectBegin('sleep');
+        await sleep(1000);
+        const timeSpent = perfLogger.inspectEnd('sleep');
+    });
+});

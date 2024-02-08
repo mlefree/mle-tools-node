@@ -1,0 +1,184 @@
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import fs from 'node:fs';
+
+// see  https://github.com/winstonjs/winston#using-logging-levels
+export enum LEVELS {
+    DEBUG = 'debug',
+    INFO = 'info',
+    WARN = 'warn',
+    ERROR = 'error',
+}
+
+let LOGGER_DEFAULT_LEVEL = LEVELS.WARN;
+let LOGGER_FILE_DIR = '.logs';
+
+export class Logger {
+
+    private readonly transports: any;
+    private readonly formats: any;
+    private readonly logger: any;
+    private active: boolean;
+    private notifyUser: any;
+    private notifyPwd: any;
+    private notifyTo: any;
+
+    constructor() {
+        this.transports = {};
+
+        this.transports['console'] = new winston.transports.Stream({
+            stream: process.stderr,
+            level: LOGGER_DEFAULT_LEVEL
+        });
+        this.transports['file'] = new DailyRotateFile({
+            filename: LOGGER_FILE_DIR + '/raain-%DATE%.log',
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: false,
+            maxSize: '20m',
+            maxFiles: '14d',
+            level: LOGGER_DEFAULT_LEVEL,
+        });
+
+        const combined = winston.format.combine(
+            winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
+            winston.format.printf(({level, message, label, timestamp}) =>
+                `${timestamp} ${label || '-'} ${level}: ${message}`));
+        this.formats = combined; //  winston.format.simple();
+
+        this.logger = winston.createLogger({
+            exitOnError: false,
+            format: this.formats,
+            transports: [this.transports.console, this.transports.file],
+        });
+
+        this.setup(true, LOGGER_DEFAULT_LEVEL, LOGGER_DEFAULT_LEVEL);
+    }
+
+    log(level: string, message: any, ...extra: any[]): boolean {
+        let done: any;
+        if (!this.active) {
+            return !!done;
+        }
+
+        if (level === 'error') {
+            done = this.logger.error(message, extra);
+        } else if (level === 'warn') {
+            done = this.logger.warn(message, extra);
+        } else if (level === 'info') {
+            done = this.logger.info(message, extra);
+        } else {
+            done = this.logger.debug(message, extra);
+        }
+        return !!done;
+    }
+
+    debug(...extra: any[]): boolean {
+        let done: any;
+        if (this.active) {
+            done = this.logger.debug(extra);
+        }
+        return !!done;
+    }
+
+    info(...extra: any[]): boolean {
+        let done: any;
+        if (this.active &&
+            (this.transports.console?.level === LEVELS.INFO || this.transports.console?.level === LEVELS.DEBUG)) {
+            done = this.logger.info(extra);
+        }
+        return !!done;
+    }
+
+    warn(...extra: any[]): boolean {
+        let done: any;
+        if (this.active) {
+            done = this.logger.warn(extra);
+        }
+        return !!done;
+    }
+
+    error(...extra: any[]): boolean {
+        let done: any;
+        if (this.active) {
+            done = this.logger.error(extra);
+        }
+        return !!done;
+    }
+
+    write(...extra: any[]): boolean {
+        let done: any;
+        if (this.active) {
+            done = this.logger.debug(extra);
+        }
+        return !!done;
+    }
+
+    disableAll() {
+        this.active = false;
+    }
+
+    reset() {
+        this.active = true;
+
+        if (this.transports.console) {
+            this.transports.console.level = LOGGER_DEFAULT_LEVEL;
+        }
+
+        if (this.transports.file) {
+            this.transports.file.level = LOGGER_DEFAULT_LEVEL;
+        }
+    }
+
+    setup(active: boolean,
+          consoleLevel: LEVELS,
+          logLevel: LEVELS,
+          notifyUser?: string,
+          notifyPwd?: string,
+          notifyTo?: string) {
+        this.active = !!active;
+
+        if (this.transports.console) {
+            this.transports.console.level = consoleLevel;
+        }
+
+        if (this.transports.file) {
+            this.transports.file.level = logLevel;
+        }
+
+        this.notifyUser = notifyUser;
+        this.notifyPwd = notifyPwd;
+        this.notifyTo = notifyTo ? JSON.parse(notifyTo) : notifyUser;
+    }
+
+    async notify(subject: string, text: string) {
+        let done: any;
+
+        if (this.active && this.notifyUser && this.notifyPwd) {
+            const options = {
+                user: this.notifyUser, pass: this.notifyPwd, to: this.notifyTo,  // [ 'user1@gmail.com', 'user2@gmail.com' ]
+                subject: subject, text: text,
+            };
+            const send = require('gmail-send')(options);
+            try {
+                const {result, full} = await send(options);
+                done = result;
+            } catch (error) {
+                console.error('MAIL ERROR:', error);
+            }
+        }
+
+        return !!done;
+    }
+
+    readLastLogs(parentPath: string): string[] {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+        const firstPartOfDate = now.toISOString().split('T')[0];
+        const secondPartOfDate = now.toISOString().split('T')[1].split(':')[0];
+        const formattedDate = firstPartOfDate + '-' + secondPartOfDate;
+        const lastLogFilename = parentPath + LOGGER_FILE_DIR + '/raain-' + formattedDate + '.log';
+        const contents = fs.readFileSync(lastLogFilename, 'utf8');
+        return contents.split(/\r?\n/);
+    }
+}
+

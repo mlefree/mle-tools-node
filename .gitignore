@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+.idea/
+.vs_code/
+
+bak/
+.logs/
+
+*.log
+TEST*.xml
+.DS_Store
+Thumbs.db
+*gitignored*
