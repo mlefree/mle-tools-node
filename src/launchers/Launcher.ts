@@ -24,7 +24,7 @@ export class Launcher {
     ) {
 
         if (this.threadStrategy === STRATEGIES.QUEUE) {
-            this.queueLauncher = new QueueLauncher(require('./asQueue'));
+            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory);
         }
     }
 

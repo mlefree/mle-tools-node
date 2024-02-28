@@ -2,11 +2,35 @@ import {Configuration} from '../configuration/Configuration';
 import {loggerFactory} from '../logs/LoggerFactory';
 import {MError} from '../errors/MError';
 
+export interface IBuildModel {
+    findById(buildId: any): any;
+
+    deleteMany(param: { buildType: string; statusWorkers: any[]; updatedAt: { $lte: Date } }): any;
+
+    deleteOne(param: { _id: any }): any;
+}
+
+export interface IBuildContainer {
+    builds: string[];
+    save: Function;
+    getBuilds?: Function;
+}
+
+export interface IBuild {
+    id: string;
+    buildType: string,
+    algorithmVersion: string;
+    configurationAsJSON: string;
+    updatedAt: Date;
+    statusGlobal: number;
+    getErrorStack?: Function;
+}
+
 export class BuiltInstance {
 
     constructor(
-        private instance: any,
-        private buildModel: any,
+        private instance: IBuildContainer,
+        private buildModel: IBuildModel,
         private algorithmVersion: string,
         private minutesBeforeGettingOld: number) {
         if (!instance ||
@@ -29,14 +53,12 @@ export class BuiltInstance {
 
         let index = 0;
         for (const buildId of allBuilds) {
-            const build = await buildModel.findById(buildId).exec();
+            const build: IBuild = await buildModel.findById(buildId).exec();
             if (!build) {
                 this.instance.builds.splice(index, 1);
                 await this.instance.save();
             } else {
-                if (build && build.buildType === buildType &&
-                    configuration.contains(build.configurationAsJSON) &&
-                    build.algorithmVersion === this.algorithmVersion) {
+                if (this.compareBuild(build, buildType, configuration)) {
                     lastCompliantBuild = build;
                 }
                 index++;
@@ -69,6 +91,7 @@ export class BuiltInstance {
             doc.timestampBeginIncluded = timestampBeginIncluded;
             doc.timestampEndNotIncluded = timestampEndNotIncluded;
         }
+        // @ts-ignore
         let newBuild = new buildModel(doc);
         await newBuild.save();
         this.instance.builds.push(newBuild); // TODO it can be a setBuilds() method for rainZone
@@ -76,50 +99,57 @@ export class BuiltInstance {
         return newBuild;
     }
 
-    async purgeUselessBuilds(configuration: Configuration, buildType: string) {
+    async purgeUselessBuilds(configuration: Configuration, buildType: string, allOldBuild = false) {
 
         const buildModel = this.buildModel;
 
-        // global remove of old and empty
+        // global remove of old AND empty
         const beforeYesterday = new Date();
         beforeYesterday.setDate(beforeYesterday.getDate() - 1);
         // { statusGlobal: { $ne: 1 }
         await buildModel.deleteMany({updatedAt: {$lte: beforeYesterday}, statusWorkers: [], buildType});
 
         // now focus on not empty but
-        const allBuilds = this.instance.builds || this.instance.getBuilds();
+        const allBuilds = JSON.parse(JSON.stringify(this.instance.builds || this.instance.getBuilds()));
         let count = 0;
         for (const buildId of allBuilds) {
-            const build = await buildModel.findById(buildId);
+            const build: IBuild = await buildModel.findById(buildId);
 
-            if (build &&
-                build.buildType === buildType &&
-                configuration.contains(build.configurationAsJSON) &&
-                build.algorithmVersion === this.algorithmVersion &&
-                build.statusGlobal !== 1) {
-
-                const hasNotBeenUpdatedForAWhile = new Date().getTime() - build.updatedAt.getTime() > this.minutesBeforeGettingOld * 600; // more than
-                if (hasNotBeenUpdatedForAWhile) {
-                    loggerFactory.getLogger().warn('UselessBuilds purged', buildId);
+            if (!build) {
+                this.instance.builds.splice(count, 1);
+                count--;
+            } else {
+                let shouldBeRemoved = build.statusGlobal !== 1;
+                shouldBeRemoved = shouldBeRemoved && this.isOld(build);
+                if (!allOldBuild) {
+                    shouldBeRemoved = shouldBeRemoved && this.compareBuild(build, buildType, configuration);
+                }
+                if (shouldBeRemoved) {
                     this.instance.builds.splice(count, 1);
                     await buildModel.deleteOne({_id: buildId});
                     count--;
                 }
             }
+
             count++;
         }
 
         await this.instance.save();
     }
 
-    async hasSomethingInProgress() {
+    async hasSomethingInProgress(configuration: Configuration, buildType: string, allBuild = false) {
         const allBuilds = this.instance.builds || this.instance.getBuilds();
         let oneIsNotFinished = false;
         for (const buildId of allBuilds) {
-            const build = await this.buildModel.findById(buildId);
+            const build: IBuild = await this.buildModel.findById(buildId);
 
-            if (build &&
-                build.statusGlobal !== 1) {
+            let isInProgress = build?.statusGlobal !== 1;
+            if (allBuild) {
+                isInProgress = isInProgress && this.compareBuild(build, buildType, configuration);
+            }
+
+            if (isInProgress) {
+                loggerFactory.getLogger().debug('hasSomethingInProgress:', buildId);
                 oneIsNotFinished = true;
             }
         }
@@ -146,16 +176,36 @@ export class BuiltInstance {
         const allBuilds = this.instance.builds || this.instance.getBuilds();
 
         for (const buildId of allBuilds) {
-            const build = await buildModel.findById(buildId);
-            // TODO Build.getCompliantBuild can check if last build is finished ? or too old ?
-            if (build &&
-                build.buildType === buildType &&
-                configuration.contains(build.configurationAsJSON) &&
-                build.algorithmVersion === this.algorithmVersion) {
+            const build: IBuild = await buildModel.findById(buildId);
+            if (this.compareBuild(build, buildType, configuration) &&
+                typeof build.getErrorStack !== 'undefined') {
                 errorStacks += build.getErrorStack();
             }
         }
 
         return errorStacks;
+    }
+
+    protected compareBuild(build: IBuild, buildType: string, configuration: Configuration): boolean {
+        return build &&
+            build.buildType === buildType &&
+            // build.algorithmVersion === this.algorithmVersion &&
+            configuration.contains(build.configurationAsJSON)
+            ;
+    }
+
+    protected isOld(build: IBuild): boolean {
+        if (!build) {
+            return false;
+        }
+
+        const delta = new Date().getTime() - build.updatedAt.getTime();
+        const old = delta > this.minutesBeforeGettingOld * 60000;
+
+        //if (old) {
+        loggerFactory.getLogger().warn('old build?', old, build.id, delta, this.minutesBeforeGettingOld * 60000);
+        // }
+        return old;
+
     }
 }

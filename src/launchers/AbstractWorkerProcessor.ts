@@ -33,7 +33,7 @@ export class AbstractWorkerProcessor {
 
     protected static async Loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
                                 count: number,
-                                stopIfError: boolean,
+                                stopOnFailure: boolean,
                                 config: any,
                                 inputs: any,
                                 logger: ILogger) {
@@ -41,7 +41,7 @@ export class AbstractWorkerProcessor {
         let retryLimit = 0;
         while (!ok && retryLimit < count) {
             ok = await asyncFn(config, inputs, logger, retryLimit);
-            if (!ok && !stopIfError) {
+            if (!ok && !stopOnFailure) {
                 const timeInMs = 500 + retryLimit * 2000;
                 logger.debug('>> Worker wait for next try', asyncFn.name, timeInMs);
                 await sleep(timeInMs);

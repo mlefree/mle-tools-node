@@ -38,7 +38,7 @@ export class WorkerStatus {
         workerCondition.statusGlobal = 1;
     }
 
-    static async CleanOldStatus(workerInstance, workerModel) {
+    protected static async CleanOldStatus(workerInstance, workerModel) {
         const oneHourOld = new Date();
         oneHourOld.setHours(oneHourOld.getHours() - 1);
         let changeDone = false;

@@ -1,5 +1,6 @@
 import Queue from 'queue';
 import {IWorkerParams} from './Launcher';
+import {LoggerFactory} from '../logs/LoggerFactory';
 
 const CONCURRENCY = 3;
 
@@ -10,7 +11,8 @@ export class QueueLauncher {
     private queueCumulativeCount: number;
 
     constructor(
-        protected queueWorker: Function
+        protected queueWorker: Function,
+        protected loggerFactory: LoggerFactory,
     ) {
         this.queueCumulativeCount = 0;
         this.queues = {};
@@ -19,7 +21,7 @@ export class QueueLauncher {
 
     add(params: IWorkerParams) {
         this.queueCumulativeCount++;
-        console.log('### Queue Lengths:', this.getQueueCumulativeSize(), this.queueCumulativeCount);
+        this.loggerFactory.getLogger().info('### Queue Lengths:', this.getQueueCumulativeSize(), this.queueCumulativeCount);
 
         const key = '' + params?.workerDescription + '-' + params?.workerData?.input?.rainId;
         const paramsAsString = JSON.stringify(params);
@@ -38,7 +40,7 @@ export class QueueLauncher {
 
             this.queues[key].push(cb => this.queueWorker(params, cb));
         } else {
-            console.log('### Queue duplicate', paramsAsString);
+            this.loggerFactory.getLogger().info('### Queue duplicate', paramsAsString);
         }
     }
 
