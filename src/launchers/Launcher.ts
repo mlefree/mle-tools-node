@@ -1,6 +1,6 @@
 import {loggerFactory} from '../logs/LoggerFactory';
 import {QueueLauncher} from './QueueLauncher';
-import {IWorkerData} from './AbstractWorkerProcessor';
+import {AbstractWorkerProcessor, IWorkerData} from './AbstractWorkerProcessor';
 
 export enum STRATEGIES {
     DIRECT = 'direct',
@@ -31,6 +31,11 @@ export class Launcher {
     async push(workerDescription: string,
                workerData: IWorkerData,
                workerInstance = new Date().toISOString()): Promise<boolean> {
+
+        if (this.getQueueSize() === 0) {
+            AbstractWorkerProcessor.ForceStop(false);
+        }
+
 
         const params: IWorkerParams = {
             workerDescription,
@@ -65,6 +70,12 @@ export class Launcher {
         }
 
         return this.queueLauncher.getQueueCumulativeSize();
+    }
+
+    async stop() {
+        this.queueLauncher?.stopAll();
+        AbstractWorkerProcessor.ForceStop();
+        return true;
     }
 }
 

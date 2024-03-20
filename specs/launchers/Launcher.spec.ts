@@ -32,12 +32,12 @@ describe('Launcher', () => {
         const input: Input = {count: 2};
         const config: Config = {time: 10, label: 'thread', logLevel: LEVELS.DEBUG};
         const data: IWorkerData = {input, config};
-        const done = await launcher.push('info-sleep', data);
+        const launched = await launcher.push('info-sleep', data);
         const timeSpent = logger.inspectEnd('thread');
 
         await sleep(1000);
 
-        expect(done).eq(true);
+        expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
@@ -55,12 +55,12 @@ describe('Launcher', () => {
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LEVELS.DEBUG};
         const data: IWorkerData = {input, config};
-        const done = await launcher.push('info-sleep-info-sleep', data);
+        const launched = await launcher.push('info-sleep-info-sleep', data);
         const timeSpent = logger.inspectEnd('queue');
 
         await sleep(1000);
 
-        expect(done).eq(true);
+        expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
@@ -79,12 +79,12 @@ describe('Launcher', () => {
         const input: Input = {count: 1};
         const config: Config = {time: 5, label: 'failingQueue', logLevel: LEVELS.DEBUG};
         const data: IWorkerData = {input, config};
-        const done = await launcher.push('sleep-fail', data);
+        const launched = await launcher.push('sleep-fail', data);
         const timeSpent = logger.inspectEnd('failingQueue');
 
         await sleep(1000);
 
-        expect(done).eq(true);
+        expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
@@ -100,12 +100,12 @@ describe('Launcher', () => {
         const input: Input = {count: 1};
         const config: Config = {time: 7, label: 'throwQueue', logLevel: LEVELS.DEBUG};
         const data: IWorkerData = {input, config};
-        const done = await launcher.push('sleep-throwError', data);
+        const launched = await launcher.push('sleep-throwError', data);
         const timeSpent = logger.inspectEnd('throwQueue');
 
         await sleep(1000);
 
-        expect(done).eq(true);
+        expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
@@ -113,5 +113,25 @@ describe('Launcher', () => {
             .filter(l => l.indexOf('throw') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(1, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('throw') > 0).eq(true, relatedLogs.toString());
+    });
+
+    it('should push as queue and could interrupt', async () => {
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', STRATEGIES.QUEUE);
+        const input: Input = {count: 2};
+        let launchedCount = 0;
+        for (let count = 1; count <= 1000; count++) {
+            const config: Config = {time: count, label: 'toStopQueue' + count, logLevel: LEVELS.DEBUG};
+            const data: IWorkerData = {input, config};
+            const launched = await launcher.push('info-sleep-info-sleep', data);
+            if (launched) launchedCount++;
+        }
+        expect(launchedCount).eq(1000);
+        expect(launcher.getQueueSize()).eq(1000);
+
+        // Stoooop
+        const stopped = await launcher.stop();
+        expect(stopped).eq(true);
+        expect(launcher.getQueueSize()).eq(0);
+        await sleep(1500);
     });
 });

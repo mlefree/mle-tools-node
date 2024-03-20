@@ -13,6 +13,7 @@ export interface IWorkerData {
 
 export class AbstractWorkerProcessor {
 
+    protected static NeedToStop: boolean;
     protected config: any;
     protected input: any;
     protected logger: Logger;
@@ -31,6 +32,15 @@ export class AbstractWorkerProcessor {
         this.input = workerData?.input ? workerData.input : {};
     }
 
+    static CheckIfItShouldStop(): boolean {
+        return AbstractWorkerProcessor.NeedToStop;
+    }
+
+    static ForceStop(stop = true) {
+        console.warn('NeedToStop', stop);
+        AbstractWorkerProcessor.NeedToStop = stop;
+    }
+
     protected static async Loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
                                 count: number,
                                 stopOnFailure: boolean,
@@ -39,7 +49,7 @@ export class AbstractWorkerProcessor {
                                 logger: ILogger) {
         let ok = false;
         let retryLimit = 0;
-        while (!ok && retryLimit < count) {
+        while (!ok && retryLimit < count && !AbstractWorkerProcessor.CheckIfItShouldStop()) {
             ok = await asyncFn(config, inputs, logger, retryLimit);
             if (!ok && !stopOnFailure) {
                 const timeInMs = 500 + retryLimit * 2000;
@@ -84,7 +94,7 @@ export class AbstractWorkerProcessor {
                     ok = await process.fn(this.config, inputs, this.getLogger(), count);
                 }
             } catch (err) {
-                this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err}`);
+                this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`);
                 ok = false;
             }
 

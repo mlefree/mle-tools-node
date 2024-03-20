@@ -6,7 +6,7 @@ const CONCURRENCY = 3;
 
 export class QueueLauncher {
 
-    private readonly queues: any;
+    private readonly queues: any; // Queue
     private readonly queueParams: any;
     private queueCumulativeCount: number;
 
@@ -44,7 +44,6 @@ export class QueueLauncher {
         }
     }
 
-
     getQueueCumulativeSize() {
         let length = 0;
         for (const key of Object.keys(this.queues)) {
@@ -56,6 +55,13 @@ export class QueueLauncher {
             length += queueLength;
         }
         return length;
+    }
+
+    stopAll() {
+        for (const key of Object.keys(this.queues)) {
+            const queue: Queue = this.queues[key];
+            queue.end(new Error('stoooopp'));
+        }
     }
 }
 
