@@ -51,6 +51,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
 
     static async fail(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
         const done = logger.info('fail', inputs.messageToWrite);
+        await sleep(1);
         return false;
     }
 
@@ -61,7 +62,6 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     // To implement :
 
     protected initLogger(config: any): Logger {
-        console.warn('initLogger', config);
         loggerFactory.setUp(true, config.logLevel, config.logLevel);
         return loggerFactory.getLogger();
     }
@@ -83,6 +83,14 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         // implement DB disconnection for example
         this.connected = false;
         return this.connected;
+    }
+
+    protected async onEnd(done: boolean, stats: {
+        timeSpentTotal: number,
+        timeSpentComputing: number,
+        timeSpentWaiting: number
+    }) {
+        console.error('onEnd ?', done, stats);
     }
 
 

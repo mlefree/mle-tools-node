@@ -202,9 +202,9 @@ export class BuiltInstance {
         const delta = new Date().getTime() - build.updatedAt.getTime();
         const old = delta > this.minutesBeforeGettingOld * 60000;
 
-        //if (old) {
-        loggerFactory.getLogger().warn('old build?', old, build.id, delta, this.minutesBeforeGettingOld * 60000);
-        // }
+        if (old) {
+            loggerFactory.getLogger().warn('old build?', old, build.id, delta, this.minutesBeforeGettingOld * 60000);
+        }
         return old;
 
     }

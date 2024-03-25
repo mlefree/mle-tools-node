@@ -17,6 +17,9 @@ export class AbstractWorkerProcessor {
     protected config: any;
     protected input: any;
     protected logger: Logger;
+    private perfBegin: Date;
+    private perfTimeSpentComputing: number;
+    private perfTimeSpentWaiting: number;
 
     constructor(
         protected name: string,
@@ -30,6 +33,9 @@ export class AbstractWorkerProcessor {
     ) {
         this.config = workerData?.config ? workerData.config : {};
         this.input = workerData?.input ? workerData.input : {};
+        this.perfBegin = new Date();
+        this.perfTimeSpentComputing = 0;
+        this.perfTimeSpentWaiting = 0;
     }
 
     static CheckIfItShouldStop(): boolean {
@@ -37,28 +43,7 @@ export class AbstractWorkerProcessor {
     }
 
     static ForceStop(stop = true) {
-        console.warn('NeedToStop', stop);
         AbstractWorkerProcessor.NeedToStop = stop;
-    }
-
-    protected static async Loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
-                                count: number,
-                                stopOnFailure: boolean,
-                                config: any,
-                                inputs: any,
-                                logger: ILogger) {
-        let ok = false;
-        let retryLimit = 0;
-        while (!ok && retryLimit < count && !AbstractWorkerProcessor.CheckIfItShouldStop()) {
-            ok = await asyncFn(config, inputs, logger, retryLimit);
-            if (!ok && !stopOnFailure) {
-                const timeInMs = 500 + retryLimit * 2000;
-                logger.debug('>> Worker wait for next try', asyncFn.name, timeInMs);
-                await sleep(timeInMs);
-                retryLimit++;
-            }
-        }
-        return ok;
     }
 
     async launch(): Promise<boolean> {
@@ -83,15 +68,18 @@ export class AbstractWorkerProcessor {
         this.getLogger().info(`>> Worker processNameOrdered: ${processNameOrdered}`);
 
         let count = 0;
-        let done = true;
+        let allDone = true;
         for (const pn of processNameOrdered) {
             const process = this.processes.filter(p => p.fn.name === pn)[0];
             let ok = true;
             try {
                 if (process.looped) {
-                    ok = await AbstractWorkerProcessor.Loop(process.fn, 5, process.stopOnFailure, this.config, inputs, this.getLogger());
+                    ok = await this.loop(process.fn, 10, process.stopOnFailure, inputs);
                 } else {
+                    const begin = new Date();
                     ok = await process.fn(this.config, inputs, this.getLogger(), count);
+                    const end = new Date();
+                    this.perfTimeSpentComputing += end.getTime() - begin.getTime();
                 }
             } catch (err) {
                 this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`);
@@ -100,23 +88,57 @@ export class AbstractWorkerProcessor {
 
             this.getLogger().info(`>> Worker ${process?.fn?.name} ok: "${ok}"`);
 
+            if (!ok) {
+                allDone = false;
+            }
+
             if (process.stopOnFailure && !ok) {
-                done = false;
                 break;
             }
             count++;
         }
 
-        this.getLogger().info(`>> Worker ${count} done : "${done}"`);
+        this.getLogger().info(`>> Worker ${count} finished, allDone:"${allDone}"`);
+        const msg = await this.onEnd(allDone, await this.buildStats());
 
         if (connected && !this.bypassConnection) {
             await this.disconnect();
         }
-        return done;
+
+        return allDone;
     }
 
     getName(): string {
         return '' + this.name;
+    }
+
+    protected async loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
+                         count: number,
+                         stopOnFailure: boolean,
+                         inputs: any) {
+        let ok = false;
+        let retryLimit = 0;
+        while (!ok && retryLimit < count && !AbstractWorkerProcessor.CheckIfItShouldStop()) {
+
+            const dateA = new Date();
+            ok = await asyncFn(this.config, inputs, this.logger, retryLimit);
+            const dateB = new Date();
+            this.perfTimeSpentComputing += dateB.getTime() - dateA.getTime();
+
+            if (!ok && stopOnFailure) {
+                break;
+            }
+
+            if (!ok) {
+                const timeInMs = 500 + retryLimit * 2000;
+                this.logger.debug('>> Worker wait for next try', asyncFn.name, timeInMs);
+                await sleep(timeInMs);
+                retryLimit++;
+                const dateC = new Date();
+                this.perfTimeSpentWaiting += dateC.getTime() - dateB.getTime();
+            }
+        }
+        return ok;
     }
 
     protected getLogger(): ILogger {
@@ -141,6 +163,27 @@ export class AbstractWorkerProcessor {
 
     protected async disconnect(): Promise<boolean> {
         throw new MError('to implement');
+    }
+
+    protected async onEnd(allDone: boolean, stats: {
+        timeSpentTotal: number,
+        timeSpentComputing: number,
+        timeSpentWaiting: number
+    }) {
+        // to override
+    }
+
+    private async buildStats(): Promise<{
+        timeSpentTotal: number,
+        timeSpentComputing: number,
+        timeSpentWaiting: number
+    }> {
+        const end = new Date();
+        return {
+            timeSpentTotal: end.getTime() - this.perfBegin.getTime(),
+            timeSpentComputing: this.perfTimeSpentComputing,
+            timeSpentWaiting: this.perfTimeSpentWaiting
+        };
     }
 }
 
