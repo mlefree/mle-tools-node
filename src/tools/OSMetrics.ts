@@ -12,6 +12,8 @@ export class OSMetrics {
 
     static async getMetrics(): Promise<{
         timestamp: Date, // now
+        name: string, // host name
+
         cpuPercent: number,
         memoryPercent: number,
         diskPercent: number,
@@ -29,6 +31,7 @@ export class OSMetrics {
 
         try {
             stat = await pidusage(process.pid);
+            stat.name = os.hostname() + '_' + os.machine();
             stat.cpus = os.cpus();
             //     model - A string representing the model of the CPU core.
             //     speed - The speed of the CPU core in MHz.
