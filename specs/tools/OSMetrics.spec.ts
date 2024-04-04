@@ -10,9 +10,12 @@ describe('OSMetrics', function () {
 
         const metrics = await OSMetrics.getMetrics();
         expect(metrics.name).contains('_');
+        expect(metrics.cpuPercent).greaterThan(0);
         expect(metrics.cpuPercent).lessThanOrEqual(100);
+        expect(metrics.memoryPercent).greaterThan(0);
         expect(metrics.memoryPercent).lessThanOrEqual(100);
         expect(metrics.diskPercent).lessThanOrEqual(100);
+        console.log('metrics', JSON.stringify(metrics, null, 3));
     });
 
 });

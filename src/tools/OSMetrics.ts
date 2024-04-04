@@ -5,6 +5,7 @@ import os from 'os';
 import v8 from 'v8';
 import {loggerFactory} from '../logs/LoggerFactory';
 import {statfs} from 'node:fs';
+import {cpuUsage} from './OSUtils';
 
 const sfsAsync = util.promisify(statfs);
 
@@ -32,7 +33,7 @@ export class OSMetrics {
         try {
             stat = await pidusage(process.pid);
             stat.name = os.hostname() + '_' + os.machine();
-            stat.cpus = os.cpus();
+            const cpus = os.cpus();
             //     model - A string representing the model of the CPU core.
             //     speed - The speed of the CPU core in MHz.
             //     times - an object containing the following properties:
@@ -41,8 +42,21 @@ export class OSMetrics {
             //         sys - the number of milliseconds the CPU has sent in sys mode.
             //         idle - the number of milliseconds the CPU has spent in idle mode.
             //         irq - the number of milliseconds the CPU has spent in irq mode.
+            // logger.warn('cpus', cpus);
+            stat.cpus = cpus;
+            // let cpuTotal = 0.000001, cpuUserSys = 0;
+            // for (const cpu of cpus) {
+            //     for (const type in cpu.times) {
+            //         cpuTotal += cpu.times[type];
+            //         if (type === 'user' || type === 'sys') {
+            //             cpuUserSys += cpu.times[type];
+            //         }
+            //     }
+            // }
+            //  stat.cpuPercent = Math.round(stat.cpu / stat.cpus.length * 100) / 100;
+            // stat.cpuPercent = Math.round(1000 * cpuUserSys / cpuTotal / 10);
+            stat.cpuPercent = await cpuUsage();
 
-            stat.cpuPercent = Math.round(stat.cpu / stat.cpus.length * 100) / 100;
             stat.memory = stat.memory / 1024 / 1024; // Convert from B to MB
 
             stat.load = os.loadavg();
