@@ -55,7 +55,7 @@ export class OSMetrics {
             // }
             //  stat.cpuPercent = Math.round(stat.cpu / stat.cpus.length * 100) / 100;
             // stat.cpuPercent = Math.round(1000 * cpuUserSys / cpuTotal / 10);
-            stat.cpuPercent = await cpuUsage();
+            stat.cpuPercent = Math.round(100 * 100 * await cpuUsage()) / 100;
 
             stat.memory = stat.memory / 1024 / 1024; // Convert from B to MB
 
