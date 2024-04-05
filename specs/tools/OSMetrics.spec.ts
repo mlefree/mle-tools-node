@@ -15,7 +15,8 @@ describe('OSMetrics', function () {
         expect(metrics.memoryPercent).greaterThan(0);
         expect(metrics.memoryPercent).lessThanOrEqual(100);
         expect(metrics.diskPercent).lessThanOrEqual(100);
-        console.log('metrics', JSON.stringify(metrics, null, 3));
+        console.log('cpuPercent', metrics.cpuPercent);
+        // console.log('metrics', JSON.stringify(metrics, null, 3));
     });
 
 });

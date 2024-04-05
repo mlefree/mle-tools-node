@@ -78,7 +78,7 @@ async function getCPUUsage(free: boolean) {
     var startIdle = stats1.idle;
     var startTotal = stats1.total;
 
-    await sleep(1000);
+    await sleep(100);
     var stats2 = getCPUInfo();
     var endIdle = stats2.idle;
     var endTotal = stats2.total;
