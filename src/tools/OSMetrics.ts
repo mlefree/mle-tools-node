@@ -73,7 +73,7 @@ export class OSMetrics {
 
             stat.memoryPercent = Math.round(stat.memory / (stat.heap.total_available_size / 1024 / 1024) * 100 * 100) / 100;
             const mp = freememPercentage()
-            stat.memory2Percent = (1 - mp) * 100;
+            stat.memory2Percent = Math.round((1 - mp) * 100 * 100) / 100;
 
             // stat.loop = eventLoopStats.sense();
             //
