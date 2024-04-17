@@ -1,6 +1,6 @@
 {
   "name": "mle-tools-node",
-  "version": "1.2.6",
+  "version": "1.3.2",
   "author": "mle",
   "description": "some node tools",
   "keywords": [],
@@ -30,8 +30,9 @@
     "typescript": "^5.0.3"
   },
   "scripts": {
-    "_remove-gen": "rm -rf ./.gen ./.logs ./.nyc_output",
+    "_clean": "rm -rf .gen .logs .nyc_output .coverage dist",
     "build": "rm -rf dist/ && npm version patch --no-git-tag-version && tsc --project tsconfig.json && cp *.md dist/ && cp package.json dist/ && cp src/launchers/asThread.js dist/launchers/.",
-    "test": "mocha --require ts-node/register 'specs/**/**.spec.ts'"
+    "test": "mocha --require ts-node/register 'specs/**/**.spec.ts'",
+    "coverage": "nyc npm run test"
   }
 }

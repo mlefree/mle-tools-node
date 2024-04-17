@@ -2,6 +2,7 @@ import {IWorkerData, Launcher, LEVELS, loggerFactory, LoggerPerf, STRATEGIES} fr
 import {expect} from 'chai';
 import {promisify} from 'util';
 import {Config, Input} from './WorkerProcessor';
+import {QueueConcurrency} from '../../src/launchers/QueueLauncher';
 
 const sleep = promisify(setTimeout);
 
@@ -51,17 +52,30 @@ describe('Launcher', () => {
 
     it('should push as queue', async () => {
         logger.inspectBegin('queue');
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', STRATEGIES.QUEUE);
+        const queueConcurrency: QueueConcurrency = {
+            default: 1,
+            keys: [{contains: 'info', concurrency: 2}, {contains: '"count":2', concurrency: 3},]
+        }
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', STRATEGIES.QUEUE, queueConcurrency);
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LEVELS.DEBUG};
         const data: IWorkerData = {input, config};
-        const launched = await launcher.push('info-sleep-info-sleep', data);
-        const timeSpent = logger.inspectEnd('queue');
 
-        await sleep(1000);
-
+        // 5 launching
+        let launched = await launcher.push('info-sleep-info-sleep', data);
+        launched = await launcher.push('info-sleep-info-sleep', data);
+        launched = await launcher.push('info-sleep-info-sleep', data);
+        launched = await launcher.push('info-sleep-info-sleep', data);
+        launched = await launcher.push('info-sleep-info-sleep', data);
         expect(launched).eq(true);
+
+        const timeSpent = logger.inspectEnd('queue');
         expect(timeSpent).lessThan(1000);
+
+        // In progress
+        await sleep(700);
+        expect(launcher.getQueueSize()).greaterThanOrEqual(3); // could be 4 or 5, it depends on when :-/
+        await sleep(700);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs

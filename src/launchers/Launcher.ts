@@ -1,5 +1,5 @@
 import {loggerFactory} from '../logs/LoggerFactory';
-import {QueueLauncher} from './QueueLauncher';
+import {QueueConcurrency, QueueLauncher} from './QueueLauncher';
 import {AbstractWorkerProcessor, IWorkerData} from './AbstractWorkerProcessor';
 
 export enum STRATEGIES {
@@ -7,6 +7,8 @@ export enum STRATEGIES {
     QUEUE = 'queue',
     THREAD = 'thread',
 }
+
+const CONCURRENCY = 3;
 
 export interface IWorkerParams {
     workerDescription: string,
@@ -20,11 +22,12 @@ export class Launcher {
 
     constructor(
         public workerProcessorPathFile: any,
-        public threadStrategy: string = STRATEGIES.DIRECT
+        public threadStrategy: string = STRATEGIES.DIRECT,
+        protected queueConcurrency: QueueConcurrency = {default: CONCURRENCY, keys: []},
     ) {
 
         if (this.threadStrategy === STRATEGIES.QUEUE) {
-            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory);
+            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory, this.queueConcurrency);
         }
     }
 
@@ -35,7 +38,6 @@ export class Launcher {
         if (this.getQueueSize() === 0) {
             AbstractWorkerProcessor.ForceStop(false);
         }
-
 
         const params: IWorkerParams = {
             workerDescription,

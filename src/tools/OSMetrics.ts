@@ -5,30 +5,33 @@ import os from 'os';
 import v8 from 'v8';
 import {loggerFactory} from '../logs/LoggerFactory';
 import {statfs} from 'node:fs';
-import {cpuUsage} from './OSUtils';
+import {cpuUsage, freememPercentage} from './OSUtils';
 
 const sfsAsync = util.promisify(statfs);
 
+export interface OSMetricsStat {
+    timestamp: number, // now
+    name: string, // host name
+
+    cpuPercent: number,
+    memoryPercent: number,
+    memory2Percent: number,
+    diskPercent: number,
+
+    cpu: number, // from 0 to 100*vcore
+    cpus: any[],
+    memory: number, // bytes
+    load: number[], // ?
+    heap: any,
+    loop: any,
+    fs: any,
+}
+
 export class OSMetrics {
 
-    static async getMetrics(): Promise<{
-        timestamp: Date, // now
-        name: string, // host name
-
-        cpuPercent: number,
-        memoryPercent: number,
-        diskPercent: number,
-
-        cpu: number, // from 0 to 100*vcore
-        cpus: any[],
-        memory: number, // bytes
-        load: number[], // ?
-        heap: any,
-        loop: any,
-        fs: any,
-    }> {
+    static async getMetrics(): Promise<OSMetricsStat> {
         const logger = loggerFactory.getLogger();
-        let stat: any = {};
+        let stat: OSMetricsStat;
 
         try {
             stat = await pidusage(process.pid);
@@ -69,6 +72,8 @@ export class OSMetrics {
             // total_physical_size: Committed size
 
             stat.memoryPercent = Math.round(stat.memory / (stat.heap.total_available_size / 1024 / 1024) * 100 * 100) / 100;
+            const mp = freememPercentage()
+            stat.memory2Percent = (1 - mp) * 100;
 
             // stat.loop = eventLoopStats.sense();
             //

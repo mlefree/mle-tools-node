@@ -4,6 +4,8 @@ dist/
 .idea/
 .vs_code/
 
+.coverage/
+.nyc_output/
 bak/
 .logs/
 

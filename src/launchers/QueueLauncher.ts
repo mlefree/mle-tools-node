@@ -2,7 +2,13 @@ import Queue from 'queue';
 import {IWorkerParams} from './Launcher';
 import {LoggerFactory} from '../logs/LoggerFactory';
 
-const CONCURRENCY = 3;
+export interface QueueConcurrency {
+    default: number,
+    keys: {
+        contains: string,
+        concurrency: number,
+    }[]
+}
 
 export class QueueLauncher {
 
@@ -13,6 +19,7 @@ export class QueueLauncher {
     constructor(
         protected queueWorker: Function,
         protected loggerFactory: LoggerFactory,
+        protected concurrency: QueueConcurrency,
     ) {
         this.queueCumulativeCount = 0;
         this.queues = {};
@@ -23,8 +30,17 @@ export class QueueLauncher {
         this.queueCumulativeCount++;
         this.loggerFactory.getLogger().info('### Queue Lengths:', this.getQueueCumulativeSize(), this.queueCumulativeCount);
 
-        const key = '' + params?.workerDescription + '-' + params?.workerData?.input?.rainId;
         const paramsAsString = JSON.stringify(params);
+
+        let key = '' + params.workerDescription;
+        let concurrency = this.concurrency.default;
+        for (const filter of this.concurrency.keys) {
+            if (paramsAsString.indexOf(filter.contains) >= 0) {
+                key = filter.contains;
+                concurrency = filter.concurrency;
+            }
+        }
+
         let notExists = typeof this.queueParams[key] === 'undefined';
         if (notExists) {
             this.queueParams[key] = [];
@@ -35,7 +51,7 @@ export class QueueLauncher {
         if (notExists) {
             this.queueParams[key].push(paramsAsString);
             if (typeof this.queues[key] === 'undefined') {
-                this.queues[key] = new Queue({concurrency: CONCURRENCY, autostart: true});
+                this.queues[key] = new Queue({concurrency, autostart: true});
             }
 
             this.queues[key].push(cb => this.queueWorker(params, cb));
