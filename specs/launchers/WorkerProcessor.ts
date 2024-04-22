@@ -1,12 +1,12 @@
 import {promisify} from 'util';
-import {AbstractWorkerProcessor, ILogger, IWorkerData, LEVELS, Logger, loggerFactory, MError} from '../../src';
+import {AbstractWorkerProcessor, ILogger, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
 
 const sleep = promisify(setTimeout);
 
 export interface Config {
     label: string;
     time: number;
-    logLevel: LEVELS;
+    logLevel: LoggerLevels;
 }
 
 export interface Input {
@@ -95,4 +95,5 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
 
 
 }
+
 

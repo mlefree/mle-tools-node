@@ -1,19 +1,13 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import fs from 'node:fs';
+import {LoggerLevels} from './LoggerLevels';
+import {ILogger} from './ILogger';
+import fs from 'fs';
 
-// see  https://github.com/winstonjs/winston#using-logging-levels
-export enum LEVELS {
-    DEBUG = 'debug',
-    INFO = 'info',
-    WARN = 'warn',
-    ERROR = 'error',
-}
-
-let LOGGER_DEFAULT_LEVEL = LEVELS.WARN;
+let LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
 let LOGGER_FILE_DIR = '.logs';
 
-export class Logger {
+export class Logger implements ILogger {
 
     private readonly transports: any;
     private readonly formats: any;
@@ -83,7 +77,7 @@ export class Logger {
     info(...extra: any[]): boolean {
         let done: any;
         if (this.active &&
-            (this.transports.console?.level === LEVELS.INFO || this.transports.console?.level === LEVELS.DEBUG)) {
+            (this.transports.console?.level === LoggerLevels.INFO || this.transports.console?.level === LoggerLevels.DEBUG)) {
             done = this.logger.info(extra);
         }
         return !!done;
@@ -130,8 +124,8 @@ export class Logger {
     }
 
     setup(active: boolean,
-          consoleLevel: LEVELS,
-          logLevel: LEVELS,
+          consoleLevel: LoggerLevels,
+          logLevel: LoggerLevels,
           notifyUser?: string,
           notifyPwd?: string,
           notifyTo?: string) {
@@ -179,6 +173,14 @@ export class Logger {
         const lastLogFilename = parentPath + LOGGER_FILE_DIR + '/raain-' + formattedDate + '.log';
         const contents = fs.readFileSync(lastLogFilename, 'utf8');
         return contents.split(/\r?\n/);
+    }
+
+    getLevel(): LoggerLevels {
+        if (this.transports.console?.level) {
+            return this.transports.console.level;
+        }
+
+        return LOGGER_DEFAULT_LEVEL;
     }
 }
 

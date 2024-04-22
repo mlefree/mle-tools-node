@@ -1,5 +1,5 @@
 import {Worker} from 'worker_threads';
-import {IWorkerParams} from './Launcher';
+import {IWorkerParams} from './IWorkerParams';
 
 let WORKERS_COUNT = 0;
 

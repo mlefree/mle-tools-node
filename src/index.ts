@@ -11,12 +11,17 @@ export * from './errors/MErrorCode';
 export * from './files/CsvFile';
 export * from './files/Gofile';
 
+export * from './launchers/IWorkerData';
+export * from './launchers/IWorkerParams';
 export * from './launchers/asDirect';
 export * from './launchers/asQueue';
 export * from './launchers/AbstractWorkerProcessor';
+export * from './launchers/AbstractWorkerStore';
 export * from './launchers/Launcher';
+export * from './launchers/QueueConcurrency';
 
 export * from './logs/ILogger';
+export * from './logs/LoggerLevels';
 export * from './logs/Logger';
 export * from './logs/LoggerFactory';
 export * from './logs/LoggerPerf';

@@ -1,5 +1,6 @@
-import {LEVELS, Logger} from './Logger';
+import {Logger} from './Logger';
 import {LoggerPerf} from './LoggerPerf';
+import {LoggerLevels} from './LoggerLevels';
 
 export class LoggerFactory {
 
@@ -7,8 +8,8 @@ export class LoggerFactory {
 
     constructor(
         public active: boolean = true,
-        public consoleLevel: LEVELS = LEVELS.WARN,
-        public logLevel: LEVELS = LEVELS.WARN,
+        public consoleLevel: LoggerLevels = LoggerLevels.WARN,
+        public logLevel: LoggerLevels = LoggerLevels.WARN,
         public notifyUser?: string,
         public notifyPwd?: string,
         public notifyTo?: string
@@ -17,8 +18,8 @@ export class LoggerFactory {
 
     setUp(
         active: boolean,
-        consoleLevel: LEVELS,
-        logLevel: LEVELS,
+        consoleLevel: LoggerLevels,
+        logLevel: LoggerLevels,
         notifyUser?: string,
         notifyPwd?: string,
         notifyTo?: string

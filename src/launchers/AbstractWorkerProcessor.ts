@@ -3,13 +3,10 @@ import {MError} from '../errors/MError';
 import {Tools} from '../tools/Tools';
 import {Logger} from '../logs/Logger';
 import {ILogger} from '../logs/ILogger';
+import {IWorkerData} from './IWorkerData';
+import {LoggerLevels} from '../logs/LoggerLevels';
 
 const sleep = promisify(setTimeout);
-
-export interface IWorkerData {
-    config: any,
-    input: any,
-}
 
 export class AbstractWorkerProcessor {
 
@@ -145,7 +142,10 @@ export class AbstractWorkerProcessor {
         if (this.logger) {
             return this.logger;
         } else {
-            return console;
+            console['getLevel'] = () => {
+                return LoggerLevels.DEBUG
+            };
+            return console as any;
         }
     }
 

@@ -1,4 +1,4 @@
-import {LEVELS, loggerFactory, LoggerPerf} from '../../src';
+import {loggerFactory, LoggerLevels, LoggerPerf} from '../../src';
 import {promisify} from 'util';
 import {expect} from 'chai';
 
@@ -9,18 +9,18 @@ describe('Logger', () => {
     let perfLogger: LoggerPerf;
 
     before(() => {
-        loggerFactory.setUp(true, LEVELS.DEBUG, LEVELS.DEBUG);
+        loggerFactory.setUp(true, LoggerLevels.DEBUG, LoggerLevels.DEBUG);
         perfLogger = loggerFactory.getPerfLogger('Logger');
     });
 
     it('should log info', async () => {
-        loggerFactory.setUp(true, LEVELS.DEBUG, LEVELS.WARN);
+        loggerFactory.setUp(true, LoggerLevels.DEBUG, LoggerLevels.WARN);
         const done = loggerFactory.getLogger().info('test1', 'test2', 123);
         expect(!!done).eq(true);
     });
 
     it('should not log info..', async () => {
-        loggerFactory.setUp(true, LEVELS.ERROR, LEVELS.ERROR);
+        loggerFactory.setUp(true, LoggerLevels.ERROR, LoggerLevels.ERROR);
         const done = loggerFactory.getLogger().info('test1', 'test2', 123);
         expect(!!done).eq(false);
     });

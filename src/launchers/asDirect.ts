@@ -1,5 +1,5 @@
 import {AbstractWorkerProcessor} from './AbstractWorkerProcessor';
-import {IWorkerParams} from './Launcher';
+import {IWorkerParams} from './IWorkerParams';
 
 module.exports = async function (inputs: IWorkerParams) {
 

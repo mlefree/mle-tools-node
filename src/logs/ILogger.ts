@@ -1,3 +1,5 @@
+import {LoggerLevels} from './LoggerLevels';
+
 export interface ILogger {
 
     debug(...extra: any[]): any;
@@ -8,5 +10,6 @@ export interface ILogger {
 
     error(...extra: any[]): any;
 
+    getLevel(): LoggerLevels;
 }
 

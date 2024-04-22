@@ -1,6 +1,10 @@
 import {loggerFactory} from '../logs/LoggerFactory';
-import {QueueConcurrency, QueueLauncher} from './QueueLauncher';
-import {AbstractWorkerProcessor, IWorkerData} from './AbstractWorkerProcessor';
+import {QueueLauncher} from './QueueLauncher';
+import {AbstractWorkerProcessor} from './AbstractWorkerProcessor';
+import {IWorkerParams} from './IWorkerParams';
+import {IWorkerData} from './IWorkerData';
+import {QueueConcurrency} from './QueueConcurrency';
+import {AbstractWorkerStore} from './AbstractWorkerStore';
 
 export enum STRATEGIES {
     DIRECT = 'direct',
@@ -10,32 +14,27 @@ export enum STRATEGIES {
 
 const CONCURRENCY = 3;
 
-export interface IWorkerParams {
-    workerDescription: string,
-    workerInstance: string,
-    workerData: IWorkerData,
-    workerProcessorPathFile: string,
-}
-
 export class Launcher {
     private readonly queueLauncher: QueueLauncher;
 
     constructor(
         public workerProcessorPathFile: any,
+        public workerStore: AbstractWorkerStore,
         public threadStrategy: string = STRATEGIES.DIRECT,
         protected queueConcurrency: QueueConcurrency = {default: CONCURRENCY, keys: []},
+        pollingTimeInMilliSec = 500,
     ) {
-
         if (this.threadStrategy === STRATEGIES.QUEUE) {
-            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory, this.queueConcurrency);
+            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory, this.queueConcurrency, this.workerStore, pollingTimeInMilliSec);
         }
     }
 
     async push(workerDescription: string,
                workerData: IWorkerData,
-               workerInstance = new Date().toISOString()): Promise<boolean> {
+               workerInstance: string = ''): Promise<boolean> {
 
-        if (this.getQueueSize() === 0) {
+        if (this.getQueueRunningSize() === 0) {
+            this.queueLauncher?.stopAll(false)
             AbstractWorkerProcessor.ForceStop(false);
         }
 
@@ -66,12 +65,20 @@ export class Launcher {
         return false;
     }
 
-    getQueueSize(): number {
+    getQueueWaitingSize(): number {
         if (!this.queueLauncher) {
             return 0;
         }
 
-        return this.queueLauncher.getQueueCumulativeSize();
+        return this.queueLauncher.getQueueWaitingSize();
+    }
+
+    getQueueRunningSize(): number {
+        if (!this.queueLauncher) {
+            return 0;
+        }
+
+        return this.queueLauncher.getQueueRunningSize();
     }
 
     async stop() {
