@@ -5,7 +5,7 @@ import {MError} from '../errors/MError';
 export interface IBuildModel {
     findById(buildId: any): any;
 
-    deleteMany(param: { buildType: string; statusWorkers: any[]; updatedAt: { $lte: Date } }): any;
+    deleteMany(param: { buildType: string; updatedAt: { $lte: Date } }): any; // statusWorkers: any[];
 
     deleteOne(param: { _id: any }): any;
 }
@@ -103,11 +103,12 @@ export class BuiltInstance {
 
         const buildModel = this.buildModel;
 
-        // global remove of old AND empty
-        const beforeYesterday = new Date();
-        beforeYesterday.setDate(beforeYesterday.getDate() - 1);
+        // global remove of older than one hour
+        const past = new Date();
+        past.setHours(past.getHours() - 1);
         // { statusGlobal: { $ne: 1 }
-        await buildModel.deleteMany({updatedAt: {$lte: beforeYesterday}, statusWorkers: [], buildType});
+        // statusWorkers: [],
+        await buildModel.deleteMany({updatedAt: {$lte: past}, buildType});
 
         // now focus on not empty but
         const allBuilds = JSON.parse(JSON.stringify(this.instance.builds || this.instance.getBuilds()));

@@ -19,7 +19,7 @@ export class WorkerStatus {
             typeof workerInstance.save === 'undefined' ||
             !workerInstance.statusWorkers
         ) {
-            throw new MError(`WorkerStatus named "${name}" needs a compliant workerInstance.'`);
+            throw new MError(`WorkerStatus named "${name}" - "${workerInstance?._id?.toString()}" needs a compliant workerInstance.'`);
         }
 
         this.startDate = new Date();

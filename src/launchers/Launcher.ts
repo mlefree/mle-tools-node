@@ -5,6 +5,7 @@ import {IWorkerParams} from './IWorkerParams';
 import {IWorkerData} from './IWorkerData';
 import {QueueConcurrency} from './QueueConcurrency';
 import {AbstractWorkerStore} from './AbstractWorkerStore';
+import {DefaultWorkerStore} from './DefaultWorkerStore';
 
 export enum STRATEGIES {
     DIRECT = 'direct',
@@ -19,7 +20,7 @@ export class Launcher {
 
     constructor(
         public workerProcessorPathFile: any,
-        public workerStore: AbstractWorkerStore,
+        public workerStore: AbstractWorkerStore = new DefaultWorkerStore(),
         public threadStrategy: string = STRATEGIES.DIRECT,
         protected queueConcurrency: QueueConcurrency = {default: CONCURRENCY, keys: []},
         pollingTimeInMilliSec = 500,

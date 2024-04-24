@@ -3,6 +3,7 @@ import {expect} from 'chai';
 import {promisify} from 'util';
 import {Config, Input} from './WorkerProcessor';
 import {WorkerStore} from './WorkerStore';
+import {DefaultWorkerStore} from '../../src/launchers/DefaultWorkerStore';
 
 const sleep = promisify(setTimeout);
 
@@ -19,8 +20,7 @@ describe('Launcher', () => {
         const input: Input = {count: 10};
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
-            STRATEGIES.DIRECT);
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts');
         const done = await launcher.push('info-sleep-info', data);
 
         const timeSpent = logger.inspectEnd('direct');
@@ -61,7 +61,7 @@ describe('Launcher', () => {
                 {contains: '"count":2', concurrency: 3},
             ]
         }
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new DefaultWorkerStore(),
             STRATEGIES.QUEUE, queueConcurrency, 100);
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
