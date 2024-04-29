@@ -5,3 +5,4 @@
 - 1.2.x: add OS metrics
 - 1.3.x: launcher optimisation (concurrency, filtering)
 - 1.4.x: new Queue storing/polling mechanism
+- 1.5.x: TimeTracking middleware

@@ -29,3 +29,5 @@ export * from './logs/LoggerPerf';
 export * from './tools/Cache';
 export * from './tools/Tools';
 export * from './tools/OSMetrics';
+
+export * from './middlewares/TimeTracking';
