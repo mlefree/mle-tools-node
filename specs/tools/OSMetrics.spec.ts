@@ -1,7 +1,7 @@
 import {expect} from 'chai';
-import {OSMetrics} from '../../src/tools/OSMetrics';
+import {OSMetrics} from '../../src';
 
-describe('OSMetrics', function () {
+describe('OSMetrics', () => {
 
     before(() => {
     });
@@ -20,4 +20,3 @@ describe('OSMetrics', function () {
     });
 
 });
-

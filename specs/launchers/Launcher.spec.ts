@@ -154,7 +154,7 @@ describe('Launcher', () => {
         expect(launcher.getQueueWaitingSize()).eq(1000);
         expect(launcher.getQueueRunningSize()).eq(0);
 
-        // Stoooop
+        // Stop !
         const stopped = await launcher.stop();
         expect(stopped).eq(true);
         expect(launcher.getQueueWaitingSize()).eq(1000);

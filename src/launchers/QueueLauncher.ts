@@ -1,6 +1,6 @@
 // import Queue from 'queue';
 import PollingTimer from 'polling-timer';
-import {LoggerFactory} from '../logs/LoggerFactory';
+import {LoggerFactory} from '../logs';
 import {IWorkerParams} from './IWorkerParams';
 import {QueueConcurrency} from './QueueConcurrency';
 import {AbstractWorkerStore} from './AbstractWorkerStore';
@@ -9,7 +9,7 @@ export class QueueLauncher {
 
     private pollingTimer: PollingTimer
     private readonly queueParams: any;
-    private runningWorkers: any;
+    private readonly runningWorkers: any;
     private shouldStopAll: boolean;
 
     constructor(
@@ -43,7 +43,8 @@ export class QueueLauncher {
 
         if (notExists) {
             this.queueParams[key].push(paramsAsString);
-            this.workerStore.push(key, params);
+            this.workerStore.push(key, params).then(ignored => {
+            });
         } else {
             this.loggerFactory.getLogger().info('### Queue duplicate', paramsAsString);
         }
@@ -123,4 +124,3 @@ export class QueueLauncher {
         return {key, concurrency};
     }
 }
-

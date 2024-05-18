@@ -1,5 +1,5 @@
-import {loggerFactory} from '../logs/LoggerFactory';
-import {MError} from '../errors/MError';
+import {loggerFactory} from '../logs';
+import {MError} from '../errors';
 
 const WORKER_TIME_TO_CONSIDER_AS_OLD_WORKER = 600000; // 10mn or 1 hour (3600000)
 

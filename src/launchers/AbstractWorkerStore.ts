@@ -1,4 +1,4 @@
-import {MError} from '../errors/MError';
+import {MError} from '../errors';
 
 export class AbstractWorkerStore {
 

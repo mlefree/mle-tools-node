@@ -8,7 +8,7 @@ export class Configuration {
         this.build(configThatOverride);
     }
 
-    public getConf(domain?: string): JSON {
+    public getConf(domain?: string): any {
         let conf = this.allValues;
         if (!domain) {
             return conf;
@@ -41,7 +41,7 @@ export class Configuration {
         }
 
         const currentConf = this.getConf();
-        for (let p in currentConf) {
+        for (const p in currentConf) {
             if (currentConf.hasOwnProperty(p) === confToCompare.hasOwnProperty(p)) {
                 if (JSON.stringify(currentConf[p]) !== JSON.stringify(confToCompare[p])) {
                     return false;
@@ -66,8 +66,8 @@ export class Configuration {
         }
 
         const currentConf = this.getConf();
-        for (let p in confToMerge) {
-            if (confToMerge.hasOwnProperty(p) === currentConf.hasOwnProperty(p)) {
+        for (const p in confToMerge) {
+            if (confToMerge.hasOwnProperty(p)) {
                 currentConf[p] = confToMerge[p];
             }
         }
@@ -77,11 +77,45 @@ export class Configuration {
 
     public set(key: string, value: any) {
         const conf = this.getConf();
-        if (conf.hasOwnProperty(key)) {
-            conf[key] = value;
-            this.build(conf);
-        }
+        conf[key] = value;
+        this.build(conf);
     }
+
+    public add(key: string, toAdd: any) {
+        const conf = this.getConf();
+        const container = JSON.parse(JSON.stringify(conf[key]));
+
+        const walk = (parent: any, keys: string[], path: { name: string, type: string }[]) => {
+            for (const key of keys) {
+                const subs = Object.keys(parent[key]);
+                if (subs.length && !Array.isArray(parent[key])) {
+                    const type = 'object';
+                    const subPath = path.concat([{name: key, type}]);
+                    walk(parent[key], subs, subPath);
+                } else {
+                    let containerEl = container;
+                    for (const pathEl of path) {
+                        if (!containerEl.hasOwnProperty(pathEl.name)) {
+                            if (pathEl.type === 'object') {
+                                containerEl[pathEl.name] = {};
+                            } else {
+                                containerEl[pathEl.name] = [];
+                            }
+                        }
+
+                        containerEl = containerEl[pathEl.name];
+                    }
+                    containerEl[key] = parent[key];
+                }
+            }
+        };
+
+        walk(toAdd, Object.keys(toAdd), []);
+        conf[key] = container;
+
+        this.build(conf);
+    }
+
 
     private build(configThatOverride: JSON | string) {
 
@@ -101,7 +135,7 @@ export class Configuration {
 
         if (configThatOverride) {
             for (const key of Object.keys(configThatOverride)) {
-                if (configThatOverride.hasOwnProperty(key) && this.allValues.hasOwnProperty(key)) {
+                if (configThatOverride.hasOwnProperty(key)) {
                     this.allValues[key] = configThatOverride[key];
                 }
             }
@@ -109,4 +143,3 @@ export class Configuration {
 
     }
 }
-

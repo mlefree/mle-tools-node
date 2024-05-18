@@ -58,5 +58,3 @@ export class LoggerFactory {
 }
 
 export const loggerFactory = new LoggerFactory();
-
-

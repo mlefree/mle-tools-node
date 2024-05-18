@@ -1,7 +1,7 @@
 import fs from 'fs';
 import axios from 'axios';
 import FormData from 'form-data';
-import {loggerFactory} from '../logs/LoggerFactory';
+import {loggerFactory} from '../logs';
 
 export class GoFile {
 
@@ -53,4 +53,3 @@ export class GoFile {
     }
 
 }
-

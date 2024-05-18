@@ -1,17 +1,17 @@
 import {expect} from 'chai';
 import {Tools} from '../../src';
 
-describe('Tools', function () {
+describe('Tools', () => {
 
     before(() => {
     });
 
     it('should securedSetProperty', async () => {
 
-        let src = {
+        const src = {
             test: 1
         };
-        let target = {};
+        const target = {};
 
         Tools.securedSetProperty(src, target, 'notExist');
         expect(target['notExist']).eq(undefined);
@@ -25,8 +25,8 @@ describe('Tools', function () {
 
     it('should extractOrderedNames', async () => {
 
-        let src = 'test1-test2-test1-notExisting-test1';
-        let possibleNames = ['test1', 'test2', 'notHere'];
+        const src = 'test1-test2-test1-notExisting-test1';
+        const possibleNames = ['test1', 'test2', 'notHere'];
 
         const orderedNames = Tools.extractOrderedNames(src, possibleNames);
 
@@ -38,4 +38,3 @@ describe('Tools', function () {
     });
 
 });
-

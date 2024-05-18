@@ -1,10 +1,8 @@
 import {promisify} from 'util';
-import {MError} from '../errors/MError';
-import {Tools} from '../tools/Tools';
-import {Logger} from '../logs/Logger';
-import {ILogger} from '../logs/ILogger';
+import {MError} from '../errors';
+import {Tools} from '../tools';
+import {ILogger, Logger, LoggerLevels} from '../logs';
 import {IWorkerData} from './IWorkerData';
-import {LoggerLevels} from '../logs/LoggerLevels';
 
 const sleep = promisify(setTimeout);
 
@@ -60,7 +58,7 @@ export class AbstractWorkerProcessor {
         }
 
         const inputs = await this.getInputs(this.config, this.input);
-        let possibleProcessNames = this.processes.map(process => process.fn.name);
+        const possibleProcessNames = this.processes.map(process => process.fn.name);
         const processNameOrdered = Tools.extractOrderedNames(this.getName(), possibleProcessNames);
         this.getLogger().info(`>> Worker processNameOrdered: ${processNameOrdered}`);
 
@@ -186,4 +184,3 @@ export class AbstractWorkerProcessor {
         };
     }
 }
-

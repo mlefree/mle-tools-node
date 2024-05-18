@@ -1,4 +1,4 @@
-import {loggerFactory} from '../logs/LoggerFactory';
+import {loggerFactory} from '../logs';
 
 const cachePerfLogger = loggerFactory.getPerfLogger('Cache');
 
@@ -71,13 +71,15 @@ export class Cache {
 
         let count = 0;
         for (const model in this._cache) {
-            for (const condition in this._cache[model]) {
-                if (this._cache[model].hasOwnProperty(condition)) {
-                    const all = this._cache[model][condition].results;
-                    for (let i = 0; i < all.length; i++) {
-                        const instance = all[i];
-                        await instance.save();
-                        count++;
+            if (this._cache.hasOwnProperty(model)) {
+                for (const condition in this._cache[model]) {
+                    if (this._cache[model].hasOwnProperty(condition)) {
+                        const all = this._cache[model][condition].results;
+                        for (let i = 0; i < all.length; i++) {
+                            const instance = all[i];
+                            await instance.save();
+                            count++;
+                        }
                     }
                 }
             }
@@ -93,4 +95,3 @@ export class Cache {
     }
 
 }
-

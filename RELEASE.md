@@ -6,3 +6,4 @@
 - 1.3.x: launcher optimisation (concurrency, filtering)
 - 1.4.x: new Queue storing/polling mechanism
 - 1.5.x: TimeTracking middleware
+- 1.6.x: Configuration merge extended

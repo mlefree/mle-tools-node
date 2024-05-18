@@ -3,7 +3,7 @@ import pidusage from 'pidusage';
 // import eventLoopStats from 'event-loop-stats';
 import os from 'os';
 import v8 from 'v8';
-import {loggerFactory} from '../logs/LoggerFactory';
+import {loggerFactory} from '../logs';
 import {statfs} from 'node:fs';
 import {cpuUsage, freememPercentage} from './OSUtils';
 

@@ -1,5 +1,6 @@
 export class Tools {
-    static securedSetProperty(src, dest, key) {
+
+    static securedSetProperty(src: any, dest: any, key: string) {
         if (src && dest && src.hasOwnProperty(key)) {
             dest[key] = src[key];
         }

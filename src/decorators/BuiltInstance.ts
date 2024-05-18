@@ -1,6 +1,6 @@
-import {Configuration} from '../configuration/Configuration';
-import {loggerFactory} from '../logs/LoggerFactory';
-import {MError} from '../errors/MError';
+import {Configuration} from '../configuration';
+import {loggerFactory} from '../logs';
+import {MError} from '../errors';
 
 export interface IBuildModel {
     findById(buildId: any): any;
@@ -12,8 +12,8 @@ export interface IBuildModel {
 
 export interface IBuildContainer {
     builds: string[];
-    save: Function;
-    getBuilds?: Function;
+    save: () => void;
+    getBuilds?: () => string[];
 }
 
 export interface IBuild {
@@ -23,7 +23,7 @@ export interface IBuild {
     configurationAsJSON: string;
     updatedAt: Date;
     statusGlobal: number;
-    getErrorStack?: Function;
+    getErrorStack?: () => string;
 }
 
 export class BuiltInstance {
@@ -68,14 +68,6 @@ export class BuiltInstance {
         return lastCompliantBuild;
     }
 
-    /**
-     *
-     * @param configuration {Configuration}
-     * @param buildType {string}
-     * @param timestampBeginIncluded {number}
-     * @param timestampEndNotIncluded {number}
-     * @returns {Promise<Document>}
-     */
     async createBuild(configuration: Configuration,
                       buildType: string,
                       timestampBeginIncluded?: number,
@@ -83,7 +75,7 @@ export class BuiltInstance {
 
         const buildModel = this.buildModel;
         const doc: any = {
-            buildType: buildType,
+            buildType,
             configurationAsJSON: configuration.getJSON(buildType),
             algorithmVersion: this.algorithmVersion,
         };
@@ -92,7 +84,7 @@ export class BuiltInstance {
             doc.timestampEndNotIncluded = timestampEndNotIncluded;
         }
         // @ts-ignore
-        let newBuild = new buildModel(doc);
+        const newBuild = new buildModel(doc);
         await newBuild.save();
         this.instance.builds.push(newBuild); // TODO it can be a setBuilds() method for rainZone
         await this.instance.save();
@@ -162,8 +154,7 @@ export class BuiltInstance {
             return;
         }
 
-        const buildModel = this.buildModel;
-        await buildModel.deleteOne({_id: buildId});
+        await this.buildModel.deleteOne({_id: buildId});
 
         const index = this.instance.builds.indexOf(buildId);
         this.instance.builds.splice(index, 1);

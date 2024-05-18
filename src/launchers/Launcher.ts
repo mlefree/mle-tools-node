@@ -1,4 +1,4 @@
-import {loggerFactory} from '../logs/LoggerFactory';
+import {loggerFactory} from '../logs';
 import {QueueLauncher} from './QueueLauncher';
 import {AbstractWorkerProcessor} from './AbstractWorkerProcessor';
 import {IWorkerParams} from './IWorkerParams';
@@ -26,7 +26,8 @@ export class Launcher {
         pollingTimeInMilliSec = 500,
     ) {
         if (this.threadStrategy === STRATEGIES.QUEUE) {
-            this.queueLauncher = new QueueLauncher(require('./asQueue'), loggerFactory, this.queueConcurrency, this.workerStore, pollingTimeInMilliSec);
+            this.queueLauncher = new QueueLauncher(require('./asQueue'),
+                loggerFactory, this.queueConcurrency, this.workerStore, pollingTimeInMilliSec);
         }
     }
 
@@ -53,7 +54,7 @@ export class Launcher {
             } else if (this.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
                 const {Worker} = require('worker_threads');
-                new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
+                const newWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
             } else {
                 const directWorker = require('./asDirect');
                 await directWorker(params);
@@ -88,4 +89,3 @@ export class Launcher {
         return true;
     }
 }
-

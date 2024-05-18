@@ -4,8 +4,8 @@ import {LoggerLevels} from './LoggerLevels';
 import {ILogger} from './ILogger';
 import fs from 'fs';
 
-let LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
-let LOGGER_FILE_DIR = '.logs';
+const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
+const LOGGER_FILE_DIR = '.logs';
 
 export class Logger implements ILogger {
 
@@ -33,11 +33,10 @@ export class Logger implements ILogger {
             level: LOGGER_DEFAULT_LEVEL,
         });
 
-        const combined = winston.format.combine(
+        this.formats = winston.format.combine(
             winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
             winston.format.printf(({level, message, label, timestamp}) =>
-                `${timestamp} ${label || '-'} ${level}: ${message}`));
-        this.formats = combined; //  winston.format.simple();
+                `${timestamp} ${label || '-'} ${level}: ${message}`)); //  winston.format.simple();
 
         this.logger = winston.createLogger({
             exitOnError: false,
@@ -150,7 +149,7 @@ export class Logger implements ILogger {
         if (this.active && this.notifyUser && this.notifyPwd) {
             const options = {
                 user: this.notifyUser, pass: this.notifyPwd, to: this.notifyTo,  // [ 'user1@gmail.com', 'user2@gmail.com' ]
-                subject: subject, text: text,
+                subject, text,
             };
             const send = require('gmail-send')(options);
             try {
@@ -183,4 +182,3 @@ export class Logger implements ILogger {
         return LOGGER_DEFAULT_LEVEL;
     }
 }
-

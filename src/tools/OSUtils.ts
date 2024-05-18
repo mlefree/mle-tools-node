@@ -12,17 +12,13 @@ export const cpuCount = function () {
 }
 
 export const sysUptime = function () {
-    //seconds
     return os.uptime();
 }
 
 export const processUptime = function () {
-    //seconds
     return process.uptime();
 }
 
-
-// Memory
 export const freemem = function () {
     return os.freemem() / (1024 * 1024);
 }
@@ -36,13 +32,12 @@ export const freememPercentage = function () {
     return os.freemem() / os.totalmem();
 }
 
-
 /*
 * Returns All the load average usage for 1, 5 or 15 minutes.
 */
 export const allLoadavg = function () {
 
-    var loads = os.loadavg();
+    const loads = os.loadavg();
 
     return loads[0].toFixed(4) + ',' + loads[1].toFixed(4) + ',' + loads[2].toFixed(4);
 }
@@ -102,7 +97,6 @@ function getCPUInfo() {
     var sys = 0;
     var idle = 0;
     var irq = 0;
-    var total = 0;
 
     for (var cpu in cpus) {
 
@@ -120,4 +114,3 @@ function getCPUInfo() {
         'total': total
     };
 }
-

@@ -3,16 +3,16 @@ import {IWorkerParams} from './IWorkerParams';
 
 let WORKERS_COUNT = 0;
 
-module.exports = function (params: IWorkerParams, callback: Function) {
+module.exports = function (params: IWorkerParams, callback: () => void) {
     console.log('### WorkerLaunched:', ++WORKERS_COUNT);
     const path = require('node:path');
     const workerThread = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
     workerThread.on('exit', () => {
         console.log('### WorkerLaunched done:', --WORKERS_COUNT);
-        callback(null);
+        callback();
     });
     workerThread.on('error', (err) => {
         console.error('### WorkerLaunched error:', err);
-        callback(null);
+        callback();
     });
 };

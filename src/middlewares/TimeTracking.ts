@@ -1,5 +1,4 @@
-import {loggerFactory} from '../logs/LoggerFactory';
-import {LoggerLevels} from '../logs/LoggerLevels';
+import {loggerFactory, LoggerLevels} from '../logs';
 
 export class TimeTracking {
 
@@ -55,4 +54,3 @@ export class TimeTracking {
     }
 
 }
-

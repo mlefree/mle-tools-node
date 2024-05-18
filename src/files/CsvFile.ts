@@ -3,9 +3,9 @@ import {format, parse, writeToStream} from 'fast-csv';
 
 export class CsvFile {
 
-    private headers: any;
-    private path: any;
-    private writeOpts: any;
+    private readonly headers: any;
+    private readonly path: any;
+    private readonly writeOpts: any;
 
     constructor(opts) {
         this.headers = opts.headers;
@@ -39,15 +39,11 @@ export class CsvFile {
     append(rows) {
         return CsvFile.write(fs.createWriteStream(this.path, {flags: 'a'}), rows, {
             ...this.writeOpts,
-            // dont write the headers when appending
+            // don't write the headers when appending
             writeHeaders: false,
         });
     }
 
-    /**
-     *
-     * @returns {Promise<String>}
-     */
     read() {
         return new Promise((res, rej) => {
             fs.readFile(this.path, (err, contents) => {

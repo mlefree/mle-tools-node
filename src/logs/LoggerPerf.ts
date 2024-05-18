@@ -8,7 +8,7 @@ const PERF_INFOS = {};
 const PERF_RIGHT_TIME_TO_SEND_SOME_NEWS = 30000; // = 30 sec
 
 export class LoggerPerf {
-    private name: string;
+    private readonly name: string;
     private startDate: Date;
     private lastUpdateDate: Date;
 
@@ -98,7 +98,8 @@ export class LoggerPerf {
         for (let domainName in PERF_INFOS) {
             const domainObject = PERF_INFOS[domainName];
             domains.push(domainObject);
-            // logger.info(`PERF - ${intermediateMsg}${domainName} COUNT: ${domainObject.count} TST: ${domainObject.timeSpent / 1000} sec. TSA: ${domainObject.timeSpent / 1000 / domainObject.count} sec.`);
+            // logger.info(`PERF - ${intermediateMsg}${domainName} COUNT: ${domainObject.count} TST: ${domainObject.timeSpent / 1000} sec.
+            // TSA: ${domainObject.timeSpent / 1000 / domainObject.count} sec.`);
         }
 
         domains = domains.sort((a, b) => {
@@ -108,7 +109,7 @@ export class LoggerPerf {
         // const biggestConsumer = domains[0];
         // const biggestConsumerAverage = (biggestConsumer.timeSpent / 1000) / biggestConsumer.count;
         // const biggestConsumerTotal = (biggestConsumer.timeSpent / 1000);
-        //logger.info(`PERF - ${intermediateMsg}BCA: ${biggestConsumer.name} TSA: ${biggestConsumerAverage}`);
+        // logger.info(`PERF - ${intermediateMsg}BCA: ${biggestConsumer.name} TSA: ${biggestConsumerAverage}`);
         // logger.info(`PERF - ${intermediateMsg}BCT: ${biggestConsumer.name} TST: ${biggestConsumerTotal}`);
         domains.forEach(domain => {
             loggerFactory.getLogger().info(`PERF - ${intermediateMsg}${domain.name} COUNT: ${domain.count} TST: ${domain.timeSpent / 1000} sec. TSA: ${domain.timeSpent / 1000 / domain.count} sec.`);
@@ -120,4 +121,3 @@ export class LoggerPerf {
     }
 
 }
-
