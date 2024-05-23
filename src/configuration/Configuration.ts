@@ -8,6 +8,31 @@ export class Configuration {
         this.build(configThatOverride);
     }
 
+    private static Walk(container: any, parent: any, keys: string[], path: { name: string, type: string }[]) {
+        for (const key of keys) {
+            const subs = Object.keys(parent[key]);
+            if (subs.length && !Array.isArray(parent[key])) {
+                const type = 'object';
+                const subPath = path.concat([{name: key, type}]);
+                Configuration.Walk(container, parent[key], subs, subPath);
+            } else {
+                let containerEl = container;
+                for (const pathEl of path) {
+                    if (!containerEl.hasOwnProperty(pathEl.name)) {
+                        if (pathEl.type === 'object') {
+                            containerEl[pathEl.name] = {};
+                        } else {
+                            containerEl[pathEl.name] = [];
+                        }
+                    }
+
+                    containerEl = containerEl[pathEl.name];
+                }
+                containerEl[key] = parent[key];
+            }
+        }
+    };
+
     public getConf(domain?: string): any {
         let conf = this.allValues;
         if (!domain) {
@@ -27,8 +52,8 @@ export class Configuration {
         return conf;
     }
 
-    public getJSON(buildType?: string) {
-        return JSON.stringify(this.getConf(buildType));
+    public getJSON(domain?: string) {
+        return JSON.stringify(this.getConf(domain));
     }
 
     public contains(configurationAsString: Configuration | string) {
@@ -66,56 +91,35 @@ export class Configuration {
         }
 
         const currentConf = this.getConf();
-        for (const p in confToMerge) {
-            if (confToMerge.hasOwnProperty(p)) {
-                currentConf[p] = confToMerge[p];
-            }
-        }
-
-        this.build(currentConf);
-    }
-
-    public set(key: string, value: any) {
-        const conf = this.getConf();
-        conf[key] = value;
-        this.build(conf);
-    }
-
-    public add(key: string, toAdd: any) {
-        const conf = this.getConf();
-        const container = JSON.parse(JSON.stringify(conf[key]));
-
-        const walk = (parent: any, keys: string[], path: { name: string, type: string }[]) => {
-            for (const key of keys) {
-                const subs = Object.keys(parent[key]);
-                if (subs.length && !Array.isArray(parent[key])) {
-                    const type = 'object';
-                    const subPath = path.concat([{name: key, type}]);
-                    walk(parent[key], subs, subPath);
+        for (const key in confToMerge) {
+            if (confToMerge.hasOwnProperty(key)) {
+                if (currentConf[key]) {
+                    this.add(key, confToMerge[key]);
                 } else {
-                    let containerEl = container;
-                    for (const pathEl of path) {
-                        if (!containerEl.hasOwnProperty(pathEl.name)) {
-                            if (pathEl.type === 'object') {
-                                containerEl[pathEl.name] = {};
-                            } else {
-                                containerEl[pathEl.name] = [];
-                            }
-                        }
-
-                        containerEl = containerEl[pathEl.name];
-                    }
-                    containerEl[key] = parent[key];
+                    this.set(key, confToMerge[key]);
                 }
             }
-        };
+        }
+    }
 
-        walk(toAdd, Object.keys(toAdd), []);
-        conf[key] = container;
-
+    public set(keyToUpsert: string, value: any) {
+        const conf = this.getConf();
+        conf[keyToUpsert] = value;
         this.build(conf);
     }
 
+    public add(alreadyExistingKey: string, toAdd: any) {
+        const conf = this.getConf();
+        try {
+            const container = JSON.parse(JSON.stringify(conf[alreadyExistingKey]));
+
+            Configuration.Walk(container, toAdd, Object.keys(toAdd), []);
+            conf[alreadyExistingKey] = container;
+            this.build(conf);
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
     private build(configThatOverride: JSON | string) {
 
