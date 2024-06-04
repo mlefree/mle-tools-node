@@ -8,10 +8,15 @@ export class Configuration {
         this.build(configThatOverride);
     }
 
-    private static Walk(container: any, parent: any, keys: string[], path: { name: string, type: string }[]) {
+    protected static Walk(container: any, parent: any, keys: string[], path: { name: string, type: string }[]) {
         for (const key of keys) {
-            const subs = Object.keys(parent[key]);
-            if (subs.length && !Array.isArray(parent[key])) {
+
+            let subs = [];
+            if (typeof parent[key] === 'object' && !Array.isArray(parent[key])) {
+                subs = Object.keys(parent[key]);
+            }
+
+            if (subs.length) {
                 const type = 'object';
                 const subPath = path.concat([{name: key, type}]);
                 Configuration.Walk(container, parent[key], subs, subPath);
@@ -121,7 +126,7 @@ export class Configuration {
         }
     }
 
-    private build(configThatOverride: JSON | string) {
+    protected build(configThatOverride: JSON | string) {
 
         this.allValues = {};
 
