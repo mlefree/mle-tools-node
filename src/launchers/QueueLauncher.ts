@@ -99,7 +99,7 @@ export class QueueLauncher {
 
             const notExists = typeof this.runningWorkers[queueName] === 'undefined';
             if (notExists) {
-                this.runningWorkers[queueName] = [];
+                this.runningWorkers[queueName] = 0;
             }
 
             if (this.runningWorkers[queueName] <= concurrency) {
