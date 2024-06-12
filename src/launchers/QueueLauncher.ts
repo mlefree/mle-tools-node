@@ -8,8 +8,8 @@ import {AbstractWorkerStore} from './AbstractWorkerStore';
 export class QueueLauncher {
 
     private pollingTimer: PollingTimer
-    private readonly queueParams: any;
-    private readonly runningWorkers: any;
+    private queueParams: any;
+    private runningWorkers: any;
     private shouldStopAll: boolean;
 
     constructor(
@@ -19,9 +19,7 @@ export class QueueLauncher {
         protected workerStore: AbstractWorkerStore,
         pollingTimeInMilliSec = 100,
     ) {
-        this.queueParams = {};
-        this.runningWorkers = {};
-        this.shouldStopAll = false;
+        this.clean();
 
         this.pollingTimer = new PollingTimer(pollingTimeInMilliSec);
         this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
@@ -52,26 +50,36 @@ export class QueueLauncher {
 
     getQueueWaitingSize() {
         let length = 0;
-        for (const key of Object.keys(this.queueParams)) {
-            const queueLength = this.queueParams[key].length;
-            if (queueLength === 0) {
-                delete this.queueParams[key];
+        try {
+            for (const key of Object.keys(this.queueParams)) {
+                const queueLength = this.queueParams[key].length;
+                if (queueLength === 0) {
+                    delete this.queueParams[key];
+                }
+                length += queueLength;
             }
-            length += queueLength;
+            return length;
+        } catch (e) {
+            this.clean();
+            return 0;
         }
-        return length;
     }
 
     getQueueRunningSize() {
         let length = 0;
-        for (const key of Object.keys(this.runningWorkers)) {
-            const queueLength = this.runningWorkers[key];
-            if (queueLength === 0) {
-                delete this.runningWorkers[key];
+        try {
+            for (const key of Object.keys(this.runningWorkers)) {
+                const queueLength = this.runningWorkers[key];
+                if (queueLength === 0) {
+                    delete this.runningWorkers[key];
+                }
+                length += queueLength;
             }
-            length += queueLength;
+            return length;
+        } catch (e) {
+            this.clean();
+            return 0;
         }
-        return length;
     }
 
     stopAll(stop = true) {
@@ -157,5 +165,11 @@ export class QueueLauncher {
         }
 
         return {key, concurrency};
+    }
+
+    private clean() {
+        this.queueParams = {};
+        this.runningWorkers = {};
+        this.shouldStopAll = false;
     }
 }
