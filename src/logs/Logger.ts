@@ -156,7 +156,7 @@ export class Logger implements ILogger {
                 const {result, full} = await send(options);
                 done = result;
             } catch (error) {
-                console.error('MAIL ERROR:', error);
+                console.error('### MAIL ERROR:', error);
             }
         }
 

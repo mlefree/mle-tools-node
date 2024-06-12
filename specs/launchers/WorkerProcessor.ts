@@ -28,10 +28,10 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         bypassConnection = false
     ) {
         const processes = [
-            {fn: WorkerProcessor.sleep, looped: false, stopOnFailure: false},
-            {fn: WorkerProcessor.info, looped: false, stopOnFailure: true},
-            {fn: WorkerProcessor.fail, looped: true, stopOnFailure: true},
-            {fn: WorkerProcessor.throwError, looped: true, stopOnFailure: true},
+            {fn: WorkerProcessor.sleep, looped: false, stopOnFailure: false, keepInTheQueue: true},
+            {fn: WorkerProcessor.info, looped: false, stopOnFailure: true, keepInTheQueue: false},
+            {fn: WorkerProcessor.fail, looped: true, stopOnFailure: true, keepInTheQueue: false},
+            {fn: WorkerProcessor.throwError, looped: true, stopOnFailure: true, keepInTheQueue: true},
         ];
         super(name, workerData, processes, bypassConnection);
     }
@@ -90,10 +90,8 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         timeSpentComputing: number,
         timeSpentWaiting: number
     }) {
-        console.error('onEnd ?', done, stats);
+        console.error('### WorkerProcessor onEnd :', done, stats);
     }
 
 
 }
-
-

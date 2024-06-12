@@ -22,7 +22,8 @@ export class AbstractWorkerProcessor {
         protected processes: {
             fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
             looped: boolean,
-            stopOnFailure: boolean
+            stopOnFailure: boolean,
+            keepInTheQueue: boolean,
         }[],
         protected bypassConnection = false
     ) {
@@ -63,6 +64,7 @@ export class AbstractWorkerProcessor {
         this.getLogger().info(`>> Worker processNameOrdered: ${processNameOrdered}`);
 
         let count = 0;
+        let anotherTry = false;
         let allDone = true;
         for (const pn of processNameOrdered) {
             const process = this.processes.filter(p => p.fn.name === pn)[0];
@@ -76,16 +78,21 @@ export class AbstractWorkerProcessor {
                     const end = new Date();
                     this.perfTimeSpentComputing += end.getTime() - begin.getTime();
                 }
+
+                if (!ok) {
+                    allDone = false;
+                    anotherTry = process.keepInTheQueue;
+                }
             } catch (err) {
                 this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`);
                 ok = false;
+                allDone = false;
+                if (err.code === 404) {
+                    anotherTry = process.keepInTheQueue;
+                }
             }
 
             this.getLogger().info(`>> Worker ${process?.fn?.name} ok: "${ok}"`);
-
-            if (!ok) {
-                allDone = false;
-            }
 
             if (process.stopOnFailure && !ok) {
                 break;
@@ -93,14 +100,14 @@ export class AbstractWorkerProcessor {
             count++;
         }
 
-        this.getLogger().info(`>> Worker ${count} finished, allDone:"${allDone}"`);
+        this.getLogger().info(`>> Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
         const msg = await this.onEnd(allDone, await this.buildStats());
 
         if (connected && !this.bypassConnection) {
             await this.disconnect();
         }
 
-        return allDone;
+        return anotherTry;
     }
 
     getName(): string {

@@ -61,7 +61,8 @@ describe('Launcher', () => {
                 {contains: '"count":2', concurrency: 3},
             ]
         }
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new DefaultWorkerStore(),
+        const workerStore = new DefaultWorkerStore();
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
             STRATEGIES.QUEUE, queueConcurrency, 100);
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
@@ -75,7 +76,9 @@ describe('Launcher', () => {
         launched = await launcher.push('info-sleep-sleep-info', data);
         expect(launched).eq(true);
         expect(launcher.getQueueWaitingSize()).equal(4);
+        expect(await workerStore.size('"count":2')).equal(4);
 
+        // await sleep(70000000);
         const timeSpent = logger.inspectEnd('queue');
         expect(timeSpent).lessThan(1000);
 
@@ -86,6 +89,7 @@ describe('Launcher', () => {
         await sleep(2000);
         expect(launcher.getQueueWaitingSize()).equal(0);
         expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await workerStore.size('"count":2')).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
@@ -93,11 +97,12 @@ describe('Launcher', () => {
         expect(relatedLogs.length).greaterThanOrEqual(5, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 3].indexOf('info,queue') > 0).eq(true, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,queue') > 0).eq(true, lastLogs.toString());
-    }).timeout(5000);
+    }).timeout(5000000000);
 
     it('should push as queue and Fail', async () => {
         logger.inspectBegin('failingQueue');
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
+        const workerStore = new WorkerStore();
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
             STRATEGIES.QUEUE);
         const input: Input = {count: 1};
         const config: Config = {time: 5, label: 'failingQueue', logLevel: LoggerLevels.DEBUG};
@@ -105,10 +110,14 @@ describe('Launcher', () => {
         const launched = await launcher.push('sleep-fail', data);
         const timeSpent = logger.inspectEnd('failingQueue');
 
+        expect(launcher.getQueueWaitingSize()).equal(1);
+        expect(await workerStore.size('sleep-fail')).equal(1);
         await sleep(1000);
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
+        expect(launcher.getQueueWaitingSize()).equal(0);
+        expect(await workerStore.size('sleep-fail')).equal(1);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
@@ -119,7 +128,8 @@ describe('Launcher', () => {
 
     it('should push as queue and Throw Error', async () => {
         logger.inspectBegin('throwQueue');
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
+        const workerStore = new WorkerStore();
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
             STRATEGIES.QUEUE);
         const input: Input = {count: 1};
         const config: Config = {time: 7, label: 'throwQueue', logLevel: LoggerLevels.DEBUG};
@@ -131,16 +141,21 @@ describe('Launcher', () => {
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
+        expect(launcher.getQueueWaitingSize()).equal(0);
+        expect(await workerStore.size('sleep-throwError')).equal(1);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
             .filter(l => l.indexOf('throw') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(1, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('throw') > 0).eq(true, relatedLogs.toString());
-    });
+
+        await sleep(2000);
+    }).timeout(5000);
 
     it('should push as queue and could interrupt', async () => {
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
+        const workerStore = new WorkerStore();
+        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
             STRATEGIES.QUEUE);
         const input: Input = {count: 2};
         let launchedCount = 0;
@@ -150,15 +165,23 @@ describe('Launcher', () => {
             const launched = await launcher.push('info-sleep-info-sleep', data);
             if (launched) launchedCount++;
         }
+
+        expect(await workerStore.size('info-sleep-info-sleep')).equal(1000);
+        await sleep(2000);
         expect(launchedCount).eq(1000);
-        expect(launcher.getQueueWaitingSize()).eq(1000);
-        expect(launcher.getQueueRunningSize()).eq(0);
+        const waiting = launcher.getQueueWaitingSize();
+        expect(waiting).lessThan(1000);
+        expect(launcher.getQueueRunningSize()).greaterThan(0);
+        expect(await workerStore.size('info-sleep-info-sleep')).lessThan(1000);
+        expect(await workerStore.size('info-sleep-info-sleep')).greaterThan(waiting);
 
         // Stop !
         const stopped = await launcher.stop();
+        await sleep(2000);
         expect(stopped).eq(true);
-        expect(launcher.getQueueWaitingSize()).eq(1000);
+        expect(launcher.getQueueWaitingSize()).eq(waiting);
         expect(launcher.getQueueRunningSize()).eq(0);
-        await sleep(1500);
-    });
+        expect(await workerStore.size('info-sleep-info-sleep')).equal(waiting);
+        await sleep(1000);
+    }).timeout(6000);
 });

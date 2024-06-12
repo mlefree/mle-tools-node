@@ -9,4 +9,16 @@ export class AbstractWorkerStore {
     async take(queueName: string): Promise<any> {
         throw new MError('Not implemented');
     };
+
+    async release(queueName: string, params: any): Promise<void> {
+        throw new MError('Not implemented');
+    };
+
+    async remove(queueName: string, params: any): Promise<void> {
+        throw new MError('Not implemented');
+    };
+
+    async size(queueName: string): Promise<number> {
+        throw new MError('Not implemented');
+    };
 }

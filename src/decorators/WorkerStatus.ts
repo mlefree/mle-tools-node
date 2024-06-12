@@ -91,10 +91,10 @@ export class WorkerStatus {
     }
 
     async hasSomethingInProgress() {
-        let worker = await this.workerModel.findOne({_id: this.workerInstance._id}).populate('statusWorkers');
+        const worker = await this.workerModel.findOne({_id: this.workerInstance._id}).populate('statusWorkers');
 
         let oneIsNotFinished = false;
-        for (let statusWorker of worker.statusWorkers) {
+        for (const statusWorker of worker.statusWorkers) {
             if (statusWorker.status !== 1) {
                 oneIsNotFinished = true;
             }
@@ -116,7 +116,7 @@ export class WorkerStatus {
             await this.workerInstance.save();
         }
 
-        let workerUpdate = {
+        const workerUpdate = {
             'statusWorkers.$[i].status': step,
             'statusWorkers.$[i].explanation': explanation,
             'statusWorkers.$[i].updated': now,
@@ -127,7 +127,7 @@ export class WorkerStatus {
 
         await this.workerModel.updateOne({_id: this.workerInstance._id}, workerUpdate, {arrayFilters: [{'i.name': this.name}]});
 
-        let resp = await this.workerModel.findOne({_id: this.workerInstance._id, 'statusWorkers.status': {$lt: step}},
+        const resp = await this.workerModel.findOne({_id: this.workerInstance._id, 'statusWorkers.status': {$lt: step}},
             {'statusWorkers.$': 1});
         if (resp) {
             allWorkersAreAtLeastOnTheSameStatus = false;

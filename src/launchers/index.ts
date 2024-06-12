@@ -6,3 +6,4 @@ export * from './AbstractWorkerProcessor';
 export * from './AbstractWorkerStore';
 export * from './Launcher';
 export * from './QueueConcurrency';
+export * from './DefaultWorkerStore';

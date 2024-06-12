@@ -13,7 +13,7 @@ export class QueueLauncher {
     private shouldStopAll: boolean;
 
     constructor(
-        protected queueWorker: Function,
+        protected queueWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => void,
         protected loggerFactory: LoggerFactory,
         protected concurrency: QueueConcurrency,
         protected workerStore: AbstractWorkerStore,
@@ -78,15 +78,26 @@ export class QueueLauncher {
         this.shouldStopAll = stop;
     }
 
+    async end(queueName: string, params: IWorkerParams) {
+        await this.workerStore.remove(queueName, params);
+        this.runningWorkers[queueName]--;
+    }
+
+    async error(queueName: string, params: IWorkerParams) {
+        await this.workerStore.release(queueName, params);
+        this.runningWorkers[queueName]--;
+    }
+
     private async pollerCallback() {
         if (this.shouldStopAll) {
             return;
         }
 
-        for (const queueName in this.queueParams) {
+        for (const [queueName, value] of Object.entries(this.queueParams)) {
+
             const {concurrency} = this.getKeyConcurrency(this.queueParams[queueName]);
 
-            let notExists = typeof this.runningWorkers[queueName] === 'undefined';
+            const notExists = typeof this.runningWorkers[queueName] === 'undefined';
             if (notExists) {
                 this.runningWorkers[queueName] = [];
             }
@@ -102,8 +113,15 @@ export class QueueLauncher {
 
                     this.runningWorkers[queueName]++;
                     this.queueWorker(params, () => {
-                        this.runningWorkers[queueName]--;
-                    });
+                            this.end(queueName, params);
+                        },
+                        (code) => {
+                            if (code === 1) {
+                                this.error(queueName, params);
+                            } else {
+                                this.end(queueName, params);
+                            }
+                        });
                 }
             }
         }

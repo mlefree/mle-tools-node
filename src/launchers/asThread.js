@@ -17,9 +17,14 @@ const {isMainThread, workerData} = require('worker_threads');
     const {WorkerProcessor} = require(wpp);
     try {
         const processor = new WorkerProcessor(wn + '-t-' + wi, wd, false);
-        const result = await processor.launch();
+        const needRetry = await processor.launch();
+        console.error('### Thread needRetry:', needRetry);
+        if (needRetry) {
+            process.exit(1);
+        }
     } catch (err) {
-        console.error('### Thread fail:', err)
+        console.error('### Thread fail:', err);
+        process.exit(2);
     }
     process.exit(0);
 })();
