@@ -55,12 +55,20 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
     }
 
 
-    async size(queueName: string): Promise<number> {
-        if (!this.queues[queueName]) {
+    async size(queueName?: string): Promise<number> {
+        if (queueName && !this.queues[queueName]) {
             console.error('### WorkerStore queues issue:', this.queues);
             return -1;
         }
 
+        if (!queueName) {
+            return (Object.values(this.queues) as any[]).reduce((p: number, e: Array<any>) => p + e.length, 0);
+        }
+
         return this.queues[queueName].length;
+    }
+
+    async getNames(): Promise<string[]> {
+        return Object.keys(this.queues);
     }
 }

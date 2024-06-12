@@ -80,18 +80,35 @@ export class QueueLauncher {
 
     async end(queueName: string, params: IWorkerParams) {
         await this.workerStore.remove(queueName, params);
-        this.runningWorkers[queueName]--;
+
+        if (this.runningWorkers[queueName]) {
+            this.runningWorkers[queueName]--;
+        }
     }
 
     async error(queueName: string, params: IWorkerParams) {
         await this.workerStore.release(queueName, params);
-        this.runningWorkers[queueName]--;
+
+        if (this.runningWorkers[queueName]) {
+            this.runningWorkers[queueName]--;
+        }
+    }
+
+    private async syncQueueNamesFromStore() {
+        const queueNames = await this.workerStore.getNames();
+        for (const queueName of queueNames) {
+            if (!this.queueParams[queueName]) {
+                this.queueParams[queueName] = [];
+            }
+        }
     }
 
     private async pollerCallback() {
         if (this.shouldStopAll) {
             return;
         }
+
+        await this.syncQueueNamesFromStore();
 
         for (const [queueName, value] of Object.entries(this.queueParams)) {
 

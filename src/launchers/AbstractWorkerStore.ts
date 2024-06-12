@@ -18,7 +18,11 @@ export class AbstractWorkerStore {
         throw new MError('Not implemented');
     };
 
-    async size(queueName: string): Promise<number> {
+    async size(queueName?: string): Promise<number> {
         throw new MError('Not implemented');
     };
+
+    async getNames(): Promise<string[]> {
+        throw new MError('Not implemented');
+    }
 }

@@ -36,8 +36,7 @@ export class Launcher {
                workerInstance: string = ''): Promise<boolean> {
 
         if (this.getQueueRunningSize() === 0) {
-            this.queueLauncher?.stopAll(false)
-            AbstractWorkerProcessor.ForceStop(false);
+            await this.resume();
         }
 
         const params: IWorkerParams = {
@@ -86,6 +85,12 @@ export class Launcher {
     async stop() {
         this.queueLauncher?.stopAll();
         AbstractWorkerProcessor.ForceStop();
+        return true;
+    }
+
+    async resume() {
+        this.queueLauncher?.stopAll(false);
+        AbstractWorkerProcessor.ForceStop(false);
         return true;
     }
 }

@@ -77,6 +77,7 @@ describe('Launcher', () => {
         expect(launched).eq(true);
         expect(launcher.getQueueWaitingSize()).equal(4);
         expect(await workerStore.size('"count":2')).equal(4);
+        expect(await workerStore.size()).equal(4);
 
         // await sleep(70000000);
         const timeSpent = logger.inspectEnd('queue');
@@ -90,6 +91,7 @@ describe('Launcher', () => {
         expect(launcher.getQueueWaitingSize()).equal(0);
         expect(launcher.getQueueRunningSize()).equal(0);
         expect(await workerStore.size('"count":2')).equal(0);
+        expect(await workerStore.size()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
