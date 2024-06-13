@@ -1,7 +1,7 @@
 import {IWorkerData} from './IWorkerData';
 
 export interface IWorkerParams {
-    workerDescription: string,
+    workerProcesses: string[],
     workerInstance: string,
     workerData: IWorkerData,
     workerProcessorPathFile: string,

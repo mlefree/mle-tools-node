@@ -7,7 +7,7 @@ const {isMainThread, workerData} = require('worker_threads');
     }
 
     const params = workerData;
-    const wn = params.workerDescription;
+    const wn = params.workerProcesses.join('-');
     const wi = params.workerInstance;
     const wd = params.workerData;
     const wpp = params.workerProcessorPathFile;

@@ -7,4 +7,5 @@
 - 1.4.x: new Queue storing/polling mechanism
 - 1.5.x: TimeTracking middleware
 - 1.6.x: Configuration merge extended
-- 1.7.x: Launcher and Queue new features: resume, remove 
+- 1.7.x: Launcher and Queue new features: resume, remove
+- 1.8.x: Launcher and Queue simplified 

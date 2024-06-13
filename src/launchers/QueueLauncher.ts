@@ -1,4 +1,3 @@
-// import Queue from 'queue';
 import PollingTimer from 'polling-timer';
 import {LoggerFactory} from '../logs';
 import {IWorkerParams} from './IWorkerParams';
@@ -8,12 +7,13 @@ import {AbstractWorkerStore} from './AbstractWorkerStore';
 export class QueueLauncher {
 
     private pollingTimer: PollingTimer
-    private queueParams: any;
+    private queueNames: string[];
     private runningWorkers: any;
     private shouldStopAll: boolean;
 
     constructor(
-        protected queueWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => void,
+        protected directWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => Promise<void>,
+        protected threadWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => void,
         protected loggerFactory: LoggerFactory,
         protected concurrency: QueueConcurrency,
         protected workerStore: AbstractWorkerStore,
@@ -26,56 +26,24 @@ export class QueueLauncher {
         this.pollingTimer.start();
     }
 
-    add(params: IWorkerParams) {
-        this.loggerFactory.getLogger().info('### Queue Lengths:', this.getQueueWaitingSize(), this.getQueueRunningSize());
-
-        const {key, concurrency} = this.getKeyConcurrency(params);
-
-        const paramsAsString = JSON.stringify(params);
-        let notExists = typeof this.queueParams[key] === 'undefined';
-        if (notExists) {
-            this.queueParams[key] = [];
-        } else {
-            notExists = this.queueParams[key].indexOf(paramsAsString) < 0;
-        }
-
-        if (notExists) {
-            this.queueParams[key].push(paramsAsString);
-            this.workerStore.push(key, params).then(ignored => {
-            });
-        } else {
-            this.loggerFactory.getLogger().info('### Queue duplicate', paramsAsString);
-        }
+    async add(params: IWorkerParams) {
+        this.loggerFactory.getLogger().info('### Queue Lengths:', this.getQueueRunningSize());
+        await this.workerStore.push(params.workerProcesses.join('-'), params);
     }
 
-    getQueueWaitingSize() {
-        let length = 0;
-        try {
-            for (const key of Object.keys(this.queueParams)) {
-                let queueLength = this.queueParams[key].length;
-                if (!queueLength) {
-                    delete this.queueParams[key];
-                    queueLength = 0;
-                }
-                length += queueLength;
-            }
-            return length;
-        } catch (e) {
-            this.clean();
-            return 0;
-        }
+    async getStoreRunningSize() {
+        return this.workerStore.size({inProgress: true});
+    }
+
+    async getStoreWaitingSize() {
+        return this.workerStore.size({inProgress: false});
     }
 
     getQueueRunningSize() {
         let length = 0;
         try {
             for (const key of Object.keys(this.runningWorkers)) {
-                let queueLength = this.runningWorkers[key];
-                if (!queueLength) {
-                    delete this.runningWorkers[key];
-                    queueLength = 0;
-                }
-                length += queueLength;
+                length += this.runningWorkers[key] ? this.runningWorkers[key] : 0;
             }
             return length;
         } catch (e) {
@@ -94,6 +62,11 @@ export class QueueLauncher {
         if (this.runningWorkers[queueName]) {
             this.runningWorkers[queueName]--;
         }
+        if (this.runningWorkers[queueName] === 0) {
+            delete this.runningWorkers[queueName];
+            this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
+        }
+
     }
 
     async error(queueName: string, params: IWorkerParams) {
@@ -102,15 +75,19 @@ export class QueueLauncher {
         if (this.runningWorkers[queueName]) {
             this.runningWorkers[queueName]--;
         }
+        if (this.runningWorkers[queueName] === 0) {
+            delete this.runningWorkers[queueName];
+            this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
+        }
     }
 
-    private async syncQueueNamesFromStore() {
-        const queueNames = await this.workerStore.getNames();
-        for (const queueName of queueNames) {
-            if (!this.queueParams[queueName]) {
-                this.queueParams[queueName] = [];
-            }
+    private async syncQueuesFromStore() {
+        if (this.queueNames.length) {
+            return;
         }
+
+        this.clean();
+        this.queueNames = await this.workerStore.getNamesAfterMemoryCleanUp();
     }
 
     private async pollerCallback() {
@@ -118,49 +95,66 @@ export class QueueLauncher {
             return;
         }
 
-        await this.syncQueueNamesFromStore();
+        await this.syncQueuesFromStore();
 
-        for (const [queueName, value] of Object.entries(this.queueParams)) {
+        for (const queueName of this.queueNames) {
 
-            const {concurrency} = this.getKeyConcurrency(this.queueParams[queueName]);
-
+            // check concurrency limit
+            const {concurrency} = this.getKeyConcurrency(queueName);
             const notExists = typeof this.runningWorkers[queueName] === 'undefined';
             if (notExists) {
                 this.runningWorkers[queueName] = 0;
             }
+            if (this.runningWorkers[queueName] > concurrency) {
+                continue;
+            }
 
-            if (this.runningWorkers[queueName] <= concurrency) {
-                const params = await this.workerStore.take(queueName);
-                if (params) {
-                    const paramsAsString = JSON.stringify(params);
-                    const toRemove = this.queueParams[queueName].indexOf(paramsAsString);
-                    if (toRemove >= 0) {
-                        this.queueParams[queueName].splice(toRemove, 1);
-                    }
+            const params = await this.workerStore.take(queueName);
+            if (!params) {
+                continue;
+            }
 
-                    this.runningWorkers[queueName]++;
-                    this.queueWorker(params, () => {
+            this.runningWorkers[queueName]++;
+
+            const {WorkerProcessor} = require(params.workerProcessorPathFile);
+            const allProcesses = WorkerProcessor.GetProcesses();
+            const processes = allProcesses.filter(p => params.workerProcesses.indexOf(p.fn.name) > -1);
+            const needTread = processes.filter(p => p.inThreadIfPossible).length > 0;
+            if (needTread && this.threadWorker) {
+                this.threadWorker(params,
+                    () => {
+                        this.end(queueName, params);
+                    },
+                    (code) => {
+                        if (code === 1) {
+                            this.error(queueName, params);
+                        } else {
                             this.end(queueName, params);
-                        },
-                        (code) => {
-                            if (code === 1) {
-                                this.error(queueName, params);
-                            } else {
-                                this.end(queueName, params);
-                            }
-                        });
-                }
+                        }
+                    });
+            } else {
+                await this.directWorker(params,
+                    () => {
+                        this.end(queueName, params);
+                    },
+                    (code) => {
+                        if (code === 1) {
+                            this.error(queueName, params);
+                        } else {
+                            this.end(queueName, params);
+                        }
+                    });
             }
         }
     }
 
-    private getKeyConcurrency(params: IWorkerParams) {
-        const paramsAsString = JSON.stringify(params);
+    private getKeyConcurrency(key: string) {
+        // const paramsAsString = JSON.stringify(params);
 
-        let key = '' + params.workerDescription;
+        // let key = params.workerProcesses.join('-');
         let concurrency = this.concurrency.default;
         for (const filter of this.concurrency.keys) {
-            if (paramsAsString.indexOf(filter.contains) >= 0) {
+            if (key.indexOf(filter.contains) >= 0) {
                 key = filter.contains;
                 concurrency = filter.concurrency;
             }
@@ -170,7 +164,7 @@ export class QueueLauncher {
     }
 
     private clean() {
-        this.queueParams = {};
+        this.queueNames = [];
         this.runningWorkers = {};
         this.shouldStopAll = false;
     }

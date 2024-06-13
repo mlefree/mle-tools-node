@@ -18,20 +18,26 @@ const CONCURRENCY = 3;
 export class Launcher {
     private readonly queueLauncher: QueueLauncher;
 
+    private readonly directWorker: any;
+
     constructor(
-        public workerProcessorPathFile: any,
+        public workerProcessorPathFile: string,
         public workerStore: AbstractWorkerStore = new DefaultWorkerStore(),
         public threadStrategy: string = STRATEGIES.DIRECT,
         protected queueConcurrency: QueueConcurrency = {default: CONCURRENCY, keys: []},
         pollingTimeInMilliSec = 500,
     ) {
+        this.directWorker = require('./asDirect');
+        let threadWorker = null;
+
         if (this.threadStrategy === STRATEGIES.QUEUE) {
-            this.queueLauncher = new QueueLauncher(require('./asQueue'),
+            threadWorker = require('./asThreadWorker');
+            this.queueLauncher = new QueueLauncher(this.directWorker, threadWorker,
                 loggerFactory, this.queueConcurrency, this.workerStore, pollingTimeInMilliSec);
         }
     }
 
-    async push(workerDescription: string,
+    async push(workerProcesses: string[],
                workerData: IWorkerData,
                workerInstance: string = ''): Promise<boolean> {
 
@@ -40,7 +46,7 @@ export class Launcher {
         }
 
         const params: IWorkerParams = {
-            workerDescription,
+            workerProcesses,
             workerInstance,
             workerData,
             workerProcessorPathFile: this.workerProcessorPathFile,
@@ -48,15 +54,14 @@ export class Launcher {
         loggerFactory.getLogger().info('Launcher.push:', JSON.stringify(params));
 
         try {
-            if (this.threadStrategy === STRATEGIES.QUEUE && this.queueLauncher) {
-                this.queueLauncher.add(params);
+            if (this.queueLauncher) {
+                await this.queueLauncher.add(params);
             } else if (this.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
                 const {Worker} = require('worker_threads');
                 const newWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
             } else {
-                const directWorker = require('./asDirect');
-                await directWorker(params);
+                await this.directWorker(params);
             }
             return true;
         } catch (err) {
@@ -66,12 +71,20 @@ export class Launcher {
         return false;
     }
 
-    getQueueWaitingSize(): number {
+    async getStoreWaitingSize() {
         if (!this.queueLauncher) {
             return 0;
         }
 
-        return this.queueLauncher.getQueueWaitingSize();
+        return this.queueLauncher.getStoreWaitingSize();
+    }
+
+    async getStoreRunningSize() {
+        if (!this.queueLauncher) {
+            return 0;
+        }
+
+        return this.queueLauncher.getStoreRunningSize();
     }
 
     getQueueRunningSize(): number {

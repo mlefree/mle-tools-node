@@ -27,23 +27,26 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         workerData: IWorkerData,
         bypassConnection = false
     ) {
-        const processes = [
-            {fn: WorkerProcessor.sleep, looped: false, stopOnFailure: false, keepInTheQueue: true},
-            {fn: WorkerProcessor.info, looped: false, stopOnFailure: true, keepInTheQueue: false},
-            {fn: WorkerProcessor.fail, looped: true, stopOnFailure: true, keepInTheQueue: false},
-            {fn: WorkerProcessor.throwError, looped: true, stopOnFailure: true, keepInTheQueue: true},
-        ];
-        super(name, workerData, processes, bypassConnection);
+        super(name, workerData, bypassConnection);
     }
 
-    // Static processes following pattern:
-    //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
+    static GetProcesses() {
+        return [
+            {fn: WorkerProcessor.sleep, looped: false, stopOnFailure: false, keepInTheQueue: true, inThreadIfPossible: false},
+            {fn: WorkerProcessor.info, looped: false, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
+            {fn: WorkerProcessor.fail, looped: true, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
+            {fn: WorkerProcessor.throwError, looped: true, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
+        ];
+    }
 
     static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
         logger.info('sleep', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
+
+    // Static processes following pattern:
+    //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
     static async info(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
         return logger.info('info', inputs.messageToWrite);
@@ -60,6 +63,10 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     // To implement :
+
+    getProcesses() {
+        return WorkerProcessor.GetProcesses();
+    }
 
     protected initLogger(config: any): Logger {
         loggerFactory.setUp(true, config.logLevel, config.logLevel);

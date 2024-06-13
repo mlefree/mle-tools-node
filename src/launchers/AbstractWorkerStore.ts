@@ -1,28 +1,29 @@
 import {MError} from '../errors';
+import {IWorkerParams} from './IWorkerParams';
 
 export class AbstractWorkerStore {
 
-    async push(queueName: string, params: any) {
+    async push(queueName: string, params: IWorkerParams) {
         throw new MError('Not implemented');
     };
 
-    async take(queueName: string): Promise<any> {
+    async take(queueName: string): Promise<IWorkerParams> {
         throw new MError('Not implemented');
     };
 
-    async release(queueName: string, params: any): Promise<void> {
+    async release(queueName: string, params: IWorkerParams): Promise<void> {
         throw new MError('Not implemented');
     };
 
-    async remove(queueName: string, params: any): Promise<void> {
+    async remove(queueName: string, params: IWorkerParams): Promise<void> {
         throw new MError('Not implemented');
     };
 
-    async size(queueName?: string): Promise<number> {
+    async size(options?: { queueName?: string, inProgress?: boolean }): Promise<number> {
         throw new MError('Not implemented');
     };
 
-    async getNames(): Promise<string[]> {
+    async getNamesAfterMemoryCleanUp(): Promise<string[]> {
         throw new MError('Not implemented');
     }
 }

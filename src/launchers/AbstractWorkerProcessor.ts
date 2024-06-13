@@ -12,6 +12,13 @@ export class AbstractWorkerProcessor {
     protected config: any;
     protected input: any;
     protected logger: Logger;
+    protected processes: {
+        fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
+        looped: boolean,
+        stopOnFailure: boolean,
+        keepInTheQueue: boolean,
+        inThreadIfPossible: boolean,
+    }[];
     private perfBegin: Date;
     private perfTimeSpentComputing: number;
     private perfTimeSpentWaiting: number;
@@ -19,12 +26,6 @@ export class AbstractWorkerProcessor {
     constructor(
         protected name: string,
         protected workerData: IWorkerData,
-        protected processes: {
-            fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
-            looped: boolean,
-            stopOnFailure: boolean,
-            keepInTheQueue: boolean,
-        }[],
         protected bypassConnection = false
     ) {
         this.config = workerData?.config ? workerData.config : {};
@@ -32,6 +33,7 @@ export class AbstractWorkerProcessor {
         this.perfBegin = new Date();
         this.perfTimeSpentComputing = 0;
         this.perfTimeSpentWaiting = 0;
+        this.processes = this.getProcesses();
     }
 
     static CheckIfItShouldStop(): boolean {
@@ -112,6 +114,16 @@ export class AbstractWorkerProcessor {
 
     getName(): string {
         return '' + this.name;
+    }
+
+    getProcesses(): {
+        fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
+        looped: boolean,
+        stopOnFailure: boolean,
+        keepInTheQueue: boolean,
+        inThreadIfPossible: boolean,
+    }[] {
+        throw new Error('to implement');
     }
 
     protected async loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
