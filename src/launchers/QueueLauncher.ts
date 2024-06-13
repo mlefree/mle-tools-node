@@ -32,11 +32,21 @@ export class QueueLauncher {
     }
 
     async getStoreRunningSize() {
-        return this.workerStore.size({inProgress: true});
+        try {
+            return this.workerStore.size({inProgress: true});
+        } catch (e) {
+            this.clean();
+            return 0;
+        }
     }
 
     async getStoreWaitingSize() {
-        return this.workerStore.size({inProgress: false});
+        try {
+            return this.workerStore.size({inProgress: false});
+        } catch (e) {
+            this.clean();
+            return 0;
+        }
     }
 
     getQueueRunningSize() {
@@ -53,6 +63,9 @@ export class QueueLauncher {
     }
 
     stopAll(stop = true) {
+        if (stop) {
+            this.clean();
+        }
         this.shouldStopAll = stop;
     }
 
