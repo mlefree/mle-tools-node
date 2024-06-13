@@ -52,9 +52,10 @@ export class QueueLauncher {
         let length = 0;
         try {
             for (const key of Object.keys(this.queueParams)) {
-                const queueLength = this.queueParams[key].length;
-                if (queueLength === 0) {
+                let queueLength = this.queueParams[key].length;
+                if (!queueLength) {
                     delete this.queueParams[key];
+                    queueLength = 0;
                 }
                 length += queueLength;
             }
@@ -69,9 +70,10 @@ export class QueueLauncher {
         let length = 0;
         try {
             for (const key of Object.keys(this.runningWorkers)) {
-                const queueLength = this.runningWorkers[key];
-                if (queueLength === 0) {
+                let queueLength = this.runningWorkers[key];
+                if (!queueLength) {
                     delete this.runningWorkers[key];
+                    queueLength = 0;
                 }
                 length += queueLength;
             }
