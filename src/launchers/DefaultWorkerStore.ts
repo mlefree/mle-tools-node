@@ -1,5 +1,6 @@
 import {AbstractWorkerStore} from './AbstractWorkerStore';
 import {IWorkerParams} from './IWorkerParams';
+import {loggerFactory} from '../logs';
 
 export class DefaultWorkerStore extends AbstractWorkerStore {
     private queues = {};
@@ -69,7 +70,7 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         inProgress?: boolean
     }): Promise<number> {
         if (options?.queueName && !this.queues[options.queueName]) {
-            console.error('### WorkerStore queues issue:', this.queues);
+            loggerFactory.getLogger().error('### WorkerStore queues issue:', this.queues);
             return -1;
         }
 

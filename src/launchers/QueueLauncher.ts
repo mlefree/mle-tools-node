@@ -1,5 +1,5 @@
 import PollingTimer from 'polling-timer';
-import {LoggerFactory} from '../logs';
+import {Logger} from '../logs';
 import {IWorkerParams} from './IWorkerParams';
 import {QueueConcurrency} from './QueueConcurrency';
 import {AbstractWorkerStore} from './AbstractWorkerStore';
@@ -14,39 +14,27 @@ export class QueueLauncher {
     constructor(
         protected directWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => Promise<void>,
         protected threadWorker: (params: any, onEnd: () => void, onError: (code: number) => void) => void,
-        protected loggerFactory: LoggerFactory,
-        protected concurrency: QueueConcurrency,
-        protected workerStore: AbstractWorkerStore,
-        pollingTimeInMilliSec = 100,
+        protected logger: Logger,
+        protected options: {
+            workerProcessorPathFile: string,
+            workerStore: AbstractWorkerStore,
+            queueConcurrency: QueueConcurrency,
+            pollingTimeInMilliSec: number,
+            disablePolling: boolean,
+        }
     ) {
         this.clean();
 
-        this.pollingTimer = new PollingTimer(pollingTimeInMilliSec);
-        this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
-        this.pollingTimer.start();
+        if (!this.options.disablePolling) {
+            this.pollingTimer = new PollingTimer(this.options.pollingTimeInMilliSec);
+            this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
+            this.pollingTimer.start();
+        }
     }
 
     async add(params: IWorkerParams) {
-        this.loggerFactory.getLogger().info('### Queue Lengths:', this.getQueueRunningSize());
-        await this.workerStore.push(params.workerProcesses.join('-'), params);
-    }
-
-    async getStoreRunningSize() {
-        try {
-            return this.workerStore.size({inProgress: true});
-        } catch (e) {
-            this.clean();
-            return 0;
-        }
-    }
-
-    async getStoreWaitingSize() {
-        try {
-            return this.workerStore.size({inProgress: false});
-        } catch (e) {
-            this.clean();
-            return 0;
-        }
+        // this.logger.info('### Queue Lengths:', this.getQueueRunningSize());
+        await this.options.workerStore.push(params.workerProcesses.join('-'), params);
     }
 
     getQueueRunningSize() {
@@ -70,7 +58,7 @@ export class QueueLauncher {
     }
 
     async end(queueName: string, params: IWorkerParams) {
-        await this.workerStore.remove(queueName, params);
+        await this.options.workerStore.remove(queueName, params);
 
         if (this.runningWorkers[queueName]) {
             this.runningWorkers[queueName]--;
@@ -83,7 +71,7 @@ export class QueueLauncher {
     }
 
     async error(queueName: string, params: IWorkerParams) {
-        await this.workerStore.release(queueName, params);
+        await this.options.workerStore.release(queueName, params);
 
         if (this.runningWorkers[queueName]) {
             this.runningWorkers[queueName]--;
@@ -94,13 +82,19 @@ export class QueueLauncher {
         }
     }
 
+    public clean() {
+        this.queueNames = [];
+        this.runningWorkers = {};
+        this.shouldStopAll = false;
+    }
+
     private async syncQueuesFromStore() {
         if (this.queueNames.length) {
             return;
         }
 
         this.clean();
-        this.queueNames = await this.workerStore.getNamesAfterMemoryCleanUp();
+        this.queueNames = await this.options.workerStore.getNamesAfterMemoryCleanUp();
     }
 
     private async pollerCallback() {
@@ -122,17 +116,28 @@ export class QueueLauncher {
                 continue;
             }
 
-            const params = await this.workerStore.take(queueName);
+            const params = await this.options.workerStore.take(queueName);
             if (!params) {
+                this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
                 continue;
             }
 
             this.runningWorkers[queueName]++;
+            if (!params.workerProcesses) { // TODO remove transition workerDescription => workerProcesses
+                params.workerProcesses = ['' + params['workerDescription'] ? params['workerDescription'] : ''];
+            }
+            params.workerProcessorPathFile = this.options.workerProcessorPathFile;
 
-            const {WorkerProcessor} = require(params.workerProcessorPathFile);
-            const allProcesses = WorkerProcessor.GetProcesses();
-            const processes = allProcesses.filter(p => params.workerProcesses.indexOf(p.fn.name) > -1);
-            const needTread = processes.filter(p => p.inThreadIfPossible).length > 0;
+            let needTread = false;
+            try {
+                const {WorkerProcessor} = require(this.options.workerProcessorPathFile);
+                const allProcesses = WorkerProcessor.GetProcesses();
+                const processes = allProcesses.filter(p => params.workerProcesses.indexOf(p.fn.name) > -1);
+                needTread = processes.filter(p => p.inThreadIfPossible).length > 0;
+            } catch (e) {
+                this.logger.warn('queue workerProcessor issue:', e);
+            }
+
             if (needTread && this.threadWorker) {
                 this.threadWorker(params,
                     () => {
@@ -145,8 +150,8 @@ export class QueueLauncher {
                             this.end(queueName, params);
                         }
                     });
-            } else {
-                await this.directWorker(params,
+            } else if (this.directWorker) {
+                this.directWorker(params,
                     () => {
                         this.end(queueName, params);
                     },
@@ -156,17 +161,15 @@ export class QueueLauncher {
                         } else {
                             this.end(queueName, params);
                         }
-                    });
+                    }).then(ignored => {
+                });
             }
         }
     }
 
     private getKeyConcurrency(key: string) {
-        // const paramsAsString = JSON.stringify(params);
-
-        // let key = params.workerProcesses.join('-');
-        let concurrency = this.concurrency.default;
-        for (const filter of this.concurrency.keys) {
+        let concurrency = this.options.queueConcurrency.default;
+        for (const filter of this.options.queueConcurrency.keys) {
             if (key.indexOf(filter.contains) >= 0) {
                 key = filter.contains;
                 concurrency = filter.concurrency;
@@ -174,11 +177,5 @@ export class QueueLauncher {
         }
 
         return {key, concurrency};
-    }
-
-    private clean() {
-        this.queueNames = [];
-        this.runningWorkers = {};
-        this.shouldStopAll = false;
     }
 }

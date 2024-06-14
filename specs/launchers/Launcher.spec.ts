@@ -19,7 +19,9 @@ describe('Launcher', () => {
         const input: Input = {count: 10};
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts');
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts'
+        });
         const done = await launcher.push(['info', 'sleep', 'info'], data);
 
         const timeSpent = logger.inspectEnd('direct');
@@ -29,8 +31,11 @@ describe('Launcher', () => {
 
     it('should push as thread', async () => {
         logger.inspectBegin('thread');
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', new WorkerStore(),
-            STRATEGIES.THREAD);
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerStore: new WorkerStore(),
+            threadStrategy: STRATEGIES.THREAD
+        });
         const input: Input = {count: 2};
         const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
@@ -61,8 +66,13 @@ describe('Launcher', () => {
             ]
         }
         const workerStore = new DefaultWorkerStore();
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
-            STRATEGIES.QUEUE, queueConcurrency, 100);
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
+            queueConcurrency,
+            pollingTimeInMilliSec: 100
+        });
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
@@ -76,7 +86,7 @@ describe('Launcher', () => {
         expect(launched).eq(true);
         expect(await launcher.getStoreWaitingSize()).equal(4);
         expect(await launcher.getStoreRunningSize()).equal(0);
-        expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
 
         // await sleep(70000000);
         const timeSpent = logger.inspectEnd('queue');
@@ -86,11 +96,11 @@ describe('Launcher', () => {
         await sleep(700);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(4);
-        expect(launcher.getQueueRunningSize()).equal(4);
+        expect(await launcher.getQueueRunningSize()).equal(4);
         await sleep(2000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(0);
-        expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
@@ -103,8 +113,11 @@ describe('Launcher', () => {
     it('should push as queue and Fail', async () => {
         logger.inspectBegin('failingQueue');
         const workerStore = new WorkerStore();
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
-            STRATEGIES.QUEUE);
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE
+        });
         const input: Input = {count: 1};
         const config: Config = {time: 5, label: 'failingQueue', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
@@ -113,14 +126,14 @@ describe('Launcher', () => {
 
         expect(await launcher.getStoreWaitingSize()).equal(1);
         expect(await launcher.getStoreRunningSize()).equal(0);
-        expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
         await sleep(1000);
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(1);
-        expect(launcher.getQueueRunningSize()).equal(1);
+        expect(await launcher.getQueueRunningSize()).equal(1);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
@@ -132,8 +145,10 @@ describe('Launcher', () => {
     it('should push as queue and Throw Error', async () => {
         logger.inspectBegin('throwQueue');
         const workerStore = new WorkerStore();
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
-            STRATEGIES.QUEUE);
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts', workerStore,
+            threadStrategy: STRATEGIES.QUEUE
+        });
         const input: Input = {count: 1};
         const config: Config = {time: 7, label: 'throwQueue', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
@@ -146,7 +161,7 @@ describe('Launcher', () => {
         expect(timeSpent).lessThan(1000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(1);
-        expect(launcher.getQueueRunningSize()).equal(1);
+        expect(await launcher.getQueueRunningSize()).equal(1);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
         const relatedLogs = lastLogs
@@ -159,8 +174,10 @@ describe('Launcher', () => {
 
     it('should push as queue and could interrupt', async () => {
         const workerStore = new WorkerStore();
-        const launcher = new Launcher(__dirname + '/WorkerProcessor.ts', workerStore,
-            STRATEGIES.QUEUE);
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts', workerStore,
+            threadStrategy: STRATEGIES.QUEUE
+        });
         const input: Input = {count: 2};
         let launchedCount = 0;
         for (let count = 1; count <= 1000; count++) {
@@ -172,14 +189,18 @@ describe('Launcher', () => {
 
         expect(await launcher.getStoreWaitingSize()).equal(1000);
         expect(await launcher.getStoreRunningSize()).equal(0);
-        expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
+        for (let count = 0; count <= 20; count++) {
+            console.log(JSON.stringify(await launcher.getStats()));
+            // process.stdout.write('\r' + JSON.stringify(await launcher.getStats()));
+            await sleep(100);
+        }
 
-        await sleep(2000);
         expect(launchedCount).eq(1000);
         const waiting = await launcher.getStoreWaitingSize();
         expect(waiting).lessThan(1000);
         expect(await launcher.getStoreRunningSize()).greaterThan(0);
-        expect(launcher.getQueueRunningSize()).greaterThan(0);
+        expect(await launcher.getQueueRunningSize()).greaterThan(0);
 
         // Stop !
         const stopped = await launcher.stop();
@@ -187,8 +208,40 @@ describe('Launcher', () => {
         expect(stopped).eq(true);
         expect(await launcher.getStoreWaitingSize()).equal(waiting);
         expect(await launcher.getStoreRunningSize()).equal(0);
-        expect(launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
 
         await sleep(1000);
     }).timeout(6000);
+
+    it('should push as queue and disable', async () => {
+        logger.inspectBegin('justPushedButNotPolled');
+        const workerStore = new WorkerStore();
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
+            disablePolling: true,
+        });
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'justPushedButNotPolled', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+        const launched = await launcher.push(['sleep', 'info'], data);
+        const timeSpent = logger.inspectEnd('justPushedButNotPolled');
+
+        expect(await launcher.getStoreWaitingSize()).equal(1);
+        expect(await launcher.getStoreRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
+        await sleep(1000);
+
+        expect(launched).eq(true);
+        expect(timeSpent).lessThan(1000);
+        expect(await launcher.getStoreWaitingSize()).equal(1);
+        expect(await launcher.getStoreRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(0);
+
+        const lastLogs = loggerFactory.getLogger().readLastLogs(__dirname + '/../../');
+        const relatedLogs = lastLogs
+            .filter(l => l.indexOf('justPushedButNotPolled') > 0);
+        expect(relatedLogs.length).eq(0);
+    });
 });
