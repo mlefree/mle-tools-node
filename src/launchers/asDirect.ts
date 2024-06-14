@@ -9,8 +9,10 @@ module.exports = async (params: IWorkerParams, onEnd?: () => Promise<void>, onEr
     const processor: AbstractWorkerProcessor = new WorkerProcessor(wn + '-d-' + wi, wd, true);
 
     try {
-        await processor.launch();
-        if (onEnd) {
+        const retry = await processor.launch();
+        if (retry && onError) {
+            await onError(1);
+        } else if (onEnd) {
             await onEnd();
         }
     } catch (e) {

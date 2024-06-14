@@ -144,7 +144,7 @@ export class QueueLauncher {
                         this.end(queueName, params);
                     },
                     (code) => {
-                        if (code === 1) {
+                        if (code === 1) { // => retry
                             this.error(queueName, params);
                         } else {
                             this.end(queueName, params);
@@ -156,7 +156,7 @@ export class QueueLauncher {
                         this.end(queueName, params);
                     },
                     (code) => {
-                        if (code === 1) {
+                        if (code === 1) { // => retry
                             this.error(queueName, params);
                         } else {
                             this.end(queueName, params);

@@ -89,7 +89,7 @@ export class AbstractWorkerProcessor {
                 this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`);
                 ok = false;
                 allDone = false;
-                if (err.code === 404) {
+                if (err.code === 408) {
                     anotherTry = process.keepInTheQueue;
                 }
             }
