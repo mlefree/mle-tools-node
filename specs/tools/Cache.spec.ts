@@ -1,102 +1,96 @@
 import {expect} from 'chai';
-import {Cache} from '../../src';
+import {CACHE_STORE, CACHE_TTL, CacheFactory, ICacheOptions} from '../../src';
+import {promisify} from 'util';
 
-xdescribe('Cache', function () {
+const sleep = promisify(setTimeout);
 
-    before(() => {
+describe('Cache', () => {
+
+
+    it('should cache get and set', async () => {
+
+        const cacheFactory = new CacheFactory();
+        cacheFactory.setUp({
+            redisUrl: 'existingOrNot... does not matters',
+        });
+
+        // without setting
+        expect(await cacheFactory.get('key')).eq(undefined);
+        expect(await cacheFactory.get({key: true})).eq(undefined);
+
+        // set
+        await cacheFactory.set('key', 'value1');
+        await cacheFactory.set({key1: true}, {value1: 1}, {ttl: CACHE_TTL.SEC, store: CACHE_STORE.MEMORY});
+        await cacheFactory.set({key2: true}, {value2: 2}, {ttl: CACHE_TTL.SEC, store: CACHE_STORE.REDIS});
+
+        // cached
+        expect(await cacheFactory.get('key')).eq('value1');
+        expect((await cacheFactory.get({key1: true})).value1).eq(1);
+        expect(await cacheFactory.get({key2: true})).eq(undefined);
+
+        // cached partially expired
+        await sleep(1200);
+        expect(await cacheFactory.get('key')).eq('value1');
+        expect(await cacheFactory.get({key1: true})).eq(undefined);
+        expect(await cacheFactory.get({key2: true})).eq(undefined);
+
+        // bypassing cache
+        cacheFactory.setBypass(true);
+        expect(await cacheFactory.get('key')).eq(undefined);
+        expect(await cacheFactory.get({key1: true})).eq(undefined);
+        expect(await cacheFactory.get({key2: true})).eq(undefined);
+
+        // cache's ended
+        await cacheFactory.release();
+        expect(await cacheFactory.get('key')).eq(undefined);
+        expect(await cacheFactory.get({key1: true})).eq(undefined);
+        expect(await cacheFactory.get({key2: true})).eq(undefined);
+
     });
 
-    beforeEach(() => {
-    });
+    it('should execute cached function', async () => {
 
-    afterEach(() => {
-    });
+        const cacheFactory = new CacheFactory();
+        cacheFactory.setUp({
+            redisUrl: 'redis://localhost:6379', // not required
+        });
 
-    it('should cache model find and save', async () => {
-
-        const mockedInstance = {
-            id: 'mockedId',
-            save: async () => {
-            }
+        const options: ICacheOptions = {
+            ttl: CACHE_TTL.SEC,
+            store: CACHE_STORE.ALL
         };
 
-        const mockedModel = {
-            modelName: 'test',
-            find: (condition: any) => {
-                const cs = JSON.stringify(condition);
-                return {
-                    cache: () => {
-                        return {
-                            exec: (callback) => {
-                                callback(null, new Array(cs.length).fill(mockedInstance));
-                            }
-                        };
-                    },
-                    exec: (callback: Function) => {
-                        callback(null, new Array(cs.length).fill(mockedInstance));
-                    }
-                };
-            }
+        const awesomeSyncFunction = (label: string, date = new Date()) => {
+            return '>' + label + '>' + date.toISOString() + '>' + new Date().toISOString();
+        };
+        const awesomeAsyncFunction = async (label: string, date = new Date()) => {
+            await sleep(1);
+            return '...>' + label + '...>' + date.toISOString() + '>' + new Date().toISOString();
         };
 
-        let cache = new Cache();
-        let results = await cache.cacheFind(mockedModel, {test: 1});
-        expect(results.length).equal(10);
+        const sync1 = await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000));
+        const async1 = await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000));
+        expect(sync1).contain('>label1>1970-01-01T00:00:01.000Z>');
+        expect(async1).contain('...>label1...>1970-01-01T00:00:01.000Z>');
 
-        let instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {test: 1});
-        instanceSaved.id.should.equal('mockedId');
-        mockedInstance.id = 'anotherOne';
-        instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {test: 1});
-        instanceSaved.id.should.equal('anotherOne');
-        instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {});
-        instanceSaved.id.should.equal('anotherOne');
+        // cached result
+        expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000))).eq(sync1);
+        expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000))).eq(async1);
 
-        let count = await cache.resolve();
-        count.should.equal(11);
+        // not cached result
+        expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1')).not.eq(sync1);
+        expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1')).not.eq(async1);
+
+        // cache expires
+        await sleep(1200);
+        expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000))).not.eq(sync1);
+        expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000))).not.eq(async1);
+
+        // cache's ended
+        await cacheFactory.release();
+        expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000))).not.eq(sync1);
+        expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000))).not.eq(sync1);
     });
 
-    it('should cache model find and save with unique', async () => {
-
-        const mockedInstance = {
-            id: 'mockedId',
-            save: async () => {
-            }
-        };
-
-        const mockedModel = {
-            modelName: 'test',
-            find: (condition) => {
-                const cs = JSON.stringify(condition);
-                return {
-                    cache: () => {
-                        return {
-                            exec: (callback) => {
-                                callback(null, new Array(cs.length).fill(mockedInstance));
-                            }
-                        };
-                    },
-                    exec: (callback) => {
-                        callback(null, new Array(cs.length).fill(mockedInstance));
-                    }
-                };
-            }
-        };
-
-        let cache = new Cache();
-        let results = await cache.cacheFind(mockedModel, {test: 1});
-        results.length.should.equal(10);
-
-        let instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {test: 1}, true);
-        instanceSaved.id.should.equal('mockedId');
-        mockedInstance.id = 'anotherOne';
-        instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {test: 1}, true);
-        instanceSaved.id.should.equal('anotherOne');
-        instanceSaved = await cache.cacheSave(mockedModel, mockedInstance, {}, true);
-        instanceSaved.id.should.equal('anotherOne');
-
-        let count = await cache.resolve();
-        count.should.equal(2);
-    });
 
 });
-

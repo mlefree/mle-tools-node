@@ -1,4 +1,14 @@
-import {DefaultWorkerStore, IWorkerData, Launcher, loggerFactory, LoggerLevels, LoggerPerf, QueueConcurrency, STRATEGIES} from '../../src';
+import {
+    cacheFactory,
+    DefaultWorkerStore,
+    IWorkerData,
+    Launcher,
+    loggerFactory,
+    LoggerLevels,
+    LoggerPerf,
+    QueueConcurrency,
+    STRATEGIES
+} from '../../src';
 import {expect} from 'chai';
 import {promisify} from 'util';
 import {Config, Input} from './WorkerProcessor';
@@ -12,6 +22,10 @@ describe('Launcher', () => {
     before(() => {
         loggerFactory.setUp(true, LoggerLevels.DEBUG, LoggerLevels.DEBUG);
         logger = loggerFactory.getPerfLogger('Launcher');
+        cacheFactory.setUp({
+            redisUrl: 'redis://localhost:6379', // not required
+        });
+
     });
 
     it('should push as direct', async () => {

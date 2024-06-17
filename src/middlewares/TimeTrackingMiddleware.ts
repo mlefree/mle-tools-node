@@ -1,10 +1,12 @@
 import {loggerFactory, LoggerLevels} from '../logs';
 
-export class TimeTracking {
+export interface ITimeTrackingOptions {
+    milliSecBeforeWarning: number
+}
 
-    constructor(private options: {
-        milliSecBeforeWarning: number
-    } = {
+export class TimeTrackingMiddleware {
+
+    constructor(private options: ITimeTrackingOptions = {
         milliSecBeforeWarning: 1000
     }) {
     }
@@ -22,8 +24,8 @@ export class TimeTracking {
         }
     }
 
-    public use() {
-        return (req: any, res: any, next: Function) => {
+    public middleWare() {
+        return (req: any, res: any, next: () => void) => {
             const logger = loggerFactory.getLogger();
             if (logger.getLevel() === LoggerLevels.DEBUG) {
                 logger.debug(`${req.method} ${req.originalUrl} [STARTED]`);
@@ -32,21 +34,21 @@ export class TimeTracking {
             const start = process.hrtime();
 
             res.on('finish', async () => {
-                const durationInMilliseconds = TimeTracking.getDurationInMilliseconds(start);
+                const durationInMilliseconds = TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
                     logger.debug(`${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`);
                 }
-                await TimeTracking.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
+                await TimeTrackingMiddleware.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
             });
 
             res.on('close', async () => {
-                const durationInMilliseconds = TimeTracking.getDurationInMilliseconds(start);
+                const durationInMilliseconds = TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
                     logger.debug(`${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`);
                 }
-                await TimeTracking.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
+                await TimeTrackingMiddleware.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
             });
 
             next();
@@ -54,3 +56,8 @@ export class TimeTracking {
     }
 
 }
+
+export const timeTracking = ((options: ITimeTrackingOptions) => {
+    const timeTrackingMiddleware = new TimeTrackingMiddleware(options);
+    return timeTrackingMiddleware.middleWare();
+});
