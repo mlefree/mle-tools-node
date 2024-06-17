@@ -1,7 +1,7 @@
 import {Cache, caching, MemoryCache, MemoryConfig} from 'cache-manager';
 import {redisStore, RedisStore} from 'cache-manager-redis-yet';
-import crypto from 'crypto';
 import {loggerFactory} from '../logs';
+import * as crypto from 'node:crypto';
 
 export enum CACHE_STORE {
     ALL = 0,
@@ -50,7 +50,15 @@ export const CACHE_DEFAULT_OPTIONS_LRU = {
     store: CACHE_STORE.MEMORY
 }
 
-export class CacheFactory {
+export interface ICache {
+    set(key: string | any, value: string | any, options?: ICacheOptions): Promise<void>;
+
+    get(key: string | any): Promise<string | any>;
+
+    incr(key: string): Promise<number>;
+}
+
+export class CacheFactory implements ICache {
 
     protected config: ICacheConfig = {}
     private memoryCache: MemoryCache;
@@ -78,6 +86,18 @@ export class CacheFactory {
         if (this.redisCache?.store?.client?.isReady) {
             // await this.redisCache.reset(); => flushDb FLUSHDB
             await this.redisCache.store.client.quit();
+        }
+    }
+
+    async remove() {
+        await this.init();
+
+        if (this.memoryCache) {
+            await this.memoryCache.reset();
+        }
+
+        if (this.redisCache?.store?.client?.isReady) {
+            await this.redisCache.reset();
         }
     }
 
@@ -158,6 +178,22 @@ export class CacheFactory {
         this.bypass = bypass;
     }
 
+    async incr(key: string): Promise<number> {
+        const incrKey = 'incr-' + key;
+        const value: string = await this.get(incrKey);
+        let valueNumber = 0;
+        if (value) {
+            valueNumber = parseInt(value, 10);
+            valueNumber++;
+        }
+
+        const options = CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE;
+        options.store = CACHE_STORE.ALL;
+
+        await this.set(incrKey, valueNumber.toString(10), options);
+        return Promise.resolve(valueNumber);
+    }
+
     protected async init() {
         if (!this.memoryCache) {
             const configMemory = {
@@ -193,7 +229,21 @@ export class CacheFactory {
     private buildUniqueKey(key: any) {
         return crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
     }
+
 }
 
-
 export const cacheFactory = new CacheFactory();
+
+export class CacheFake implements ICache {
+    get(key: any): Promise<any> {
+        return Promise.resolve(undefined);
+    }
+
+    set(key: any, value: any): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    incr(key: string): Promise<number> {
+        return Promise.resolve(0);
+    }
+}

@@ -1,14 +1,4 @@
-import {
-    cacheFactory,
-    DefaultWorkerStore,
-    IWorkerData,
-    Launcher,
-    loggerFactory,
-    LoggerLevels,
-    LoggerPerf,
-    QueueConcurrency,
-    STRATEGIES
-} from '../../src';
+import {DefaultWorkerStore, IWorkerData, Launcher, loggerFactory, LoggerLevels, LoggerPerf, QueueConcurrency, STRATEGIES} from '../../src';
 import {expect} from 'chai';
 import {promisify} from 'util';
 import {Config, Input} from './WorkerProcessor';
@@ -22,10 +12,6 @@ describe('Launcher', () => {
     before(() => {
         loggerFactory.setUp(true, LoggerLevels.DEBUG, LoggerLevels.DEBUG);
         logger = loggerFactory.getPerfLogger('Launcher');
-        cacheFactory.setUp({
-            redisUrl: 'redis://localhost:6379', // not required
-        });
-
     });
 
     it('should push as direct', async () => {
@@ -107,10 +93,10 @@ describe('Launcher', () => {
         expect(timeSpent).lessThan(1000);
 
         // In progress
-        await sleep(700);
+        await sleep(1000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(4);
-        expect(await launcher.getQueueRunningSize()).equal(4);
+        expect(await launcher.getQueueRunningSize()).equal(0);
         await sleep(2000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(0);

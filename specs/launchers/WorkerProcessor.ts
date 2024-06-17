@@ -1,5 +1,5 @@
 import {promisify} from 'util';
-import {AbstractWorkerProcessor, cacheFactory, ILogger, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
+import {AbstractWorkerProcessor, ILogger, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
 
 const sleep = promisify(setTimeout);
 
@@ -40,7 +40,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        const result = await cacheFactory.set('test' + count, inputs.messageToWrite);
+        // const result = await cacheFactory.set('test' + count, inputs.messageToWrite);
         logger.info('sleep', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
@@ -50,8 +50,8 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
     static async info(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        const cached = await cacheFactory.get('test' + count);
-        return logger.info('info', inputs.messageToWrite, cached);
+        // const cached = await cacheFactory.get('test' + count);
+        return logger.info('info', inputs.messageToWrite);
     }
 
     static async fail(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {

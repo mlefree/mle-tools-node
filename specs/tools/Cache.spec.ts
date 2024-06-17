@@ -6,7 +6,6 @@ const sleep = promisify(setTimeout);
 
 describe('Cache', () => {
 
-
     it('should cache get and set', async () => {
 
         const cacheFactory = new CacheFactory();
@@ -54,6 +53,7 @@ describe('Cache', () => {
         cacheFactory.setUp({
             redisUrl: 'redis://localhost:6379', // not required
         });
+        await cacheFactory.remove();
 
         const options: ICacheOptions = {
             ttl: CACHE_TTL.SEC,
@@ -90,6 +90,24 @@ describe('Cache', () => {
         await cacheFactory.release();
         expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000))).not.eq(sync1);
         expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000))).not.eq(sync1);
+    });
+
+
+    it('should incr', async () => {
+
+        const cacheFactory = new CacheFactory();
+        cacheFactory.setUp({
+            redisUrl: 'redis://localhost:6379', // not required
+        });
+        await cacheFactory.remove();
+
+        expect(await cacheFactory.incr('testIncr')).eq(0);
+        expect(await cacheFactory.incr('testIncr')).eq(1);
+        expect(await cacheFactory.incr('testIncr')).eq(2);
+
+        // cache should not expire
+        await sleep(1200);
+        expect(await cacheFactory.incr('testIncr')).eq(3);
     });
 
 
