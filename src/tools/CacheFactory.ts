@@ -53,6 +53,9 @@ export interface ICache {
     get(key: string | any): Promise<string | any>;
 
     incr(key: string): Promise<number>;
+
+    execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]): Promise<any>;
+
 }
 
 export class CacheFactory implements ICache {
@@ -247,5 +250,9 @@ export class CacheFake implements ICache {
 
     incr(key: string): Promise<number> {
         return Promise.resolve(0);
+    }
+
+    execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]) {
+        return fn.apply(null, params);
     }
 }

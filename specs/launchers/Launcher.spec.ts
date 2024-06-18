@@ -88,7 +88,7 @@ describe('Launcher', () => {
         expect(await launcher.getStoreRunningSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
 
-        // await sleep(70000000);
+        // await sleep(400000);
         const timeSpent = logger.inspectEnd('queue');
         expect(timeSpent).lessThan(1000);
 
@@ -108,7 +108,7 @@ describe('Launcher', () => {
         expect(relatedLogs.length).greaterThanOrEqual(5, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 3].indexOf('info,queue') > 0).eq(true, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,queue') > 0).eq(true, lastLogs.toString());
-    }).timeout(5000000000);
+    }).timeout(500000);
 
     it('should push as queue and Fail', async () => {
         logger.inspectBegin('failingQueue');
