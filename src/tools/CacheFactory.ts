@@ -27,26 +27,23 @@ export enum CACHE_COUNT {
 
 export interface ICacheOptions {
     ttl?: CACHE_TTL,
-    max?: CACHE_COUNT,
     store?: CACHE_STORE,
 }
 
 export interface ICacheConfig {
     redisUrl?: string,
-    ttl?: number,
-    max?: number,
-
+    ttl?: CACHE_TTL,
+    max?: CACHE_COUNT,
+    store?: CACHE_STORE,
 }
 
 export const CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE = {
     ttl: CACHE_TTL.NO,
-    max: CACHE_COUNT.LARGE,
     store: CACHE_STORE.REDIS
 }
 
 export const CACHE_DEFAULT_OPTIONS_LRU = {
     ttl: CACHE_TTL.TEN_MINUTES,
-    max: CACHE_COUNT.SMALL,
     store: CACHE_STORE.MEMORY
 }
 
@@ -60,7 +57,7 @@ export interface ICache {
 
 export class CacheFactory implements ICache {
 
-    protected config: ICacheConfig = {}
+    protected config: ICacheConfig = {};
     private memoryCache: MemoryCache;
     private redisCache: Cache<RedisStore<any>>;
     private bypass = false;
@@ -71,10 +68,13 @@ export class CacheFactory implements ICache {
     setUp(config: ICacheConfig) {
         this.config = config;
         if (typeof config.ttl === 'undefined') {
-            this.config.ttl = CACHE_DEFAULT_OPTIONS_LRU.ttl;
+            this.config.ttl = CACHE_TTL.TEN_MINUTES;
         }
         if (typeof config.max === 'undefined') {
-            this.config.max = CACHE_DEFAULT_OPTIONS_LRU.max;
+            this.config.max = CACHE_COUNT.SMALL;
+        }
+        if (typeof config.store === 'undefined') {
+            this.config.store = CACHE_STORE.MEMORY;
         }
     }
 
@@ -103,7 +103,7 @@ export class CacheFactory implements ICache {
 
     async set(key: string | any,
               value: string | any,
-              options?: ICacheOptions): Promise<void> {
+              options: ICacheOptions = CACHE_DEFAULT_OPTIONS_LRU): Promise<void> {
         if (this.bypass || !value) {
             return;
         }
@@ -195,7 +195,8 @@ export class CacheFactory implements ICache {
     }
 
     protected async init() {
-        if (!this.memoryCache) {
+        if ((this.config.store === CACHE_STORE.MEMORY || this.config.store === CACHE_STORE.ALL)
+            && !this.memoryCache) {
             const configMemory = {
                 ...this.config
             } as MemoryConfig;
@@ -203,7 +204,8 @@ export class CacheFactory implements ICache {
             this.memoryCache = await caching('memory', configMemory);
         }
 
-        if (!this.redisCache?.store?.client?.isReady) {
+        if ((this.config.store === CACHE_STORE.REDIS || this.config.store === CACHE_STORE.ALL)
+            && !this.redisCache?.store?.client?.isReady) {
             if (!this.config.redisUrl) {
                 this.redisCache = null;
             } else {
