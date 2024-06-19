@@ -1,4 +1,4 @@
-import {Configuration} from '../configuration';
+import {Configuration} from 'mle-tools-configuration';
 import {loggerFactory} from '../logs';
 import {MError} from '../errors';
 

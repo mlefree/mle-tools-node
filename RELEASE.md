@@ -9,4 +9,5 @@
 - 1.6.x: Configuration merge extended
 - 1.7.x: Launcher and Queue new features: resume, remove
 - 1.8.x: Launcher and Queue simplified
-- 1.9.x: Cache tools + middleware 
+- 1.9.x: Cache tools + middleware
+- 1.10.x: extract configuration into mle-tools-configuration

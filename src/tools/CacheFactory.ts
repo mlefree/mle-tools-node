@@ -66,6 +66,11 @@ export class CacheFactory implements ICache {
     private bypass = false;
 
     constructor() {
+        this.config = {
+            ttl: CACHE_TTL.TEN_MINUTES,
+            max: CACHE_COUNT.SMALL,
+            store: CACHE_STORE.MEMORY
+        }
     }
 
     setUp(config: ICacheConfig) {

@@ -1,4 +1,3 @@
-export * from './configuration';
 export * from './decorators';
 export * from './errors';
 export * from './files';
