@@ -16,6 +16,7 @@ describe('Cache', () => {
         // without setting
         expect(await cacheFactory.get('key')).eq(undefined);
         expect(await cacheFactory.get({key: true})).eq(undefined);
+        expect(cacheFactory.isOk()).eq(true);
 
         // set
         await cacheFactory.set('key', 'value1');

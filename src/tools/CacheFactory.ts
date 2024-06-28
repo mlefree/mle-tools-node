@@ -64,6 +64,7 @@ export class CacheFactory implements ICache {
     private memoryCache: MemoryCache;
     private redisCache: Cache<RedisStore<any>>;
     private bypass = false;
+    private ok = true;
 
     constructor() {
         this.config = {
@@ -136,6 +137,7 @@ export class CacheFactory implements ICache {
     }
 
     async get(key: string | any): Promise<string | any> {
+        this.ok = true;
         if (this.bypass) {
             return undefined;
         }
@@ -186,6 +188,10 @@ export class CacheFactory implements ICache {
         this.bypass = bypass;
     }
 
+    isOk() {
+        return this.ok;
+    }
+
     async incr(key: string): Promise<number> {
         const incrKey = 'incr-' + key;
         const value: string = await this.get(incrKey);
@@ -231,6 +237,7 @@ export class CacheFactory implements ICache {
                 } catch (e) {
                     loggerFactory.getLogger().warn('@cache', e);
                     this.redisCache = null;
+                    this.ok = false;
                 }
             }
         }
