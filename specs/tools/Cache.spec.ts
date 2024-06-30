@@ -1,22 +1,19 @@
 import {expect} from 'chai';
-import {CACHE_STORE, CACHE_TTL, CacheFactory, ICacheOptions} from '../../src';
+import {CACHE_STORE, CACHE_TTL, CacheFactory, ICacheConfig, ICacheOptions} from '../../src';
 import {promisify} from 'util';
 
 const sleep = promisify(setTimeout);
 
 describe('Cache', () => {
 
-    it('should cache get and set', async () => {
-
+    const cacheTest = async (store: ICacheConfig) => {
         const cacheFactory = new CacheFactory();
-        cacheFactory.setUp({
-            redisUrl: 'existingOrNot... does not matters',
-        });
+        cacheFactory.setUp(store);
+        await cacheFactory.reset();
 
         // without setting
         expect(await cacheFactory.get('key')).eq(undefined);
         expect(await cacheFactory.get({key: true})).eq(undefined);
-        expect(cacheFactory.isOk()).eq(true);
 
         // set
         await cacheFactory.set('key', 'value1');
@@ -24,28 +21,66 @@ describe('Cache', () => {
         await cacheFactory.set({key2: true}, {value2: 2}, {ttl: CACHE_TTL.SEC, store: CACHE_STORE.REDIS});
 
         // cached
-        expect(await cacheFactory.get('key')).eq('value1');
-        expect((await cacheFactory.get({key1: true})).value1).eq(1);
-        expect(await cacheFactory.get({key2: true})).eq(undefined);
+        expect(await cacheFactory.get('key')).eq('value1', JSON.stringify(store))
+        if (store.store === CACHE_STORE.MEMORY) {
+            expect((await cacheFactory.get({key1: true}))?.value1).eq(1, JSON.stringify(store));
+            expect((await cacheFactory.get({key2: true}))).eq(undefined, JSON.stringify(store));
+        } else if (store.store === CACHE_STORE.REDIS) {
+            expect((await cacheFactory.get({key1: true}))).eq(undefined, JSON.stringify(store));
+            expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));
+        } else {
+            expect((await cacheFactory.get({key1: true}))?.value1).eq(1, JSON.stringify(store));
+            expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));
+        }
 
         // cached partially expired
         await sleep(1200);
-        expect(await cacheFactory.get('key')).eq('value1');
+        expect(await cacheFactory.get('key')).eq('value1', JSON.stringify(store));
         expect(await cacheFactory.get({key1: true})).eq(undefined);
         expect(await cacheFactory.get({key2: true})).eq(undefined);
 
+        // cached removed
+        await cacheFactory.remove('key');
+        // const cf = new CacheFactory();
+        // cf.setUp(store);
+        // await cf.remove('key');
+
+        expect(await cacheFactory.get('key')).eq(undefined, JSON.stringify(store));
+
         // bypassing cache
         cacheFactory.setBypass(true);
-        expect(await cacheFactory.get('key')).eq(undefined);
+        expect(await cacheFactory.get('key')).eq(undefined, JSON.stringify(store));
         expect(await cacheFactory.get({key1: true})).eq(undefined);
         expect(await cacheFactory.get({key2: true})).eq(undefined);
 
         // cache's ended
         await cacheFactory.release();
-        expect(await cacheFactory.get('key')).eq(undefined);
+        expect(await cacheFactory.get('key')).eq(undefined, JSON.stringify(store));
         expect(await cacheFactory.get({key1: true})).eq(undefined);
         expect(await cacheFactory.get({key2: true})).eq(undefined);
 
+        expect(cacheFactory.isOk()).eq(true);
+    }
+
+    it('should MEMORY cache get and set', async () => {
+        await cacheTest({
+            redisUrl: 'existingOrNot... does not matters',
+            store: CACHE_STORE.MEMORY
+        });
+    });
+
+    it('should REDIS cache get and set', async () => {
+        await cacheTest({
+            redisUrl: 'redis://localhost:6379', // not required
+            store: CACHE_STORE.REDIS
+        });
+    });
+
+    it('should ALL cache get and set', async () => {
+        await cacheTest({
+            redisUrl: 'redis://localhost:6379', // not required
+            store: CACHE_STORE.ALL
+        });
     });
 
     it('should execute cached function', async () => {
@@ -53,12 +88,12 @@ describe('Cache', () => {
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
             redisUrl: 'redis://localhost:6379', // not required
+            store: CACHE_STORE.ALL
         });
-        await cacheFactory.remove();
+        await cacheFactory.reset();
 
         const options: ICacheOptions = {
             ttl: CACHE_TTL.SEC,
-            store: CACHE_STORE.ALL
         };
 
         const awesomeSyncFunction = (label: string, date = new Date()) => {
@@ -91,6 +126,8 @@ describe('Cache', () => {
         await cacheFactory.release();
         expect(await cacheFactory.execute(options, awesomeSyncFunction, 'label1', new Date(1000))).not.eq(sync1);
         expect(await cacheFactory.execute(options, awesomeAsyncFunction, 'label1', new Date(1000))).not.eq(sync1);
+
+        expect(cacheFactory.isOk()).eq(true);
     });
 
 
@@ -100,7 +137,7 @@ describe('Cache', () => {
         cacheFactory.setUp({
             redisUrl: 'redis://localhost:6379', // not required
         });
-        await cacheFactory.remove();
+        await cacheFactory.reset();
 
         expect(await cacheFactory.incr('testIncr')).eq(0);
         expect(await cacheFactory.incr('testIncr')).eq(1);

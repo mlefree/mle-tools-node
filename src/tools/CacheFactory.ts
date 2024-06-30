@@ -38,13 +38,11 @@ export interface ICacheConfig {
 }
 
 export const CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE = {
-    ttl: CACHE_TTL.NO,
-    store: CACHE_STORE.REDIS
+    ttl: CACHE_TTL.NO
 }
 
 export const CACHE_DEFAULT_OPTIONS_LRU = {
     ttl: CACHE_TTL.TEN_MINUTES,
-    store: CACHE_STORE.MEMORY
 }
 
 export interface ICache {
@@ -98,7 +96,7 @@ export class CacheFactory implements ICache {
         }
     }
 
-    async remove() {
+    async reset() {
         await this.init();
 
         if (this.memoryCache) {
@@ -126,11 +124,11 @@ export class CacheFactory implements ICache {
             valueToStore = JSON.stringify(value);
         }
 
-        if (this.memoryCache && (!options || options.store === CACHE_STORE.MEMORY || options.store === CACHE_STORE.ALL)) {
+        if (this.memoryCache && (!options?.store || options.store === CACHE_STORE.MEMORY)) {
             await this.memoryCache.set(builtKey, valueToStore, options ? options.ttl : this.config.ttl);
         }
 
-        if (this.redisCache && (!options || options.store === CACHE_STORE.REDIS || options.store === CACHE_STORE.ALL)) {
+        if (this.redisCache && (!options?.store || options.store === CACHE_STORE.REDIS)) {
             await this.redisCache.set(builtKey, valueToStore, options ? options.ttl : this.config.ttl);
         }
 
@@ -162,6 +160,10 @@ export class CacheFactory implements ICache {
             result = JSON.parse(result);
         }
 
+        // if (result) {
+        // console.log('#cached cool...', key);
+        // }
+
         return result;
     }
 
@@ -184,6 +186,14 @@ export class CacheFactory implements ICache {
         return result;
     }
 
+    async remove(key: string) {
+        await this.init();
+
+        await this.memoryCache?.del(key);
+        const result = await this.redisCache?.store?.client?.sendCommand(['DEL', key]); // 'OK';
+        // console.log('removed ?', result);
+    }
+
     setBypass(bypass = true) {
         this.bypass = bypass;
     }
@@ -201,10 +211,7 @@ export class CacheFactory implements ICache {
             valueNumber++;
         }
 
-        const options = CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE;
-        options.store = CACHE_STORE.ALL;
-
-        await this.set(incrKey, valueNumber.toString(10), options);
+        await this.set(incrKey, valueNumber.toString(10), CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE);
         return Promise.resolve(valueNumber);
     }
 
@@ -226,7 +233,7 @@ export class CacheFactory implements ICache {
                 try {
                     const configRedis = {
                         ...this.config,
-                        url: this.config.redisUrl
+                        url: this.config.redisUrl,
                     } as const;
 
                     this.redisCache = await caching(redisStore, configRedis);
