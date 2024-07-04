@@ -24,12 +24,6 @@ export class QueueLauncher {
         }
     ) {
         this.clean();
-
-        if (!this.options.disablePolling) {
-            this.pollingTimer = new PollingTimer(this.options.pollingTimeInMilliSec);
-            this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
-            this.pollingTimer.start();
-        }
     }
 
     async add(params: IWorkerParams) {
@@ -37,9 +31,11 @@ export class QueueLauncher {
         await this.options.workerStore.push(params.workerProcesses.join('-'), params);
     }
 
-    getQueueRunningSize() {
+    checkAndGetQueueRunningSize() {
         let length = 0;
         try {
+            this.init();
+
             for (const key of Object.keys(this.runningWorkers)) {
                 length += this.runningWorkers[key] ? this.runningWorkers[key] : 0;
             }
@@ -86,6 +82,20 @@ export class QueueLauncher {
         this.queueNames = [];
         this.runningWorkers = {};
         this.shouldStopAll = false;
+    }
+
+    private init() {
+        if (this.options.disablePolling) {
+            return;
+        }
+
+        if (this.pollingTimer && this.pollingTimer.startTime) {
+            return;
+        }
+
+        this.pollingTimer = new PollingTimer(this.options.pollingTimeInMilliSec);
+        this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
+        this.pollingTimer.start();
     }
 
     private async syncQueuesFromStore() {

@@ -121,7 +121,7 @@ export class Launcher {
             return this.getStoreRunningSize();
         }
 
-        return this.queueLauncher.getQueueRunningSize();
+        return this.queueLauncher.checkAndGetQueueRunningSize();
     }
 
     async getStats() {
