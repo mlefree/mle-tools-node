@@ -5,7 +5,7 @@ import os from 'os';
 import v8 from 'v8';
 import {loggerFactory} from '../logs';
 import {statfs} from 'node:fs';
-import {cpuUsage, freememPercentage} from './OSUtils';
+import {cpuTemperature, cpuUsage, freememPercentage} from './OSUtils';
 
 const sfsAsync = util.promisify(statfs);
 
@@ -17,6 +17,7 @@ export interface OSMetricsStat {
     memoryPercent: number,
     memory2Percent: number,
     diskPercent: number,
+    cpuTemperature: number,
 
     cpu: number, // from 0 to 100*vcore
     cpus: any[],
@@ -59,6 +60,8 @@ export class OSMetrics {
             //  stat.cpuPercent = Math.round(stat.cpu / stat.cpus.length * 100) / 100;
             // stat.cpuPercent = Math.round(1000 * cpuUserSys / cpuTotal / 10);
             stat.cpuPercent = Math.round(100 * 100 * await cpuUsage()) / 100;
+            const cpuTemp = await cpuTemperature();
+            stat.cpuTemperature = cpuTemp.main;
 
             stat.memory = stat.memory / 1024 / 1024; // Convert from B to MB
 
