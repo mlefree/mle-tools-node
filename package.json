@@ -1,6 +1,6 @@
 {
   "name": "mle-tools-node",
-  "version": "1.10.25",
+  "version": "1.10.26",
   "author": "mle",
   "description": "some node tools",
   "keywords": [],
@@ -15,7 +15,6 @@
     "fast-csv": "^5.0.0",
     "form-data": "^4.0.0",
     "mle-tools-configuration": "^1.0.3",
-    "osx-temperature-sensor": "^1.0.8",
     "pidusage": "^3.0.2",
     "polling-timer": "^0.1.2",
     "ts-node": "^8.3.0",
