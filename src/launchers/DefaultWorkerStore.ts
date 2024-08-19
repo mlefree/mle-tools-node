@@ -7,6 +7,7 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
 
     constructor() {
         super();
+        this.removeAll();
     }
 
     async push(queueName: string, params: IWorkerParams): Promise<void> {
@@ -64,6 +65,9 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         }
     }
 
+    removeAll() {
+        this.queues = {};
+    }
 
     async size(options?: {
         queueName?: string,

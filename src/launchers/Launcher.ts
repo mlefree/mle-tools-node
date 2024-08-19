@@ -13,7 +13,8 @@ export enum STRATEGIES {
     THREAD = 'thread',
 }
 
-const CONCURRENCY = 3;
+const DEFAULT_CONCURRENCY = 3;
+const DEFAULT_POLLING_MS = 500;
 
 export class Launcher {
     private readonly queueLauncher: QueueLauncher;
@@ -37,10 +38,10 @@ export class Launcher {
             this.options.threadStrategy = STRATEGIES.DIRECT;
         }
         if (!this.options.queueConcurrency) {
-            this.options.queueConcurrency = {default: CONCURRENCY, keys: []};
+            this.options.queueConcurrency = {default: DEFAULT_CONCURRENCY, keys: []};
         }
         if (!this.options.pollingTimeInMilliSec) {
-            this.options.pollingTimeInMilliSec = 500;
+            this.options.pollingTimeInMilliSec = DEFAULT_POLLING_MS;
         }
         if (!this.options.disablePolling) {
             this.options.disablePolling = false;
@@ -88,7 +89,11 @@ export class Launcher {
                 const {Worker} = require('worker_threads');
                 const newWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
             } else if (this.directWorker) {
-                await this.directWorker(params);
+                await this.directWorker(params, (e) => {
+                    console.log('### TO_REMOVE finished', e);
+                }, (error) => {
+                    console.log('### TO_REMOVE needRetry?', error);
+                });
             }
             return true;
         } catch (err) {

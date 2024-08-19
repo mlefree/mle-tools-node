@@ -25,7 +25,7 @@ describe('Tools', () => {
 
     it('should extractOrderedNames', async () => {
 
-        const src = 'test1-test2-test1-notExisting-test1';
+        const src = 'test1-test2-test1-notExisting-test1-';
         const possibleNames = ['test1', 'test2', 'notHere'];
 
         const orderedNames = Tools.extractOrderedNames(src, possibleNames);

@@ -71,14 +71,14 @@ describe('Cache', () => {
 
     it('should REDIS cache get and set', async () => {
         await cacheTest({
-            redisUrl: 'redis://localhost:6379', // not required
+            redisUrl: 'redis://localhost:6379', //  required (see docker-compose.yml)
             store: CACHE_STORE.REDIS
         });
     });
 
     it('should ALL cache get and set', async () => {
         await cacheTest({
-            redisUrl: 'redis://localhost:6379', // not required
+            redisUrl: 'redis://localhost:6379', //  required (see docker-compose.yml)
             store: CACHE_STORE.ALL
         });
     });
@@ -87,7 +87,7 @@ describe('Cache', () => {
 
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
-            redisUrl: 'redis://localhost:6379', // not required
+            redisUrl: 'redis://localhost:6379', // required (see docker-compose.yml)
             store: CACHE_STORE.ALL
         });
         await cacheFactory.reset();

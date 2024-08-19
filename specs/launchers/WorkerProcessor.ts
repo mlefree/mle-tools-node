@@ -27,35 +27,34 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         workerData: IWorkerData,
         bypassConnection = false
     ) {
+        console.log('WorkerProcessor++', name);
         super(name, workerData, bypassConnection);
     }
 
     static GetProcesses() {
         return [
-            {fn: WorkerProcessor.sleep, looped: false, stopOnFailure: false, keepInTheQueue: true, inThreadIfPossible: false},
-            {fn: WorkerProcessor.info, looped: false, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
-            {fn: WorkerProcessor.fail, looped: true, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
-            {fn: WorkerProcessor.throwError, looped: true, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
+            {fn: WorkerProcessor.sleep, looped: true, stopOnFailure: false, keepInTheQueue: true, inThreadIfPossible: false},
+            {fn: WorkerProcessor.info, looped: true, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
+            {fn: WorkerProcessor.fail, looped: false, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
+            {fn: WorkerProcessor.throwError, looped: false, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
         ];
-    }
-
-    static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        // const result = await cacheFactory.set('test' + count, inputs.messageToWrite);
-        logger.info('sleep', inputs.messageToWrite);
-        await sleep(inputs.timeToSleep);
-        return true;
     }
 
     // Static processes following pattern:
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
     static async info(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        // const cached = await cacheFactory.get('test' + count);
         return logger.info('info', inputs.messageToWrite);
     }
 
+    static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
+        logger.info('sleep', inputs.messageToWrite);
+        await sleep(inputs.timeToSleep);
+        return true;
+    }
+
     static async fail(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        const done = logger.info('fail', inputs.messageToWrite);
+        logger.info('fail', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
@@ -99,7 +98,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         timeSpentComputing: number,
         timeSpentWaiting: number
     }) {
-        console.error('### WorkerProcessor onEnd :', done, stats);
+        console.log('WorkerProcessor-- ', this.name, done, stats);
     }
 
 

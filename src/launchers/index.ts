@@ -1,5 +1,6 @@
 export * from './IWorkerData';
 export * from './IWorkerParams';
+export * from './IWorkerProcess';
 export * from './asDirect';
 export * from './asThreadWorker';
 export * from './AbstractWorkerProcessor';

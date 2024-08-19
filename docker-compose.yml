@@ -1,0 +1,22 @@
+name: mle-tools
+services:
+
+  redis:
+    image: redis/redis-stack-server:7.2.0-v10
+    # restart: always
+    ports:
+      - "6379:6379"
+      # command: [ "redis-server", "--appendonly", "no", "--maxmemory", "4gb", "--maxmemory-policy", "allkeys-lru" ]
+      # - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy volatile-lru
+      # environment:
+      #  REDIS_ARGS: "--requirepass ${REDIS_PWD} --user ${REDIS_USER} on >password ~* allcommands --user default off nopass nocommands"
+      #  REDIS_ARGS: "--requirepass ${REDIS_PWD}"
+      # REDIS_ARGS: "--appendonly no --maxmemory 3gb --maxmemory-policy allkeys-lru"
+  # deploy:
+  #   resources:
+  #     limits:
+  #       cpus: '0.6'
+  #       memory: 3G
+  #     reservations:
+  #       cpus: '0.5'
+  #       memory: 3G

@@ -3,6 +3,8 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import {LoggerLevels} from './LoggerLevels';
 import {ILogger} from './ILogger';
 import fs from 'fs';
+import {join} from 'node:path';
+import {rm} from 'node:fs/promises';
 
 const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
 const LOGGER_FILE_DIR = '.logs';
@@ -169,7 +171,8 @@ export class Logger implements ILogger {
         const firstPartOfDate = now.toISOString().split('T')[0];
         const secondPartOfDate = now.toISOString().split('T')[1].split(':')[0];
         const formattedDate = firstPartOfDate + '-' + secondPartOfDate;
-        const lastLogFilename = parentPath + LOGGER_FILE_DIR + '/raain-' + formattedDate + '.log';
+
+        const lastLogFilename = join(parentPath, LOGGER_FILE_DIR, '/raain-' + formattedDate + '.log');
         const contents = fs.readFileSync(lastLogFilename, 'utf8');
         return contents.split(/\r?\n/);
     }
@@ -180,5 +183,13 @@ export class Logger implements ILogger {
         }
 
         return LOGGER_DEFAULT_LEVEL;
+    }
+
+    async erase(parentPath: string) {
+        try {
+            const dirToRemove = join(parentPath, LOGGER_FILE_DIR);
+            await rm(dirToRemove, {recursive: true, force: true});
+        } catch (ignored) {
+        }
     }
 }

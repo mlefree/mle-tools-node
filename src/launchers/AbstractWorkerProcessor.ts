@@ -3,8 +3,12 @@ import {MError} from '../errors';
 import {Tools} from '../tools';
 import {ILogger, Logger, LoggerLevels} from '../logs';
 import {IWorkerData} from './IWorkerData';
+import {IWorkerProcess} from './IWorkerProcess';
 
 const sleep = promisify(setTimeout);
+
+const DEFAULT_POLLING_MS = 500;
+const DEFAULT_POLLING_STEP_MS = 2000;
 
 export class AbstractWorkerProcessor {
 
@@ -12,24 +16,18 @@ export class AbstractWorkerProcessor {
     protected config: any;
     protected input: any;
     protected logger: Logger;
-    protected processes: {
-        fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
-        looped: boolean,
-        stopOnFailure: boolean,
-        keepInTheQueue: boolean,
-        inThreadIfPossible: boolean,
-    }[];
+    protected processes: IWorkerProcess[];
     private perfBegin: Date;
     private perfTimeSpentComputing: number;
     private perfTimeSpentWaiting: number;
 
     constructor(
         protected name: string,
-        protected workerData: IWorkerData,
+        workerData: IWorkerData,
         protected bypassConnection = false
     ) {
-        this.config = workerData?.config ? workerData.config : {};
-        this.input = workerData?.input ? workerData.input : {};
+        this.config = workerData?.config ? JSON.parse(JSON.stringify(workerData.config)) : {};
+        this.input = workerData?.input ? JSON.parse(JSON.stringify(workerData.input)) : {};
         this.perfBegin = new Date();
         this.perfTimeSpentComputing = 0;
         this.perfTimeSpentWaiting = 0;
@@ -73,7 +71,7 @@ export class AbstractWorkerProcessor {
             let ok = true;
             try {
                 if (process.looped) {
-                    ok = await this.loop(process.fn, 10, process.stopOnFailure, inputs);
+                    ok = await this.loop(process.fn, 10, false, inputs);
                 } else {
                     const begin = new Date();
                     ok = await process.fn(this.config, inputs, this.getLogger(), count);
@@ -144,7 +142,7 @@ export class AbstractWorkerProcessor {
             }
 
             if (!ok) {
-                const timeInMs = 500 + retryLimit * 2000;
+                const timeInMs = DEFAULT_POLLING_MS + retryLimit * DEFAULT_POLLING_STEP_MS;
                 this.logger.debug('>> Worker wait for next try', asyncFn.name, timeInMs);
                 await sleep(timeInMs);
                 retryLimit++;
