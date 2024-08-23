@@ -100,8 +100,8 @@ export class AbstractWorkerProcessor {
             count++;
         }
 
-        this.getLogger().info(`>> Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
-        const msg = await this.onEnd(allDone, await this.buildStats());
+        // this.getLogger().info(`>> Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
+        const msg = await this.onEnd(allDone, this.getLogger(), this.buildStats());
 
         if (connected && !this.bypassConnection) {
             await this.disconnect();
@@ -180,7 +180,7 @@ export class AbstractWorkerProcessor {
         throw new MError('to implement');
     }
 
-    protected async onEnd(allDone: boolean, stats: {
+    protected async onEnd(allDone: boolean, logger: ILogger, stats: {
         timeSpentTotal: number,
         timeSpentComputing: number,
         timeSpentWaiting: number
@@ -188,11 +188,11 @@ export class AbstractWorkerProcessor {
         // to override
     }
 
-    private async buildStats(): Promise<{
+    private buildStats(): {
         timeSpentTotal: number,
         timeSpentComputing: number,
         timeSpentWaiting: number
-    }> {
+    } {
         const end = new Date();
         return {
             timeSpentTotal: end.getTime() - this.perfBegin.getTime(),

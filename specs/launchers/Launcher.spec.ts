@@ -1,7 +1,7 @@
 import {DefaultWorkerStore, IWorkerData, Launcher, loggerFactory, LoggerLevels, LoggerPerf, QueueConcurrency, STRATEGIES} from '../../src';
 import {expect} from 'chai';
 import {promisify} from 'util';
-import {Config, Input} from './WorkerProcessor';
+import {Config, Input} from './WorkerProcessorA';
 import {WorkerStore} from './WorkerStore';
 import {join} from 'node:path';
 
@@ -40,7 +40,7 @@ describe('Launcher', () => {
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts'
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts'
         });
         const done = await launcher.push(['info', 'sleep', 'info'], data);
 
@@ -49,11 +49,11 @@ describe('Launcher', () => {
         expect(timeSpent).greaterThan(1000);
     }).timeout(4000);
 
-    it('should push as thread', async function () {
+    it('should push as thread (in ts)', async function () {
         await trackStart(this);
 
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
             workerStore: new WorkerStore(),
             threadStrategy: STRATEGIES.THREAD
         });
@@ -72,10 +72,39 @@ describe('Launcher', () => {
         const relatedLogs = lastLogs
             .filter(l => l.indexOf('thread') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 2].indexOf('info,thread') > 0).eq(true, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,thread') > 0).eq(true, lastLogs.toString());
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,thread') > 0).eq(true, lastLogs.toString());
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,thread') > 0).eq(true, lastLogs.toString());
 
     }).timeout(10000);
+
+    it('should push as thread (in js)', async function () {
+        await trackStart(this);
+
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorB.js',
+            workerStore: new WorkerStore(),
+            threadStrategy: STRATEGIES.THREAD
+        });
+        const input: Input = {count: 2};
+        const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+        const launched = await launcher.push(['info', 'sleep'], data);
+
+        const timeSpent = await trackFinish(this);
+        await sleep(3000);
+
+        expect(launched).eq(true);
+        expect(timeSpent).lessThan(1000);
+
+        const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
+        const relatedLogs = lastLogs
+            .filter(l => l.indexOf('thread') > 0);
+        expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,thread') > 0).eq(true, lastLogs.toString());
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,thread') > 0).eq(true, lastLogs.toString());
+
+    }).timeout(10000);
+
 
     it('should push as queue', async function () {
         await trackStart(this);
@@ -89,7 +118,7 @@ describe('Launcher', () => {
         }
         const workerStore = new DefaultWorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             queueConcurrency,
@@ -137,7 +166,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
@@ -175,7 +204,7 @@ describe('Launcher', () => {
         await trackStart(this);
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts', workerStore,
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts', workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
         const input: Input = {count: 1};
@@ -204,7 +233,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts', workerStore,
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts', workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
         const input: Input = {count: 2};
@@ -247,7 +276,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessor.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             disablePolling: true, // disabled

@@ -87,7 +87,16 @@ export class Launcher {
             } else if (this.options.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
                 const {Worker} = require('worker_threads');
-                const newWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
+                const simpleWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
+                simpleWorker.on('message', (any) => {
+                    console.log('### THREAD message', any);
+                });
+                simpleWorker.on('error', (any) => {
+                    console.log('### THREAD error', any);
+                });
+                simpleWorker.on('exit', (any) => {
+                    console.log('### THREAD finished', any);
+                });
             } else if (this.directWorker) {
                 await this.directWorker(params, (e) => {
                     console.log('### TO_REMOVE finished', e);

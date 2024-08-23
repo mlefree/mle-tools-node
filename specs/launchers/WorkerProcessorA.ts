@@ -27,7 +27,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         workerData: IWorkerData,
         bypassConnection = false
     ) {
-        console.log('WorkerProcessor++', name);
+        console.log('WorkerProcessorA++', name);
         super(name, workerData, bypassConnection);
     }
 
@@ -44,23 +44,23 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
     static async info(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        return logger.info('info', inputs.messageToWrite);
+        return logger.info('info => ', inputs.messageToWrite);
     }
 
     static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        logger.info('sleep', inputs.messageToWrite);
+        logger.info('sleep => ', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
 
     static async fail(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        logger.info('fail', inputs.messageToWrite);
+        logger.info('fail => ', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
 
     static async throwError(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
-        throw new MError('test should see it : ' + inputs.messageToWrite);
+        throw new MError('throwError should see it : ' + inputs.messageToWrite);
     }
 
     // To implement :
@@ -93,12 +93,12 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         return this.connected;
     }
 
-    protected async onEnd(done: boolean, stats: {
+    protected async onEnd(done: boolean, logger: ILogger, stats: {
         timeSpentTotal: number,
         timeSpentComputing: number,
         timeSpentWaiting: number
     }) {
-        console.log('WorkerProcessor-- ', this.name, done, stats);
+        console.log('WorkerProcessorA-- ', this.name, done, stats);
     }
 
 
