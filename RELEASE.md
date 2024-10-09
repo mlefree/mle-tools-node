@@ -11,3 +11,4 @@
 - 1.8.x: Launcher and Queue simplified
 - 1.9.x: Cache tools + middleware
 - 1.10.x: extract configuration into mle-tools-configuration
+- 1.11.x: Cache bypass

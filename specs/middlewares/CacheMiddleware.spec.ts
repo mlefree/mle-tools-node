@@ -19,6 +19,7 @@ describe('CacheMiddleware', () => {
         const cacheMiddleware = new CacheMiddleware({});
         const middleware = cacheMiddleware.middleWare(CACHE_TYPE.INFINITE);
         expect(await middleware(req, res, next)).eq(undefined);
+        // TODO more middlewares test
     });
 
     it('should use simple lru', async () => {

@@ -133,7 +133,7 @@ export class QueueLauncher {
             }
 
             this.runningWorkers[queueName]++;
-            if (!params.workerProcesses) { // TODO remove transition workerDescription => workerProcesses
+            if (!params.workerProcesses) {
                 params.workerProcesses = ['' + params['workerDescription'] ? params['workerDescription'] : ''];
             }
             params.workerProcessorPathFile = this.options.workerProcessorPathFile;

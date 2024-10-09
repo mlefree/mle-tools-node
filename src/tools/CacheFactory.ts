@@ -4,9 +4,10 @@ import {loggerFactory} from '../logs';
 import * as crypto from 'node:crypto';
 
 export enum CACHE_STORE {
-    ALL = 0,
+    NONE = 0,
     MEMORY = 1,
     REDIS = 2,
+    ALL = 3,
 }
 
 export enum CACHE_TTL {
@@ -32,6 +33,7 @@ export interface ICacheOptions {
 
 export interface ICacheConfig {
     redisUrl?: string,
+    redisConfig?: any,
     ttl?: CACHE_TTL,
     max?: CACHE_COUNT,
     store?: CACHE_STORE,
@@ -53,7 +55,6 @@ export interface ICache {
     incr(key: string): Promise<number>;
 
     execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]): Promise<any>;
-
 }
 
 export class CacheFactory implements ICache {
@@ -231,8 +232,13 @@ export class CacheFactory implements ICache {
                 this.redisCache = null;
             } else {
                 try {
-                    const configRedis = {
-                        ...this.config,
+                    let configRedis: any = this.config;
+                    configRedis = {
+                        ...configRedis,
+                        ...this.config.redisConfig,
+                    }
+                    configRedis = {
+                        ...configRedis,
                         url: this.config.redisUrl,
                     } as const;
 

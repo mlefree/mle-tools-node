@@ -12,7 +12,7 @@ export interface IBuildModel {
 
 export interface IBuildContainer {
     builds: string[];
-    save: () => void;
+    save: () => Promise<any>;
     getBuilds?: () => string[];
 }
 
@@ -86,7 +86,7 @@ export class BuiltInstance {
         // @ts-ignore
         const newBuild = new buildModel(doc);
         await newBuild.save();
-        this.instance.builds.push(newBuild); // TODO it can be a setBuilds() method for rainZone
+        this.instance.builds.push(newBuild);
         await this.instance.save();
         return newBuild;
     }

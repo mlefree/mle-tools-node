@@ -36,11 +36,9 @@ export class CacheMiddleware {
             try {
 
                 let step = 'CacheMiddleware-get';
-                let stepTrack = res.startTime ? res.startTime(step) : null;
-
+                res.startTime?.apply(step);
                 const cachedResponse = await this.cache.get(key);
-
-                stepTrack = res.endTime ? res.endTime(step) : null;
+                res.endTime?.apply(step);
 
                 if (cachedResponse) {
                     loggerFactory.getLogger().info('@cache yes', JSON.stringify(key));
@@ -48,13 +46,13 @@ export class CacheMiddleware {
                 } else {
                     loggerFactory.getLogger().info('@cache no', JSON.stringify(key));
                     step = 'CacheMiddleware-setPrepare';
-                    stepTrack = res.startTime ? res.startTime(step) : null;
+                    res.startTime?.apply(step);
 
                     res.sendResponse = res.jsonp;
                     res.jsonp = async (body: any) => {
 
                         const step2 = 'CacheMiddleware-set';
-                        stepTrack = res.startTime ? res.startTime(step2) : null;
+                        res.startTime?.apply(step2);
 
                         if (JSON.stringify(body).length < 10000000) {
                             // No Need to stop response ? :
@@ -65,12 +63,12 @@ export class CacheMiddleware {
                             loggerFactory.getLogger().info('@cache body too large to be cached', JSON.stringify(key));
                         }
 
-                        stepTrack = res.endTime ? res.endTime(step2) : null;
+                        res.endTime?.apply(step2);
 
                         res.sendResponse(body);
                     };
 
-                    stepTrack = res.endTime ? res.endTime(step) : null;
+                    res.endTime?.apply(step);
                     next();
                 }
             } catch (err) {
