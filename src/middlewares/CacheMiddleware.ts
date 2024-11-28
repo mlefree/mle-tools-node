@@ -12,6 +12,18 @@ export class CacheMiddleware {
     constructor(protected config?: ICacheConfig) {
     }
 
+    private static TimingStart(res: any, step: string) {
+        if (typeof res.startTime === 'function') {
+            res.startTime(step);
+        }
+    }
+
+    private static TimingEnd(res: any, step: string) {
+        if (typeof res.endTime === 'function') {
+            res.endTime(step);
+        }
+    }
+
     public middleWare(type: CACHE_TYPE = CACHE_TYPE.LRU) {
 
         if (!this.cache) {
@@ -36,9 +48,9 @@ export class CacheMiddleware {
             try {
 
                 let step = 'CacheMiddleware-get';
-                res.startTime?.apply(step);
+                CacheMiddleware.TimingStart(res, step);
                 const cachedResponse = await this.cache.get(key);
-                res.endTime?.apply(step);
+                CacheMiddleware.TimingEnd(res, step);
 
                 if (cachedResponse) {
                     loggerFactory.getLogger().info('@cache yes', JSON.stringify(key));
@@ -46,13 +58,13 @@ export class CacheMiddleware {
                 } else {
                     loggerFactory.getLogger().info('@cache no', JSON.stringify(key));
                     step = 'CacheMiddleware-setPrepare';
-                    res.startTime?.apply(step);
+                    CacheMiddleware.TimingStart(res, step);
 
                     res.sendResponse = res.jsonp;
                     res.jsonp = async (body: any) => {
 
                         const step2 = 'CacheMiddleware-set';
-                        res.startTime?.apply(step2);
+                        CacheMiddleware.TimingStart(res, step2);
 
                         if (JSON.stringify(body).length < 10000000) {
                             // No Need to stop response ? :
@@ -63,12 +75,11 @@ export class CacheMiddleware {
                             loggerFactory.getLogger().info('@cache body too large to be cached', JSON.stringify(key));
                         }
 
-                        res.endTime?.apply(step2);
-
+                        CacheMiddleware.TimingEnd(res, step2);
                         res.sendResponse(body);
                     };
 
-                    res.endTime?.apply(step);
+                    CacheMiddleware.TimingEnd(res, step);
                     next();
                 }
             } catch (err) {

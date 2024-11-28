@@ -1,6 +1,6 @@
 {
   "name": "mle-tools-node",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "author": "mle",
   "description": "some node tools",
   "keywords": [],
@@ -15,6 +15,7 @@
     "fast-csv": "^5.0.0",
     "form-data": "^4.0.0",
     "mle-tools-configuration": "^1.0.3",
+    "on-headers": "^1.0.2",
     "pidusage": "^3.0.2",
     "polling-timer": "^0.1.2",
     "ts-node": "^8.3.0",
@@ -25,6 +26,7 @@
     "@types/chai": "^4.3.10",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.8.8",
+    "@types/on-headers": "^1.0.3",
     "chai": "^4.3.10",
     "mocha": "^10.2.0",
     "mocha-typescript": "^1.1.17",
@@ -36,9 +38,11 @@
     "typescript": "^5.0.3"
   },
   "scripts": {
-    "_clean": "rm -rf .gen .logs .nyc_output .coverage dist",
-    "build": "rm -rf dist/ && npm version patch --no-git-tag-version && tsc --project tsconfig.json && cp *.md dist/ && cp package.json dist/ && cp src/launchers/asThread.js dist/launchers/.",
-    "test": "mocha --require ts-node/register 'specs/**/**.spec.ts'",
-    "coverage": "nyc npm run test"
+    "_clean": "rm -rf .gen .logs .nyc_output .coverage dist node_modules package-lock.json",
+    "build": "npm run build-dist",
+    "build-version": "VERSION=\"$(npm version patch --no-git-tag-version)\" && echo \"export const MleToolsNode = {version:'$VERSION'}\" > ./src/module/MleToolsNode.ts",
+    "build-dist": "rm -rf dist/ && tsc --project tsconfig.json && cp *.md dist/ && cp package.json dist/ && cp src/launchers/asThread.js dist/launchers/.",
+    "test": "mocha --require ts-node/register --exit 'specs/**/**.spec.ts'",
+    "test-coverage": "nyc npm run test"
   }
 }

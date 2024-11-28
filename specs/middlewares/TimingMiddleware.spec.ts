@@ -1,7 +1,7 @@
 import {expect} from 'chai';
-import {timeTracking, TimeTrackingMiddleware} from '../../src/';
+import {timing, TimingMiddleware} from '../../src/';
 
-describe('TimeTrackingMiddleware', () => {
+describe('TimingMiddleware', () => {
 
     const req = {};
     const res = {
@@ -16,13 +16,13 @@ describe('TimeTrackingMiddleware', () => {
     });
 
     it('should create time tracking', async () => {
-        const timeTrackingMiddleware = new TimeTrackingMiddleware({milliSecBeforeWarning: 100});
-        const middleware = timeTrackingMiddleware.middleWare();
+        const timingMiddleware = new TimingMiddleware();
+        const middleware = timingMiddleware.middleWare();
         expect(middleware(req, res, next)).eq(undefined);
     });
 
     it('should use simple timeTracking', async () => {
-        expect(timeTracking({milliSecBeforeWarning: 100})(req, res, next)).eq(undefined);
+        expect(timing()(req, res, next)).eq(undefined);
     });
 
 });

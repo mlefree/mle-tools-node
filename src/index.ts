@@ -5,3 +5,4 @@ export * from './launchers';
 export * from './logs';
 export * from './middlewares';
 export * from './tools';
+export * from './module';

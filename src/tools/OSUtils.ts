@@ -254,7 +254,6 @@ export const cpuTemperature = async function () {
 
 }
 
-
 /*
 * Returns All the load average usage for 1, 5 or 15 minutes.
 */
@@ -280,7 +279,6 @@ export const loadavg = function (_time) {
 
     return v;
 }
-
 
 export const cpuFree = async function () {
     return getCPUUsage(true);
