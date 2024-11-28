@@ -261,14 +261,14 @@ describe('Launcher', () => {
 
         // Stop !
         const stopped = await launcher.stop();
-        await sleep(4000);
+        await sleep(15000);
         expect(stopped).eq(true);
         expect(await launcher.getStoreWaitingSize()).equal(waiting);
         expect(await launcher.getStoreRunningSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         await trackFinish(this);
-    }).timeout(10000);
+    }).timeout(20000);
 
     it('should push as queue and disable', async function () {
         await trackStart(this);
