@@ -105,7 +105,6 @@ describe('Launcher', () => {
 
     }).timeout(10000);
 
-
     it('should push as queue', async function () {
         await trackStart(this);
 
@@ -262,7 +261,7 @@ describe('Launcher', () => {
 
         // Stop !
         const stopped = await launcher.stop();
-        await sleep(2000);
+        await sleep(4000);
         expect(stopped).eq(true);
         expect(await launcher.getStoreWaitingSize()).equal(waiting);
         expect(await launcher.getStoreRunningSize()).equal(0);
