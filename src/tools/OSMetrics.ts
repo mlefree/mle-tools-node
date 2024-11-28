@@ -29,7 +29,7 @@ export class OSMetrics {
 
     static async getMetrics(): Promise<OSMetricsStat> {
         const logger = loggerFactory.getLogger();
-        let stat: OSMetricsStat;
+        let stat: OSMetricsStat = {} as any;
 
         try {
             stat = await pidusage(process.pid);
@@ -58,7 +58,7 @@ export class OSMetrics {
             // stat.cpuPercent = Math.round(1000 * cpuUserSys / cpuTotal / 10);
             stat.cpuPercent = Math.round(100 * 100 * await cpuUsage()) / 100;
             const cpuTemp = await cpuTemperature();
-            stat.cpuTemperature = cpuTemp.main;
+            stat.cpuTemperature = cpuTemp.main ? cpuTemp.main : undefined;
 
             stat.memory = stat.memory / 1024 / 1024; // Convert from B to MB
 
