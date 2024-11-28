@@ -1,13 +1,10 @@
-import util from 'node:util';
+import {promisify} from 'util';
 import pidusage from 'pidusage';
 // import eventLoopStats from 'event-loop-stats';
 import os from 'os';
 import v8 from 'v8';
 import {loggerFactory} from '../logs';
-import {statfs} from 'node:fs';
 import {cpuTemperature, cpuUsage, freememPercentage} from './OSUtils';
-
-const sfsAsync = util.promisify(statfs);
 
 export interface OSMetricsStat {
     timestamp: number, // now
@@ -85,6 +82,8 @@ export class OSMetrics {
             //     sum: Total number of milliseconds spent in the loop since last sense call.
             //     num: Total number of loops since last sense call.
 
+            const {statfs} = require('fs');
+            const sfsAsync = promisify(statfs);
             const fsStat = await sfsAsync('/');
             stat.fs = {
                 available: fsStat.bavail * fsStat.bsize,
