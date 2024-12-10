@@ -25,21 +25,23 @@ export class CacheMiddleware {
     }
 
     public middleWare(type: CACHE_TYPE = CACHE_TYPE.LRU) {
+        let cacheOptions = CACHE_DEFAULT_OPTIONS_LRU;
+        if (type === CACHE_TYPE.INFINITE) {
+            cacheOptions = CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE;
+        }
 
         if (!this.cache) {
             if (this.config) {
                 // console.log('@cache new middleWare');
                 this.cache = new CacheFactory();
                 this.cache.setUp(this.config);
+                if (this.config.ttl) {
+                    cacheOptions = {ttl: this.config.ttl};
+                }
             } else {
                 // console.log('@cache new middleWare with', cacheFactory);
                 this.cache = cacheFactory;
             }
-        }
-
-        let cacheOptions = CACHE_DEFAULT_OPTIONS_LRU;
-        if (type === CACHE_TYPE.INFINITE) {
-            cacheOptions = CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE;
         }
 
         return async (req: any, res: any, next: (err?: any) => void) => {
@@ -68,7 +70,6 @@ export class CacheMiddleware {
 
                         if (JSON.stringify(body).length < 10000000) {
                             // No Need to stop response ? :
-                            // await this.cache.set(key, body, cacheOptions);
                             this.cache.set(key, body, cacheOptions).then(ignored => {
                             });
                         } else {
