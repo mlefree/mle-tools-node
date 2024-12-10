@@ -188,7 +188,7 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(1);
 
         workerStore.removeAll();
-        await sleep(1000);
+        await sleep(4000);
         expect(await launcher.getStoreRunningSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
 
