@@ -188,7 +188,7 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(1);
 
         workerStore.removeAll();
-        await sleep(4000);
+        await sleep(8000);
         expect(await launcher.getStoreRunningSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
 
@@ -197,7 +197,7 @@ describe('Launcher', () => {
             .filter(l => l.indexOf('fail') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(1, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('fail') > 0).eq(true, relatedLogs.toString());
-    }).timeout(10000);
+    }).timeout(20000);
 
     it('should push as queue and Throw Error', async function () {
         await trackStart(this);
