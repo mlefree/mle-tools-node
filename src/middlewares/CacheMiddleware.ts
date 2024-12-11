@@ -65,6 +65,10 @@ export class CacheMiddleware {
                     res.sendResponse = res.jsonp;
                     res.jsonp = async (body: any) => {
 
+                        if (res.statusCode >= 400) {
+                            return res.sendResponse(body);
+                        }
+
                         const step2 = 'CacheMiddleware-set';
                         CacheMiddleware.TimingStart(res, step2);
 
@@ -77,7 +81,7 @@ export class CacheMiddleware {
                         }
 
                         CacheMiddleware.TimingEnd(res, step2);
-                        res.sendResponse(body);
+                        return res.sendResponse(body);
                     };
 
                     CacheMiddleware.TimingEnd(res, step);
