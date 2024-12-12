@@ -39,7 +39,7 @@ describe('Cache', function () {
             }
 
             // cached partially expired
-            await sleep(2000);
+            await sleep(3000);
             expect(await cacheFactory.get('key')).eq('value1', JSON.stringify(store));
             expect(await cacheFactory.get({key1: true})).eq(undefined);
             expect(await cacheFactory.get({key2: true})).eq(undefined);
