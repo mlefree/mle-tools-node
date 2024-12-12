@@ -32,6 +32,7 @@ export interface ICacheOptions {
 }
 
 export interface ICacheConfig {
+    instanceName: string,
     redisUrl?: string,
     redisConfig?: any,
     ttl?: CACHE_TTL,
@@ -59,7 +60,7 @@ export interface ICache {
 
 export class CacheFactory implements ICache {
 
-    protected config: ICacheConfig = {};
+    protected config: ICacheConfig;
     private memoryCache: MemoryCache;
     private redisCache: Cache<RedisStore<any>>;
     private bypass = false;
@@ -67,6 +68,7 @@ export class CacheFactory implements ICache {
 
     constructor() {
         this.config = {
+            instanceName: 'default',
             ttl: CACHE_TTL.TEN_MINUTES,
             max: CACHE_COUNT.SMALL,
             store: CACHE_STORE.MEMORY
@@ -257,7 +259,7 @@ export class CacheFactory implements ICache {
     }
 
     private buildUniqueKey(key: any) {
-        return crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
+        return this.config.instanceName + '-' + crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
     }
 
 }

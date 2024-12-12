@@ -85,12 +85,14 @@ describe('Cache', () => {
 
     it('should NONE cache get and set', async () => {
         await cacheTest({
+            instanceName: 'test',
             store: CACHE_STORE.NONE
         });
     });
 
     it('should MEMORY cache get and set', async () => {
         await cacheTest({
+            instanceName: 'test',
             redisUrl: 'existingOrNot... does not matters',
             store: CACHE_STORE.MEMORY
         });
@@ -98,6 +100,7 @@ describe('Cache', () => {
 
     it('should REDIS cache get and set', async () => {
         await cacheTest({
+            instanceName: 'test',
             redisUrl: redisUri,
             store: CACHE_STORE.REDIS
         });
@@ -105,6 +108,7 @@ describe('Cache', () => {
 
     it('should ALL cache get and set', async () => {
         await cacheTest({
+            instanceName: 'test',
             redisUrl: redisUri,
             store: CACHE_STORE.ALL
         });
@@ -114,6 +118,7 @@ describe('Cache', () => {
 
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
+            instanceName: 'test',
             store: CACHE_STORE.NONE
         });
         await cacheFactory.reset();
@@ -150,6 +155,7 @@ describe('Cache', () => {
 
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
+            instanceName: 'test',
             redisUrl: redisUri,
             store: CACHE_STORE.ALL
         });
@@ -197,6 +203,7 @@ describe('Cache', () => {
 
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
+            instanceName: 'test',
             redisUrl: redisUri // not required
         });
         await cacheFactory.reset();
