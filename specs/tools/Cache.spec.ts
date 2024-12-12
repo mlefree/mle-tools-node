@@ -5,8 +5,9 @@ import {RedisMemoryServer} from 'redis-memory-server';
 
 const sleep = promisify(setTimeout);
 
-describe('Cache', () => {
+describe('Cache', function () {
 
+    this.timeout(10000);
     const cacheTest = async (store: ICacheConfig) => {
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp(store);
@@ -18,8 +19,8 @@ describe('Cache', () => {
 
         // set
         await cacheFactory.set('key', 'value1');
-        await cacheFactory.set({key1: true}, {value1: 1}, {ttl: CACHE_TTL.SEC, store: CACHE_STORE.MEMORY});
-        await cacheFactory.set({key2: true}, {value2: 2}, {ttl: CACHE_TTL.SEC, store: CACHE_STORE.REDIS});
+        await cacheFactory.set({key1: true}, {value1: 1}, {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.MEMORY});
+        await cacheFactory.set({key2: true}, {value2: 2}, {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS});
 
         if (store.store === CACHE_STORE.NONE) {
             expect(await cacheFactory.get('key')).eq(undefined);
@@ -38,7 +39,7 @@ describe('Cache', () => {
             }
 
             // cached partially expired
-            await sleep(1200);
+            await sleep(2000);
             expect(await cacheFactory.get('key')).eq('value1', JSON.stringify(store));
             expect(await cacheFactory.get({key1: true})).eq(undefined);
             expect(await cacheFactory.get({key2: true})).eq(undefined);
@@ -48,10 +49,6 @@ describe('Cache', () => {
 
         // cached removed
         await cacheFactory.remove('key');
-        // const cf = new CacheFactory();
-        // cf.setUp(store);
-        // await cf.remove('key');
-
         expect(await cacheFactory.get('key')).eq(undefined, JSON.stringify(store));
 
         // bypassing cache

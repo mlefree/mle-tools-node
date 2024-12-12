@@ -120,10 +120,9 @@ export class CacheFactory implements ICache {
 
         await this.init();
 
-        let builtKey: string = key;
+        const builtKey = this.buildUniqueKey(key);
         let valueToStore = value;
         if (typeof key !== 'string') {
-            builtKey = this.buildUniqueKey(key);
             valueToStore = JSON.stringify(value);
         }
 
@@ -146,9 +145,8 @@ export class CacheFactory implements ICache {
         await this.init();
 
         let typeOfValue = 'string';
-        let builtKey: string = key;
+        const builtKey = this.buildUniqueKey(key);
         if (typeof key !== 'string') {
-            builtKey = this.buildUniqueKey(key);
             typeOfValue = 'object';
         }
 
@@ -192,8 +190,9 @@ export class CacheFactory implements ICache {
     async remove(key: string) {
         await this.init();
 
-        await this.memoryCache?.del(key);
-        const result = await this.redisCache?.store?.client?.sendCommand(['DEL', key]); // 'OK';
+        const builtKey = this.buildUniqueKey(key);
+        await this.memoryCache?.del(builtKey);
+        const result = await this.redisCache?.store?.client?.sendCommand(['DEL', builtKey]); // 'OK';
         // console.log('removed ?', result);
     }
 
@@ -258,8 +257,12 @@ export class CacheFactory implements ICache {
         }
     }
 
-    private buildUniqueKey(key: any) {
-        return this.config.instanceName + '-' + crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
+    private buildUniqueKey(key: any): string {
+        let newKey = key;
+        if (typeof key !== 'string') {
+            newKey = crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
+        }
+        return this.config.instanceName + '-' + newKey;
     }
 
 }
