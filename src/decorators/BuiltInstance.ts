@@ -97,7 +97,7 @@ export class BuiltInstance {
 
         // global remove of older than one hour
         const past = new Date();
-        past.setHours(past.getHours() - 1);
+        past.setMinutes(past.getMinutes() - this.minutesBeforeGettingOld);
         // { statusGlobal: { $ne: 1 }
         // statusWorkers: [],
         await buildModel.deleteMany({updatedAt: {$lte: past}, buildType});

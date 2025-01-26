@@ -1,7 +1,7 @@
 import {Cache, caching, MemoryCache, MemoryConfig} from 'cache-manager';
 import {redisStore, RedisStore} from 'cache-manager-redis-yet';
 import {loggerFactory} from '../logs';
-import * as crypto from 'node:crypto';
+import hash from 'object-hash';
 
 export enum CACHE_STORE {
     NONE = 0,
@@ -113,7 +113,7 @@ export class CacheFactory implements ICache {
 
     async set(key: string | any,
               value: string | any,
-              options: ICacheOptions = CACHE_DEFAULT_OPTIONS_LRU): Promise<void> {
+              options?: ICacheOptions): Promise<void> {
         if (this.bypass || !value) {
             return;
         }
@@ -260,7 +260,7 @@ export class CacheFactory implements ICache {
     private buildUniqueKey(key: any): string {
         let newKey = key;
         if (typeof key !== 'string') {
-            newKey = crypto.createHash('md5').update(JSON.stringify(key)).digest('hex');
+            newKey = hash(key);
         }
         return this.config.instanceName + '-' + newKey;
     }

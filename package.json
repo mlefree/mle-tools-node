@@ -1,6 +1,6 @@
 {
   "name": "mle-tools-node",
-  "version": "1.11.7",
+  "version": "1.11.11",
   "author": "mle",
   "description": "some node tools",
   "keywords": [],
@@ -15,6 +15,7 @@
     "fast-csv": "^5.0.0",
     "form-data": "^4.0.0",
     "mle-tools-configuration": "^1.0.7",
+    "object-hash": "^3.0.0",
     "on-headers": "^1.0.2",
     "pidusage": "^3.0.2",
     "polling-timer": "^0.1.2",
@@ -37,7 +38,7 @@
     "typescript": "^5.0.3"
   },
   "scripts": {
-    "_clean": "rm -rf .gen .logs .nyc_output .coverage dist node_modules package-lock.json",
+    "_clean": "rm -rf .gen .logs .nyc_output .coverage dist node_modules package-lock.json && npm i",
     "build": "npm run build-dist",
     "build-version": "VERSION=\"$(npm version patch --no-git-tag-version)\" && echo \"export const MleToolsNode = {version:'$VERSION'}\" > ./src/module/MleToolsNode.ts",
     "build-dist": "rm -rf dist/ && tsc --project tsconfig.json && cp *.md dist/ && cp package.json dist/ && cp src/launchers/asThread.js dist/launchers/.",
