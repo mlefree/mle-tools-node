@@ -146,7 +146,7 @@ describe('Launcher', () => {
         await sleep(1000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(4);
-        expect(await launcher.getQueueRunningSize()).equal(0);
+        expect(await launcher.getQueueRunningSize()).equal(4);
         await sleep(7000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(0);

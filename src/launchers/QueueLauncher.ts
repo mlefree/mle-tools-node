@@ -99,11 +99,10 @@ export class QueueLauncher {
     }
 
     private async syncQueuesFromStore() {
-        if (this.queueNames.length) {
-            return;
+        if (this.queueNames.length === 0) {
+            this.clean();
         }
 
-        this.clean();
         this.queueNames = await this.options.workerStore.getNamesAfterMemoryCleanUp();
     }
 
@@ -118,7 +117,7 @@ export class QueueLauncher {
 
             // check concurrency limit
             const {concurrency} = this.getKeyConcurrency(queueName);
-            const notExists = typeof this.runningWorkers[queueName] === 'undefined';
+            const notExists = (typeof this.runningWorkers[queueName] === 'undefined') || Number.isNaN(this.runningWorkers[queueName]);
             if (notExists) {
                 this.runningWorkers[queueName] = 0;
             }
@@ -132,7 +131,10 @@ export class QueueLauncher {
                 continue;
             }
 
-            this.runningWorkers[queueName]++;
+            if (typeof this.runningWorkers[queueName] !== 'undefined') {
+                this.runningWorkers[queueName]++;
+            }
+
             if (!params.workerProcesses) {
                 params.workerProcesses = ['' + params['workerDescription'] ? params['workerDescription'] : ''];
             }

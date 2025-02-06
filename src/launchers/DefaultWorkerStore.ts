@@ -91,14 +91,14 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
                 }, 0);
         }
 
-        let arr = this.queues[options.queueName];
+        let queue = this.queues[options.queueName];
         if (options?.inProgress) {
-            arr = this.queues[options.queueName].filter(p => p.inProgress);
+            queue = this.queues[options.queueName].filter(p => p.inProgress);
         } else if (options && typeof options.inProgress !== 'undefined') {
-            arr = this.queues[options.queueName].filter(p => !p.inProgress);
+            queue = this.queues[options.queueName].filter(p => !p.inProgress);
         }
 
-        return arr.length;
+        return queue.length;
     }
 
     async getNamesAfterMemoryCleanUp(): Promise<string[]> {
