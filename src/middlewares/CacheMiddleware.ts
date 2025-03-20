@@ -44,7 +44,7 @@ export class CacheMiddleware {
             }
         }
 
-        return async (req: any, res: any, next: (err?: any) => void) => {
+        return async (req: any, res: any, next: (err?: any) => void): Promise<void> => {
             const key = req.originalUrl; // {url: req.originalUrl};
 
             try {
@@ -56,7 +56,7 @@ export class CacheMiddleware {
 
                 if (cachedResponse) {
                     loggerFactory.getLogger().info('@cache yes', JSON.stringify(key));
-                    return res.jsonp(cachedResponse);
+                    res.jsonp(cachedResponse);
                 } else {
                     loggerFactory.getLogger().info('@cache no', JSON.stringify(key));
                     step = 'CacheMiddleware-setPrepare';

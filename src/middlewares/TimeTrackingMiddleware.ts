@@ -57,7 +57,7 @@ export class TimeTrackingMiddleware {
 
 }
 
-export const timeTracking = ((options: ITimeTrackingOptions) => {
+export const timeTracking = ((options?: ITimeTrackingOptions) => {
     const timeTrackingMiddleware = new TimeTrackingMiddleware(options);
     return timeTrackingMiddleware.middleWare();
 });
