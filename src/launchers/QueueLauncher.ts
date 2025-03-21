@@ -67,6 +67,16 @@ export class QueueLauncher {
     }
 
     async error(queueName: string, params: IWorkerParams) {
+        // Get the worker processor to check if any of the processes should keep in queue
+        const WorkerProcessor = require(this.options.workerProcessorPathFile);
+        const processes = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
+        const shouldKeepInQueue = processes.some(p => p.keepInTheQueue);
+
+        if (shouldKeepInQueue) {
+            // If any process should be kept in queue, don't release it
+            return;
+        }
+
         await this.options.workerStore.release(queueName, params);
 
         if (this.runningWorkers[queueName]) {
