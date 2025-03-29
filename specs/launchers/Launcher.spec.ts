@@ -40,7 +40,7 @@ describe('Launcher', () => {
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts'
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA'
         });
         const done = await launcher.push(['info', 'sleep', 'info'], data);
 
@@ -53,7 +53,7 @@ describe('Launcher', () => {
         await trackStart(this);
 
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore: new WorkerStore(),
             threadStrategy: STRATEGIES.THREAD
         });
@@ -81,7 +81,7 @@ describe('Launcher', () => {
         await trackStart(this);
 
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorB.js',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorB',
             workerStore: new WorkerStore(),
             threadStrategy: STRATEGIES.THREAD
         });
@@ -117,7 +117,7 @@ describe('Launcher', () => {
         }
         const workerStore = new DefaultWorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             queueConcurrency,
@@ -165,7 +165,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
@@ -203,7 +203,7 @@ describe('Launcher', () => {
         await trackStart(this);
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts', workerStore,
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA', workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
         const input: Input = {count: 1};
@@ -232,7 +232,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts', workerStore,
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA', workerStore,
             threadStrategy: STRATEGIES.QUEUE
         });
         const input: Input = {count: 2};
@@ -275,7 +275,7 @@ describe('Launcher', () => {
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA.ts',
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             disablePolling: true, // disabled

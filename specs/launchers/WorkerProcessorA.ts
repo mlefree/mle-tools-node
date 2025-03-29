@@ -1,5 +1,5 @@
 import {promisify} from 'util';
-import {AbstractWorkerProcessor, ILogger, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
+import {AbstractWorkerProcessor, IConsole, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
 
 const sleep = promisify(setTimeout);
 
@@ -43,23 +43,23 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     // Static processes following pattern:
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
-    static async info(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
+    static async info(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
         return logger.info('info => ', inputs.messageToWrite);
     }
 
-    static async sleep(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
+    static async sleep(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
         logger.info('sleep => ', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
 
-    static async fail(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
+    static async fail(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
         logger.info('fail => ', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
 
-    static async throwError(config: Config, inputs: Inputs, logger: ILogger, count: number): Promise<boolean> {
+    static async throwError(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
         throw new MError('throwError should see it : ' + inputs.messageToWrite);
     }
 
@@ -93,7 +93,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         return this.connected;
     }
 
-    protected async onEnd(done: boolean, logger: ILogger, stats: {
+    protected async onEnd(done: boolean, logger: IConsole, stats: {
         timeSpentTotal: number,
         timeSpentComputing: number,
         timeSpentWaiting: number

@@ -1,7 +1,7 @@
 import {promisify} from 'util';
 import {MError} from '../errors';
 import {Tools} from '../tools';
-import {ILogger, Logger, LoggerLevels} from '../logs';
+import {IConsole, Logger, LoggerLevels} from '../logs';
 import {IWorkerData} from './IWorkerData';
 import {IWorkerProcess} from './IWorkerProcess';
 
@@ -115,7 +115,7 @@ export class AbstractWorkerProcessor {
     }
 
     getProcesses(): {
-        fn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
+        fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
         looped: boolean,
         stopOnFailure: boolean,
         keepInTheQueue: boolean,
@@ -124,7 +124,7 @@ export class AbstractWorkerProcessor {
         throw new Error('to implement');
     }
 
-    protected async loop(asyncFn: (config: any, inputs: any, logger: ILogger, count: number) => Promise<boolean>,
+    protected async loop(asyncFn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
                          count: number,
                          stopOnFailure: boolean,
                          inputs: any) {
@@ -153,7 +153,7 @@ export class AbstractWorkerProcessor {
         return ok;
     }
 
-    protected getLogger(): ILogger {
+    protected getLogger(): IConsole {
         if (this.logger) {
             return this.logger;
         } else {
@@ -180,7 +180,7 @@ export class AbstractWorkerProcessor {
         throw new MError('to implement');
     }
 
-    protected async onEnd(allDone: boolean, logger: ILogger, stats: {
+    protected async onEnd(allDone: boolean, logger: IConsole, stats: {
         timeSpentTotal: number,
         timeSpentComputing: number,
         timeSpentWaiting: number
