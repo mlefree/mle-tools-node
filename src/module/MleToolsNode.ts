@@ -1,1 +1,1 @@
-export const MleToolsNode = {version:'v1.11.16'}
+export const MleToolsNode = {version:'v1.12.1'}
