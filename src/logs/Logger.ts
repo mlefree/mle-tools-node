@@ -27,7 +27,7 @@ export class Logger implements ILogger {
             level: LOGGER_DEFAULT_LEVEL
         });
         this.transports['file'] = new DailyRotateFile({
-            filename: LOGGER_FILE_DIR + '/raain-%DATE%.log',
+            filename: LOGGER_FILE_DIR + '/log-%DATE%.log',
             datePattern: 'YYYY-MM-DD-HH',
             zippedArchive: false,
             maxSize: '20m',
@@ -172,7 +172,7 @@ export class Logger implements ILogger {
         const secondPartOfDate = now.toISOString().split('T')[1].split(':')[0];
         const formattedDate = firstPartOfDate + '-' + secondPartOfDate;
 
-        const lastLogFilename = join(parentPath, LOGGER_FILE_DIR, '/raain-' + formattedDate + '.log');
+        const lastLogFilename = join(parentPath, LOGGER_FILE_DIR, '/log-' + formattedDate + '.log');
         const contents = fs.readFileSync(lastLogFilename, 'utf8');
         return contents.split(/\r?\n/);
     }

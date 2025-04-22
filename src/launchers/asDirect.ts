@@ -6,7 +6,7 @@ module.exports = async (params: IWorkerParams, onEnd?: () => Promise<void>, onEr
     const wi = params.workerInstance;
     const wd = params.workerData;
     const {WorkerProcessor} = require(params.workerProcessorPathFile);
-    const processor: AbstractWorkerProcessor = new WorkerProcessor(wn + '-#DIRECT-' + wi, wd, true);
+    const processor: AbstractWorkerProcessor = new WorkerProcessor(wn + '-#DIRECT(' + process.pid + ')-' + wi, wd, true);
 
     try {
         const needRetry = await processor.launch();

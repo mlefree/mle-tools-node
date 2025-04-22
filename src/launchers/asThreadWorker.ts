@@ -3,7 +3,7 @@ import {IWorkerParams} from './IWorkerParams';
 
 let WORKERS_COUNT = 0;
 
-module.exports = function (params: IWorkerParams, onEnd?: () => Promise<void>, onError?: (code: number) => Promise<void>) {
+module.exports = (params: IWorkerParams, onEnd?: () => Promise<void>, onError?: (code: number) => Promise<void>) => {
     // console.log('### WorkerLaunched:', ++WORKERS_COUNT);
     const path = require('node:path');
     const workerThread = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});

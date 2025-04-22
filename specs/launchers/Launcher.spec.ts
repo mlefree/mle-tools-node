@@ -1,7 +1,7 @@
 import {DefaultWorkerStore, IWorkerData, Launcher, loggerFactory, LoggerLevels, LoggerPerf, QueueConcurrency, STRATEGIES} from '../../src';
 import {expect} from 'chai';
 import {promisify} from 'util';
-import {Config, Input} from './WorkerProcessorA';
+import {Config, Input} from './WorkerProcessorInterfaces';
 import {WorkerStore} from './WorkerStore';
 import {join} from 'node:path';
 

@@ -7,7 +7,7 @@ export class AbstractWorkerStore {
         throw new MError('Not implemented');
     };
 
-    async take(queueName: string): Promise<IWorkerParams> {
+    async take(queueName: string): Promise<IWorkerParams | null> {
         throw new MError('Not implemented');
     };
 

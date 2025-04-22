@@ -21,6 +21,7 @@ export class QueueLauncher {
             queueConcurrency: QueueConcurrency,
             pollingTimeInMilliSec: number,
             disablePolling: boolean,
+            name: string
         }
     ) {
         this.clean();
@@ -114,6 +115,8 @@ export class QueueLauncher {
         }
 
         this.queueNames = await this.options.workerStore.getNamesAfterMemoryCleanUp();
+
+        this.logger.debug(`queue(s) launched and sync (${this.options.name}): ${this.queueNames.length}`)
     }
 
     private async pollerCallback() {

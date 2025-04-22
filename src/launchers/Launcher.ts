@@ -28,6 +28,7 @@ export class Launcher {
                     queueConcurrency?: QueueConcurrency,
                     pollingTimeInMilliSec?: number,
                     disablePolling?: boolean,
+                    name?: string,
                 }
     ) {
 
@@ -61,6 +62,7 @@ export class Launcher {
                 queueConcurrency: QueueConcurrency,
                 pollingTimeInMilliSec: number,
                 disablePolling: boolean,
+                name: string,
             });
         }
     }
@@ -99,9 +101,9 @@ export class Launcher {
                 });
             } else if (this.directWorker) {
                 await this.directWorker(params, (e) => {
-                    console.log('### TO_REMOVE finished', e);
+                    // console.log('### TO_REMOVE finished', e);
                 }, (error) => {
-                    console.log('### TO_REMOVE needRetry?', error);
+                    // console.log('### TO_REMOVE needRetry?', error);
                 });
             }
             return true;

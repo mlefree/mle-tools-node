@@ -1,22 +1,8 @@
 import {promisify} from 'util';
-import {AbstractWorkerProcessor, IConsole, IWorkerData, Logger, loggerFactory, LoggerLevels, MError} from '../../src';
+import {AbstractWorkerProcessor, IConsole, IWorkerData, Logger, loggerFactory, MError} from '../../src';
+import {Config, Input, Inputs} from './WorkerProcessorInterfaces';
 
 const sleep = promisify(setTimeout);
-
-export interface Config {
-    label: string;
-    time: number;
-    logLevel: LoggerLevels;
-}
-
-export interface Input {
-    count: number;
-}
-
-export interface Inputs {
-    timeToSleep: number;
-    messageToWrite: string;
-}
 
 export class WorkerProcessor extends AbstractWorkerProcessor {
 

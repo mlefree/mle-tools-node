@@ -1,39 +1,39 @@
 # 🛠️ mle-tools-node
 
-> A powerful collection of Node.js utilities and tools for building robust applications
+> A collection of Node.js utilities and tools for building applications
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.11.14-green.svg)](https://github.com/mlefree/mle-tools-node)
+[![Version](https://img.shields.io/badge/version-1.12.0-green.svg)](https://github.com/mlefree/mle-tools-node)
 [![CI](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml/badge.svg)](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml)
 
 ## 🌟 Features
 
 - **🚀 High-Performance Task Processing**
-  - Direct execution
-  - Thread-based processing
-  - Queue management with retry capabilities
-  
+    - Direct execution
+    - Thread-based processing
+    - Queue management with retry capabilities
+
 - **💾 Advanced Caching**
-  - In-memory LRU cache
-  - Redis integration
-  - Flexible cache middleware
-  
+    - In-memory LRU cache
+    - Redis integration
+    - Flexible cache middleware
+
 - **📊 Monitoring & Metrics**
-  - CPU usage tracking
-  - Performance metrics
-  - Time tracking middleware
-  
+    - CPU usage tracking
+    - Performance metrics
+    - Time tracking middleware
+
 - **📝 Logging & Debugging**
-  - Winston-based logging
-  - Daily rotating log files
-  - Customizable log levels
-  
+    - Winston-based logging
+    - Daily rotating log files
+    - Customizable log levels
+
 - **🔧 Utility Tools**
-  - Secure property management
-  - CSV processing with fast-csv
-  - HTTP requests with axios
-  - Configuration management
+    - Secure property management
+    - CSV processing with fast-csv
+    - HTTP requests with axios
+    - Configuration management
 
 ## 📦 Installation
 
@@ -44,7 +44,7 @@ npm install mle-tools-node
 ## 🚀 Quick Start
 
 ```typescript
-import { Logger, Cache, WorkerProcessor } from 'mle-tools-node';
+import {Logger, Cache, WorkerProcessor} from 'mle-tools-node';
 
 // Set up logging
 const logger = new Logger('my-app');
@@ -58,7 +58,7 @@ const value = await cache.get('key');
 // Process tasks
 const worker = new WorkerProcessor();
 await worker.push('myTask', async () => {
-  // Your task logic here
+    // Your task logic here
 });
 ```
 
@@ -67,17 +67,17 @@ await worker.push('myTask', async () => {
 The library can be configured through environment variables or a configuration file:
 
 ```typescript
-import { Config } from 'mle-tools-node';
+import {Config} from 'mle-tools-node';
 
 const config = {
-  cache: {
-    type: 'redis',
-    ttl: 3600
-  },
-  logging: {
-    level: 'info',
-    rotation: true
-  }
+    cache: {
+        type: 'redis',
+        ttl: 3600
+    },
+    logging: {
+        level: 'info',
+        rotation: true
+    }
 };
 
 Config.initialize(config);
@@ -86,6 +86,8 @@ Config.initialize(config);
 ## 📚 Documentation
 
 For detailed documentation, please read the [specifications](./specs).
+
+For development guidelines, please read the [DEVELOPMENT.md](./DEVELOPMENT.md) file.
 
 ## 🧪 Testing
 
@@ -111,7 +113,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Release History
 
-See [Release notes](./RELEASE.md) for a detailed changelog.
+See [Changelog](./CHANGELOG.md) for a detailed version history.
 
 ## 🏗️ Built With
 

@@ -10,6 +10,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '14'
@@ -17,6 +19,14 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm run test
+      - name: Create and push Git tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Creating tag v$VERSION"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
       - run: npm publish
         working-directory: ./dist
         env:
