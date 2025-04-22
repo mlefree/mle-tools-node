@@ -14,3 +14,4 @@ TEST*.xml
 .DS_Store
 Thumbs.db
 *gitignored*
+.outputs.txt
