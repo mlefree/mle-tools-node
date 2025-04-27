@@ -41,11 +41,11 @@ export class BuiltInstance {
         }
     }
 
-    async needsToBeRebuilt(configuration: Configuration, buildType: string) {
+    async needsToBeRebuilt(configuration: Configuration<any>, buildType: string) {
         return !await this.getCompliantBuild(configuration, buildType);
     }
 
-    async getCompliantBuild(configuration: Configuration, buildType: string) {
+    async getCompliantBuild(configuration: Configuration<any>, buildType: string) {
         let lastCompliantBuild = null;
         const buildModel = this.buildModel;
 
@@ -68,7 +68,7 @@ export class BuiltInstance {
         return lastCompliantBuild;
     }
 
-    async createBuild(configuration: Configuration,
+    async createBuild(configuration: Configuration<any>,
                       buildType: string,
                       timestampBeginIncluded?: number,
                       timestampEndNotIncluded?: number) {
@@ -91,7 +91,7 @@ export class BuiltInstance {
         return newBuild;
     }
 
-    async purgeUselessBuilds(configuration: Configuration, buildType: string, allOldBuild = false) {
+    async purgeUselessBuilds(configuration: Configuration<any>, buildType: string, allOldBuild = false) {
 
         const buildModel = this.buildModel;
 
@@ -130,7 +130,7 @@ export class BuiltInstance {
         await this.instance.save();
     }
 
-    async hasSomethingInProgress(configuration: Configuration, buildType: string, allBuild = false) {
+    async hasSomethingInProgress(configuration: Configuration<any>, buildType: string, allBuild = false) {
         const allBuilds = this.instance.builds || this.instance.getBuilds();
         let oneIsNotFinished = false;
         for (const buildId of allBuilds) {
@@ -161,7 +161,7 @@ export class BuiltInstance {
         await this.instance.save();
     }
 
-    async hasErrorStacked(configuration: Configuration, buildType: string) {
+    async hasErrorStacked(configuration: Configuration<any>, buildType: string) {
         let errorStacks = '';
         const buildModel = this.buildModel;
 
@@ -178,7 +178,7 @@ export class BuiltInstance {
         return errorStacks;
     }
 
-    protected compareBuild(build: IBuild, buildType: string, configuration: Configuration): boolean {
+    protected compareBuild(build: IBuild, buildType: string, configuration: Configuration<any>): boolean {
         return build &&
             build.buildType === buildType &&
             // build.algorithmVersion === this.algorithmVersion &&

@@ -5,10 +5,12 @@ This document provides essential information for developers working on the mle-t
 ## Build and Configuration Instructions
 
 ### Prerequisites
+
 - Node.js (compatible with the dependencies in package.json)
 - npm
 
 ### Setup and Build
+
 1. Install dependencies:
    ```bash
    npm install
@@ -19,10 +21,10 @@ This document provides essential information for developers working on the mle-t
    npm run build
    ```
    This command:
-   - Removes the existing dist/ directory
-   - Compiles TypeScript files to JavaScript
-   - Copies markdown files and package.json to the dist/ directory
-   - Copies the asThread.js file to the dist/launchers/ directory
+    - Removes the existing dist/ directory
+    - Compiles TypeScript files to JavaScript
+    - Copies markdown files and package.json to the dist/ directory
+    - Copies the asThread.js file to the dist/launchers/ directory
 
 3. Clean and reinstall (if needed):
    ```bash
@@ -31,19 +33,22 @@ This document provides essential information for developers working on the mle-t
    This removes generated files, logs, and node_modules, then reinstalls dependencies.
 
 ### Project Structure
+
 - `src/` - Source code
-  - `errors/` - Error classes
-  - `launchers/` - Worker thread and queue management
-  - `tools/` - Utility tools
-  - `middlewares/` - Middleware components
-  - `logs/` - Logging functionality
+    - `errors/` - Error classes
+    - `launchers/` - Worker thread and queue management
+    - `tools/` - Utility tools
+    - `middlewares/` - Middleware components
+    - `logs/` - Logging functionality
 - `specs/` - Test files
 - `dist/` - Compiled output
 
 ## Testing Information
 
 ### Test Framework
+
 The project uses:
+
 - Mocha as the test runner
 - Chai for assertions
 - NYC (Istanbul) for code coverage
@@ -68,7 +73,8 @@ The project uses:
 
 ### Creating New Tests
 
-1. Create a test file with the `.spec.ts` extension in the `specs/` directory, mirroring the structure of the `src/` directory.
+1. Create a test file with the `.spec.ts` extension in the `specs/` directory, mirroring the structure of the `src/`
+   directory.
 
 2. Use the Mocha/Chai pattern with describe/it blocks:
    ```typescript
@@ -103,6 +109,7 @@ The project uses:
 Here's a simple example of a utility class and its test:
 
 **src/example/StringUtils.ts**:
+
 ```typescript
 import { MError } from '../errors/MError';
 
@@ -125,6 +132,7 @@ export class StringUtils {
 ```
 
 **specs/example/StringUtils.spec.ts**:
+
 ```typescript
 import { expect } from 'chai';
 import { StringUtils } from '../../src/example/StringUtils';
@@ -171,36 +179,44 @@ describe('StringUtils', () => {
 ## Code Style and Development Guidelines
 
 ### TypeScript Configuration
+
 - Target: ES6
 - Module system: CommonJS
 - Declaration files are generated
 - Inline source maps are included
 
 ### Code Style
+
 The project uses TSLint with the following key rules:
+
 - Maximum line length: 140 characters
 - Single quotes for strings
 - Member ordering: static fields, instance fields, static methods, instance methods
 - No more than 2 consecutive blank lines
 
 ### Error Handling
+
 - Use the `MError` class from `src/errors/MError` for custom errors
 - For specific error codes, use `MErrorCode` from `src/errors/MErrorCode`
 
 ### Worker Thread Pattern
+
 The project implements a worker thread pattern with:
+
 - `AbstractWorkerProcessor` - Base class for worker processors
 - `Launcher` - Manages worker processes
 - `QueueLauncher` - Manages queued worker processes
 - Thread strategies: DIRECT, THREAD, QUEUE
 
 ### Logging
+
 - The project uses Winston for logging
 - `loggerFactory` provides centralized logger creation
 - Log levels are defined in `LoggerLevels` enum
 - Performance logging is available via `LoggerPerf`
 
 ### Documentation
+
 - Use JSDoc comments for classes, methods, and properties
 - Include parameter descriptions, return types, and thrown exceptions
 
@@ -215,19 +231,19 @@ The project implements a worker thread pattern with:
 
 2. Update the version in package.json:
    ```bash
-   npm run build-version
+   npm run bump
    ```
    This command:
-   - Increments the patch version in package.json
-   - Updates the version in MleToolsNode.ts
+    - Increments the patch version in package.json
+    - Updates the version in MleToolsNode.ts
 
 3. Update the CHANGELOG.md file:
-   - Add a new entry for the release with the new version number
-   - Document the changes in the appropriate categories (Added, Changed, Fixed)
-   - Run the update-changelog-date.js script to update the date of the latest version:
-     ```bash
-     node scripts/update-changelog-date.js
-     ```
+    - Add a new entry for the release with the new version number
+    - Document the changes in the appropriate categories (Added, Changed, Fixed)
+    - Run the update-changelog-date.js script to update the date of the latest version:
+      ```bash
+      node scripts/update-changelog-date.js
+      ```
 
 4. Create a Git tag for the new version:
    ```bash
@@ -249,46 +265,47 @@ The project uses GitHub Actions for continuous integration and automated release
 
 1. When changes are pushed to the main branch, the CI workflow is triggered automatically.
 2. The workflow performs the following steps:
-   - Checks out the code
-   - Sets up Node.js
-   - Installs dependencies
-   - Builds the project
-   - Runs tests
-   - Creates and pushes a Git tag based on the version in package.json
-   - Publishes the package to npm
+    - Checks out the code
+    - Sets up Node.js
+    - Installs dependencies
+    - Builds the project
+    - Runs tests
+    - Creates and pushes a Git tag based on the version in package.json
+    - Publishes the package to npm
 
 The CI workflow configuration is located in `.github/workflows/ci.yml`.
 
-The Git tag is created with the format `v{version}` (e.g., v1.11.16) and includes an annotation with the release message. This provides a way to track versions in the Git repository and makes it easier to reference specific releases.
+The Git tag is created with the format `v{version}` (e.g., v1.11.16) and includes an annotation with the release
+message. This provides a way to track versions in the Git repository and makes it easier to reference specific releases.
 
 ### Release Best Practices
 
 1. **Semantic Versioning**: Follow semantic versioning (MAJOR.MINOR.PATCH) when updating the version number:
-   - MAJOR: Breaking changes
-   - MINOR: New features (backward compatible)
-   - PATCH: Bug fixes (backward compatible)
+    - MAJOR: Breaking changes
+    - MINOR: New features (backward compatible)
+    - PATCH: Bug fixes (backward compatible)
 
 2. **Changelog Management**:
-   - Keep the CHANGELOG.md file up to date
-   - Follow the "Keep a Changelog" format
-   - Categorize changes as Added, Changed, or Fixed
-   - Include the release date for each version
+    - Keep the CHANGELOG.md file up to date
+    - Follow the "Keep a Changelog" format
+    - Categorize changes as Added, Changed, or Fixed
+    - Include the release date for each version
 
 3. **Testing Before Release**:
-   - Ensure all tests pass before creating a release
-   - Consider adding additional tests for new features or bug fixes
+    - Ensure all tests pass before creating a release
+    - Consider adding additional tests for new features or bug fixes
 
 4. **Documentation**:
-   - Update documentation to reflect any changes in the API
-   - Ensure README.md is up to date with the latest features
+    - Update documentation to reflect any changes in the API
+    - Ensure README.md is up to date with the latest features
 
 5. **Dependency Management**:
-   - Review and update dependencies regularly
-   - Use the switch-dependencies.js script to switch between local and remote dependencies for testing:
-     ```bash
-     node scripts/switch-dependencies.js local|remote
-     ```
+    - Review and update dependencies regularly
+    - Use the switch-dependencies.js script to switch between local and remote dependencies for testing:
+      ```bash
+      node scripts/switch-dependencies.js local|remote
+      ```
 
 6. **Manual Verification**:
-   - Perform manual verification of critical features before release
-   - Consider creating a pre-release version for testing if needed
+    - Perform manual verification of critical features before release
+    - Consider creating a pre-release version for testing if needed
