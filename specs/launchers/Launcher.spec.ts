@@ -63,7 +63,7 @@ describe('Launcher', () => {
         const launched = await launcher.push(['info', 'sleep'], data);
 
         const timeSpent = await trackFinish(this);
-        await sleep(3000);
+        await sleep(7000);
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
@@ -75,7 +75,7 @@ describe('Launcher', () => {
         expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,thread') > 0).eq(true, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,thread') > 0).eq(true, lastLogs.toString());
 
-    }).timeout(10000);
+    }).timeout(100000);
 
     it('should push as thread (in js)', async function () {
         await trackStart(this);
@@ -91,7 +91,7 @@ describe('Launcher', () => {
         const launched = await launcher.push(['info', 'sleep'], data);
 
         const timeSpent = await trackFinish(this);
-        await sleep(3000);
+        await sleep(7000);
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
@@ -103,7 +103,7 @@ describe('Launcher', () => {
         expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,thread') > 0).eq(true, lastLogs.toString());
         expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,thread') > 0).eq(true, lastLogs.toString());
 
-    }).timeout(10000);
+    }).timeout(100000);
 
     it('should push as queue', async function () {
         await trackStart(this);

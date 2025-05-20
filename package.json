@@ -16,6 +16,7 @@
     "bp:use-remote-deps": "node ./scripts/bp/switch-dependencies.js remote && npm run bp:_clean",
     "bp:branch:push": "git add . && git commit -m \"chore: release v$(node -p \"require('./package.json').version\")\" && git push",
     "bp:branch:squash": "node ./scripts/bp/squash-commits.js",
+    "bp:main:package": "git checkout package && git merge main && git push && git checkout main",
     "build": "npm run build-dist",
     "build-dist": "rm -rf dist/ && tsc --project tsconfig.json && cp *.md dist/ && cp package.json dist/ && cp src/launchers/asThread.js dist/launchers/.",
     "test": "mocha --require ts-node/register --exit 'specs/**/**.spec.ts'",
@@ -42,14 +43,12 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.8.8",
     "@types/on-headers": "^1.0.3",
+    "ioredis-mock": "^8.9.0",
     "chai": "^4.3.10",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "termination": "^1.0.3",
     "tslint": "^6.1.3",
     "typescript": "^5.0.3"
-  },
-  "optionalDependencies": {
-    "ioredis-mock": "^8.9.0"
   }
 }
