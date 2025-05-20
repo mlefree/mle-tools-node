@@ -28,7 +28,6 @@ export class QueueLauncher {
     }
 
     async add(params: IWorkerParams) {
-        // this.logger.info('### Queue Lengths:', this.getQueueRunningSize());
         await this.options.workerStore.push(params.workerProcesses.join('-'), params);
     }
 
@@ -93,6 +92,10 @@ export class QueueLauncher {
         this.queueNames = [];
         this.runningWorkers = {};
         this.shouldStopAll = false;
+    }
+
+    public setQueueConcurrency(queueConcurrency: QueueConcurrency) {
+        this.options.queueConcurrency = Object.create(queueConcurrency);
     }
 
     private init() {

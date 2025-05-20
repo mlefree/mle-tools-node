@@ -162,4 +162,8 @@ export class Launcher {
         AbstractWorkerProcessor.ForceStop(false);
         return true;
     }
+
+    setQueueConcurrency(queueConcurrency: QueueConcurrency) {
+        this.queueLauncher.setQueueConcurrency(queueConcurrency);
+    }
 }
