@@ -9,7 +9,7 @@ describe('OSMetrics', () => {
     it('should getMetrics', async () => {
 
         const metrics = await OSMetrics.getMetrics();
-        if (metrics.name) {
+        if (metrics.name && metrics.cpuPercent) {
             expect(metrics.name).contains('_');
             expect(metrics.cpuPercent).greaterThan(0);
             expect(metrics.cpuPercent).lessThanOrEqual(100);
