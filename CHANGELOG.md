@@ -13,10 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized scripts in package.json with bp: prefix
 - Added new build process scripts
 
-## [1.12.4] - 2025-04-27
+## [1.12.5] - 2025-05-20
 
 ### Changed
 
+- Version bump for internal release
 - Updated CI workflow to use Node.js version 22
 - Improved build and deployment process
 
