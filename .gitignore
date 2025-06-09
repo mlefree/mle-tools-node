@@ -43,3 +43,7 @@ typings/
 app/
 .gen/
 *gitignored
+
+# Added by mle-best-practices
+./app/
+./dist/

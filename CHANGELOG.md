@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated mle-tools-configuration dependency to version 1.0.13
 - Reorganized scripts in package.json with bp: prefix
 - Added new build process scripts
+- Modified BuiltInstance.ts to conditionally delete old builds based on allOldBuild parameter
 
 ## [1.12.5] - 2025-05-20
 

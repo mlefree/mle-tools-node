@@ -96,11 +96,11 @@ export class BuiltInstance {
         const buildModel = this.buildModel;
 
         // global remove of older than one hour
-        const past = new Date();
-        past.setMinutes(past.getMinutes() - this.minutesBeforeGettingOld);
-        // { statusGlobal: { $ne: 1 }
-        // statusWorkers: [],
-        await buildModel.deleteMany({updatedAt: {$lte: past}, buildType});
+        if (allOldBuild) {
+            const past = new Date();
+            past.setMinutes(past.getMinutes() - this.minutesBeforeGettingOld);
+            await buildModel.deleteMany({updatedAt: {$lte: past}, buildType});
+        }
 
         // now focus on not empty but
         const allBuilds = JSON.parse(JSON.stringify(this.instance.builds || this.instance.getBuilds()));

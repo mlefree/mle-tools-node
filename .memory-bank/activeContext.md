@@ -18,6 +18,17 @@ The project is currently focused on:
 
 ## Recent Changes
 
+### Upcoming Release
+- Updated mle-tools-configuration dependency to version 1.0.13
+- Reorganized scripts in package.json with bp: prefix
+- Added new build process scripts
+- Modified BuiltInstance.ts to conditionally delete old builds based on allOldBuild parameter
+
+### Version 1.12.5 (2025-05-20)
+- Version bump for internal release
+- Updated CI workflow to use Node.js version 22
+- Improved build and deployment process
+
 ### Version 1.12.3 (2025-04-27)
 - Improved CI workflow to use `git push --tags` for more reliable tag pushing
 - Updated mle-tools-configuration dependency to version 1.0.12
