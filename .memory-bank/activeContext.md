@@ -19,6 +19,8 @@ The project is currently focused on:
 ## Recent Changes
 
 ### Upcoming Release
+- Improved error handling in asThread.js with better error messages and proper exit codes
+- Cleaned up code by removing commented-out sections in asThread.js
 - Updated mle-tools-configuration dependency to version 1.0.13
 - Reorganized scripts in package.json with bp: prefix
 - Added new build process scripts

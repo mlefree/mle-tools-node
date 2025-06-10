@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improved error handling in asThread.js with better error messages and proper exit codes
+- Cleaned up code by removing commented-out sections in asThread.js
+
+## [1.12.7] - 2025-06-09
+
+### Changed
+
 - Updated mle-tools-configuration dependency to version 1.0.13
 - Reorganized scripts in package.json with bp: prefix
 - Added new build process scripts

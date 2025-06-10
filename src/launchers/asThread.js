@@ -14,21 +14,18 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
     let WorkerProcessorClass;
 
     try {
-        // if (wpp.indexOf('.ts') > 0) {
-        // require('ts-node').register();
-        // show-ts-node-config.js
         const tsNode = require('ts-node');
-        // Register ts-node with the current process
         tsNode.register();
+    } catch (err) {
+        console.warn('asThread ts-node issue:', err);
+    }
 
-        // Create a service to get the ts-node configuration
-        // const service = tsNode.create();
-        // console.log(service.config);
-        // }
+    try {
         const {WorkerProcessor} = require(wpp);
         WorkerProcessorClass = WorkerProcessor;
     } catch (err) {
-        console.error(err);
+        console.error('asThread require issue:', err);
+        process.exit(2);
     }
 
     try {
@@ -38,6 +35,7 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
             process.exit(1);
         }
     } catch (err) {
+        console.error('asThread processor issue:', err);
         process.exit(2);
     }
     process.exit(0);
