@@ -72,13 +72,6 @@ export class QueueLauncher {
         const processes = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
         const shouldKeepInQueue = processes.some(p => p.keepInTheQueue);
 
-        if (shouldKeepInQueue) {
-            // If any process should be kept in queue, don't release it
-            return;
-        }
-
-        await this.options.workerStore.release(queueName, params);
-
         if (this.runningWorkers[queueName]) {
             this.runningWorkers[queueName]--;
         }
@@ -86,6 +79,14 @@ export class QueueLauncher {
             delete this.runningWorkers[queueName];
             this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
         }
+
+        if (shouldKeepInQueue) {
+            // If any process should be kept in Store's queue, don't release it
+            return;
+        }
+
+        await this.options.workerStore.release(queueName, params);
+
     }
 
     public clean() {

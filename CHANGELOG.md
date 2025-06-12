@@ -9,8 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- No unreleased changes at this time
+
+## [1.12.9] - 2025-06-12
+
+### Changed
+
 - Improved error handling in asThread.js with better error messages and proper exit codes
 - Cleaned up code by removing commented-out sections in asThread.js
+- Enhanced switch-dependencies.cjs script to check for dependencies in both dependencies and devDependencies
+- Fixed bug in QueueLauncher.ts by changing the order of operations in the release method
+
+## [1.12.8] - 2025-06-10
+
+### Changed
+
+- Version bump for internal release
 
 ## [1.12.7] - 2025-06-09
 

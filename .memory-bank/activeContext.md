@@ -18,9 +18,16 @@ The project is currently focused on:
 
 ## Recent Changes
 
-### Upcoming Release
+### Version 1.12.9 (2025-06-12)
 - Improved error handling in asThread.js with better error messages and proper exit codes
 - Cleaned up code by removing commented-out sections in asThread.js
+- Enhanced switch-dependencies.cjs script to check for dependencies in both dependencies and devDependencies
+- Fixed bug in QueueLauncher.ts by changing the order of operations in the release method
+
+### Version 1.12.8 (2025-06-10)
+- Version bump for internal release
+
+### Version 1.12.7 (2025-06-09)
 - Updated mle-tools-configuration dependency to version 1.0.13
 - Reorganized scripts in package.json with bp: prefix
 - Added new build process scripts
