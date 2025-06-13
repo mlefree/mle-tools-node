@@ -47,3 +47,9 @@ app/
 # Added by mle-best-practices
 ./app/
 ./dist/
+
+# Added by mle-best-practices
+*private*
+
+# Added by mle-best-practices
+disti/

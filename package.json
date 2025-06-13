@@ -9,9 +9,10 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "bp:_clean": "rm -rf package-lock.json node_modules .gen .logs .nyc_output .logs .output.txt .coverage .angular dist disti app www && npm i",
-    "bp:bump": "OLD_VERSION=\"v$(node -e \"console.log(require('./package.json').version)\")\" && VERSION=\"$(npm version patch --no-git-tag-version)\" && npm i && echo \"export const bpInfo = {version:'$VERSION'}\" > ./src/bpInfo.ts && git tag $OLD_VERSION && git checkout -b $VERSION && git push origin refs/heads/$VERSION:$VERSION --tags && git push --set-upstream origin $VERSION",
+    "bp:_clean": "rm -rf package-lock.json node_modules .gen .logs .nyc_output .logs .output.txt .coverage .angular dist disti www && npm i",
+    "bp:bump": "OLD_VERSION=\"v$(node -e \"console.log(require('./package.json').version)\")\" && VERSION=\"$(npm version patch --no-git-tag-version)\" && echo \"export const bpInfo = {version: '$VERSION'};\" > ./src/bpInfo.ts && git tag $OLD_VERSION && git checkout -b $VERSION && git push origin refs/heads/$VERSION:$VERSION --tags && git push --set-upstream origin $VERSION",
     "bp:update-changelog-dates": "node ./scripts/bp/update-changelog-date.cjs",
+    "bp:style:lint-format-ts": "eslint --config .eslintrc.cjs 'src/**/*.ts' 'specs/**/*.ts' --fix --no-error-on-unmatched-pattern",
     "bp:use-local-deps": "node ./scripts/bp/switch-dependencies.cjs local && npm run bp:_clean",
     "bp:use-remote-deps": "node ./scripts/bp/switch-dependencies.cjs remote && npm run bp:_clean",
     "bp:branch:push": "BRANCH=$(git rev-parse --abbrev-ref HEAD) && git add . && (git diff-index --quiet HEAD && echo 'No changes to commit' || (git commit -m \"$BRANCH pushed\" && git push))",
@@ -35,7 +36,6 @@
     "on-headers": "^1.0.2",
     "pidusage": "^3.0.2",
     "polling-timer": "^0.1.2",
-    "ts-node": "^8.3.0",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1"
   },
@@ -51,6 +51,14 @@
     "nyc": "^15.1.0",
     "termination": "^1.0.3",
     "tslint": "^6.1.3",
-    "typescript": "^5.0.3"
+    "ts-node": "^8.3.0",
+    "typescript": "^5.0.3",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.4.1",
+    "prettier": "^3.5.3",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0"
   }
 }

@@ -18,6 +18,12 @@ The project is currently focused on:
 
 ## Recent Changes
 
+### Version 1.12.10 (Current)
+- Moved ts-node from dependencies to devDependencies in package.json
+- Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
+- Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled
+- Enhanced Launcher.spec.ts with improved test structure and additional test case
+
 ### Version 1.12.9 (2025-06-12)
 - Improved error handling in asThread.js with better error messages and proper exit codes
 - Cleaned up code by removing commented-out sections in asThread.js

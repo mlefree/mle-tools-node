@@ -48,22 +48,25 @@ export class Launcher {
             this.options.disablePolling = false;
         }
 
-        if (!this.options.disablePolling) {
-            this.directWorker = require('./asDirect');
-        }
-
         let threadWorker = null;
-        if (this.options.threadStrategy === STRATEGIES.QUEUE) {
-            threadWorker = require('./asThreadWorker');
-
-            this.queueLauncher = new QueueLauncher(this.directWorker, threadWorker, loggerFactory.getLogger(), this.options as {
-                workerProcessorPathFile: string,
-                workerStore: AbstractWorkerStore,
-                queueConcurrency: QueueConcurrency,
-                pollingTimeInMilliSec: number,
-                disablePolling: boolean,
-                name: string,
-            });
+        switch (this.options.threadStrategy) {
+            case STRATEGIES.QUEUE: {
+                threadWorker = require('./asThreadWorker');
+                this.queueLauncher = new QueueLauncher(this.directWorker, threadWorker, loggerFactory.getLogger(), this.options as {
+                    workerProcessorPathFile: string,
+                    workerStore: AbstractWorkerStore,
+                    queueConcurrency: QueueConcurrency,
+                    pollingTimeInMilliSec: number,
+                    disablePolling: boolean,
+                    name: string,
+                });
+                break;
+            }
+            case STRATEGIES.THREAD:
+            case STRATEGIES.DIRECT: {
+                this.directWorker = require('./asDirect');
+                break;
+            }
         }
     }
 
