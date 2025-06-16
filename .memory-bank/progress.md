@@ -69,11 +69,12 @@
 
 ## Current Status
 
-The project is currently at version 1.12.3, with a focus on improving CI/CD processes, dependency management, and documentation. Recent changes include:
+The project is currently at version 1.12.10, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
 
-- Improved CI workflow for more reliable tag pushing
-- Updated dependencies to their latest versions
-- Started implementing the Memory Bank documentation system
+- Moved ts-node from dependencies to devDependencies in package.json
+- Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
+- Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled
+- Enhanced Launcher.spec.ts with improved test structure and additional test case
 
 The codebase is stable and all tests are passing. The project is actively maintained with regular updates and bug fixes.
 

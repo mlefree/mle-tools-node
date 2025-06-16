@@ -1,4 +1,13 @@
-import {DefaultWorkerStore, IWorkerData, Launcher, loggerFactory, LoggerLevels, LoggerPerf, QueueConcurrency, STRATEGIES} from '../../src';
+import {
+    DefaultWorkerStore,
+    IWorkerData,
+    Launcher,
+    loggerFactory,
+    LoggerLevels,
+    LoggerPerf,
+    QueueConcurrency,
+    STRATEGIES,
+} from '../../src';
 import {expect} from 'chai';
 import {promisify} from 'util';
 import {Config, Input} from './WorkerProcessorInterfaces';
@@ -7,7 +16,8 @@ import {join} from 'node:path';
 
 const sleep = promisify(setTimeout);
 
-describe('Launcher', () => {
+describe('Launcher', function () {
+    this.timeout(30000);
     let logger: LoggerPerf;
     const parentPath = join(__dirname, '/../../');
 
@@ -40,14 +50,31 @@ describe('Launcher', () => {
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA'
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
         });
         const done = await launcher.push(['info', 'sleep', 'info'], data);
 
         const timeSpent = await trackFinish(this);
         expect(done).eq(true);
         expect(timeSpent).greaterThan(1000);
-    }).timeout(4000);
+    });
+
+    it('should push as direct even if polling is disabled', async function () {
+        await trackStart(this);
+
+        const input: Input = {count: 10};
+        const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            disablePolling: true, // <== To test
+        });
+        const done = await launcher.push(['info', 'sleep', 'info'], data);
+
+        const timeSpent = await trackFinish(this);
+        expect(done).eq(true);
+        expect(timeSpent).greaterThan(1000);
+    });
 
     it('should push as thread (in ts)', async function () {
         await trackStart(this);
@@ -55,7 +82,7 @@ describe('Launcher', () => {
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore: new WorkerStore(),
-            threadStrategy: STRATEGIES.THREAD
+            threadStrategy: STRATEGIES.THREAD,
         });
         const input: Input = {count: 2};
         const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
@@ -69,13 +96,17 @@ describe('Launcher', () => {
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('thread') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('thread') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,thread') > 0).eq(true, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,thread') > 0).eq(true, lastLogs.toString());
-
-    }).timeout(100000);
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,thread') > 0).eq(
+            true,
+            lastLogs.toString()
+        );
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,thread') > 0).eq(
+            true,
+            lastLogs.toString()
+        );
+    });
 
     it('should push as thread (in js)', async function () {
         await trackStart(this);
@@ -83,7 +114,7 @@ describe('Launcher', () => {
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorB',
             workerStore: new WorkerStore(),
-            threadStrategy: STRATEGIES.THREAD
+            threadStrategy: STRATEGIES.THREAD,
         });
         const input: Input = {count: 2};
         const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
@@ -97,13 +128,17 @@ describe('Launcher', () => {
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('thread') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('thread') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,thread') > 0).eq(true, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,thread') > 0).eq(true, lastLogs.toString());
-
-    }).timeout(100000);
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,thread') > 0).eq(
+            true,
+            lastLogs.toString()
+        );
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,thread') > 0).eq(
+            true,
+            lastLogs.toString()
+        );
+    });
 
     it('should push as queue', async function () {
         await trackStart(this);
@@ -113,15 +148,15 @@ describe('Launcher', () => {
             keys: [
                 {contains: 'info', concurrency: 2},
                 {contains: '"count":2', concurrency: 3},
-            ]
-        }
+            ],
+        };
         const workerStore = new DefaultWorkerStore();
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             queueConcurrency,
-            pollingTimeInMilliSec: 100
+            pollingTimeInMilliSec: 100,
         });
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
@@ -153,12 +188,11 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('queue') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('queue') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(5, lastLogs.toString());
         // expect(relatedLogs[relatedLogs.length - 3].indexOf('info,queue') > 0).eq(true, lastLogs.toString());
         // expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,queue') > 0).eq(true, lastLogs.toString());
-    }).timeout(100000);
+    });
 
     it('should push as queue and Fail', async function () {
         await trackStart(this);
@@ -167,7 +201,7 @@ describe('Launcher', () => {
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorA',
             workerStore,
-            threadStrategy: STRATEGIES.QUEUE
+            threadStrategy: STRATEGIES.QUEUE,
         });
         const input: Input = {count: 1};
         const config: Config = {time: 5, label: 'failingQueue', logLevel: LoggerLevels.DEBUG};
@@ -193,18 +227,21 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('fail') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('fail') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(1, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('fail') > 0).eq(true, relatedLogs.toString());
-    }).timeout(20000);
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('fail') > 0).eq(
+            true,
+            relatedLogs.toString()
+        );
+    });
 
     it('should push as queue and Throw Error', async function () {
         await trackStart(this);
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA', workerStore,
-            threadStrategy: STRATEGIES.QUEUE
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
         });
         const input: Input = {count: 1};
         const config: Config = {time: 7, label: 'throwQueue', logLevel: LoggerLevels.DEBUG};
@@ -221,27 +258,36 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('throw') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('throw') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(1, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('throw') > 0).eq(true, relatedLogs.toString());
-    }).timeout(10000);
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('throw') > 0).eq(
+            true,
+            relatedLogs.toString()
+        );
+    });
 
     it('should push as queue and could stop', async function () {
         await trackStart(this);
 
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
-            workerProcessorPathFile: __dirname + '/WorkerProcessorA', workerStore,
-            threadStrategy: STRATEGIES.QUEUE
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
         });
         const input: Input = {count: 2};
         let launchedCount = 0;
         for (let count = 1; count <= 1000; count++) {
-            const config: Config = {time: count, label: 'toStopQueue' + count, logLevel: LoggerLevels.DEBUG};
+            const config: Config = {
+                time: count,
+                label: 'toStopQueue' + count,
+                logLevel: LoggerLevels.DEBUG,
+            };
             const data: IWorkerData = {input, config};
             const launched = await launcher.push(['info', 'sleep', 'info', 'sleep'], data);
-            if (launched) launchedCount++;
+            if (launched) {
+                launchedCount++;
+            }
         }
 
         expect(await launcher.getStoreWaitingSize()).equal(1000);
@@ -268,9 +314,9 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         await trackFinish(this);
-    }).timeout(20000);
+    });
 
-    it('should push as queue and disable', async function () {
+    it('should push as queue but disable polling', async function () {
         await trackStart(this);
 
         const workerStore = new WorkerStore();
@@ -281,7 +327,11 @@ describe('Launcher', () => {
             disablePolling: true, // disabled
         });
         const input: Input = {count: 1};
-        const config: Config = {time: 5, label: 'justPushedButNotPolled', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {
+            time: 5,
+            label: 'justPushedButNotPolled',
+            logLevel: LoggerLevels.DEBUG,
+        };
         const data: IWorkerData = {input, config};
         const launched = await launcher.push(['sleep', 'info'], data);
 
@@ -299,8 +349,7 @@ describe('Launcher', () => {
         expect(await launcher.getQueueRunningSize()).equal(0);
 
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
-        const relatedLogs = lastLogs
-            .filter(l => l.indexOf('justPushedButNotPolled') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('justPushedButNotPolled') > 0);
         expect(relatedLogs.length).eq(0);
-    }).timeout(10000);
+    });
 });

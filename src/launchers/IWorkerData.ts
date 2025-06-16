@@ -1,5 +1,4 @@
 export interface IWorkerData {
-    config: any,
-    input: any,
+    config: any;
+    input: any;
 }
-

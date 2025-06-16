@@ -1,7 +1,6 @@
 import {LoggerLevels} from './LoggerLevels';
 
 export interface IConsole {
-
     debug(...extra: any[]): any;
 
     info(...extra: any[]): any;
@@ -12,7 +11,6 @@ export interface IConsole {
 }
 
 export interface ILogger extends IConsole {
-
     debug(...extra: any[]): any;
 
     info(...extra: any[]): any;

@@ -2,18 +2,15 @@ import {expect} from 'chai';
 import {CACHE_TYPE, CacheMiddleware, lru} from '../../src/';
 
 describe('CacheMiddleware', () => {
-
     const req = {};
     const res = {
         on: (a) => {
             return a;
         },
     };
-    const next = () => {
-    };
+    const next = () => {};
 
-    before(() => {
-    });
+    before(() => {});
 
     it('should create CacheMiddleware', async () => {
         const cacheMiddleware = new CacheMiddleware({instanceName: 'test'});

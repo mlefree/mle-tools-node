@@ -1,15 +1,18 @@
 import onHeaders from 'on-headers';
 
 class Timer {
-    protected _times: Map<string, {
-        name: string,
-        description: string,
-        start: [number, number],
-        value: number
-    }>;
+    protected _times: Map<
+        string,
+        {
+            name: string;
+            description: string;
+            start: [number, number];
+            value: number;
+        }
+    >;
 
     constructor() {
-        this._times = new Map()
+        this._times = new Map();
     }
 
     time(name: string, description: string) {
@@ -17,77 +20,76 @@ class Timer {
             name,
             description,
             start: process.hrtime(),
-            value: 0
-        })
+            value: 0,
+        });
     }
 
     timeEnd(name: string) {
-        const timeObj = this._times.get(name)
+        const timeObj = this._times.get(name);
         if (!timeObj) {
-            return console.warn(`No such name ${name}`)
+            return console.warn(`No such name ${name}`);
         }
-        const duration = process.hrtime(timeObj.start)
-        timeObj.value = (duration[0] * 1E3) + (duration[1] * 1e-6);
-        this._times.delete(name)
-        return timeObj
+        const duration = process.hrtime(timeObj.start);
+        timeObj.value = duration[0] * 1e3 + duration[1] * 1e-6;
+        this._times.delete(name);
+        return timeObj;
     }
 
     clear() {
-        this._times.clear()
+        this._times.clear();
     }
 
     keys() {
-        return this._times.keys()
+        return this._times.keys();
     }
 }
 
 function setMetric(headers, opts) {
     return (name: string, value: number, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('1st argument name is not string')
+            return console.warn('1st argument name is not string');
         }
         if (typeof value !== 'number') {
-            return console.warn('2nd argument value is not number')
+            return console.warn('2nd argument value is not number');
         }
 
-        const dur = Number.isFinite(opts.precision)
-            ? value.toFixed(opts.precision) : value
+        const dur = Number.isFinite(opts.precision) ? value.toFixed(opts.precision) : value;
 
-        const metric = typeof description !== 'string' || !description
-            ? `${name}; dur=${dur}` : `${name}; dur=${dur}; desc="${description}"`
+        const metric =
+            typeof description !== 'string' || !description
+                ? `${name}; dur=${dur}`
+                : `${name}; dur=${dur}; desc="${description}"`;
 
-        headers.push(metric)
-    }
+        headers.push(metric);
+    };
 }
 
 function startTime(timer: Timer) {
     return (name: string, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('1st argument name is not string')
+            return console.warn('1st argument name is not string');
         }
 
-        timer.time(name, description)
-    }
+        timer.time(name, description);
+    };
 }
 
 function endTime(timer: Timer, res) {
     return (name: string) => {
         if (typeof name !== 'string') {
-            return console.warn('1st argument name is not string')
+            return console.warn('1st argument name is not string');
         }
 
-        const obj = timer.timeEnd(name)
+        const obj = timer.timeEnd(name);
         if (!obj) {
-            return
+            return;
         }
-        res.setMetric(obj.name, obj.value, obj.description)
-    }
+        res.setMetric(obj.name, obj.value, obj.description);
+    };
 }
 
 export class TimingMiddleware {
-
-    constructor() {
-    }
+    constructor() {}
 
     public middleWare() {
         const opts = {
@@ -96,11 +98,11 @@ export class TimingMiddleware {
             total: true,
             enabled: true,
             autoEnd: true,
-            precision: +Infinity
+            precision: +Infinity,
         };
 
         return (req: any, res: any, next: () => void) => {
-            const headers = []
+            const headers = [];
             const timer = new Timer();
             const startAt = process.hrtime();
 
@@ -112,22 +114,25 @@ export class TimingMiddleware {
 
             onHeaders(res, () => {
                 if (opts.autoEnd) {
-                    const keys = timer.keys()
+                    const keys = timer.keys();
                     for (const key of keys) {
-                        res.endTime(key)
+                        res.endTime(key);
                     }
                 }
 
                 if (opts.total) {
-                    const diff = process.hrtime(startAt)
-                    const timeSec = (diff[0] * 1E3) + (diff[1] * 1e-6)
-                    res.setMetric(opts.name, timeSec, opts.description)
+                    const diff = process.hrtime(startAt);
+                    const timeSec = diff[0] * 1e3 + diff[1] * 1e-6;
+                    res.setMetric(opts.name, timeSec, opts.description);
                 }
                 timer.clear();
 
                 if (opts.enabled) {
                     const existingHeaders = res.getHeader('Server-Timing');
-                    res.setHeader('Server-Timing', [].concat(existingHeaders || []).concat(headers));
+                    res.setHeader(
+                        'Server-Timing',
+                        [].concat(existingHeaders || []).concat(headers)
+                    );
                 }
             });
 
@@ -135,7 +140,6 @@ export class TimingMiddleware {
         };
     }
 }
-
 
 /**
  * Usage :

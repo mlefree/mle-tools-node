@@ -4,27 +4,28 @@ import {MError} from '../errors';
 const WORKER_TIME_TO_CONSIDER_AS_OLD_WORKER = 600000; // 10mn or 1 hour (3600000)
 
 export class WorkerStatus {
-
     private startDate: Date;
     private stepCounter: number;
 
     constructor(
         public name: string,
         public workerInstance: any,
-        public workerModel: any) {
-
-        if (!workerInstance ||
+        public workerModel: any
+    ) {
+        if (
+            !workerInstance ||
             typeof workerInstance.statusGlobal === 'undefined' ||
             !workerInstance.updatedAt ||
             typeof workerInstance.save === 'undefined' ||
             !workerInstance.statusWorkers
         ) {
-            throw new MError(`WorkerStatus named "${name}" - "${workerInstance?._id?.toString()}" needs a compliant workerInstance.'`);
+            throw new MError(
+                `WorkerStatus named "${name}" - "${workerInstance?._id?.toString()}" needs a compliant workerInstance.'`
+            );
         }
 
         this.startDate = new Date();
         this.stepCounter = 0;
-
     }
 
     static AddConditionToMakeSureThatWorkerIsAlive(workerCondition) {
@@ -47,7 +48,9 @@ export class WorkerStatus {
         for (let i = 0; i < workerInstance.statusWorkers.length; i++) {
             if (workerInstance.statusWorkers[i].updated) {
                 const date = new Date(workerInstance.statusWorkers[i].updated);
-                const outdatedInProgress = workerInstance.statusWorkers[i].status !== 1 && date.getTime() < oneHourOld.getTime();
+                const outdatedInProgress =
+                    workerInstance.statusWorkers[i].status !== 1 &&
+                    date.getTime() < oneHourOld.getTime();
                 if (outdatedInProgress) {
                     changeDone = true;
                 } else {
@@ -73,7 +76,6 @@ export class WorkerStatus {
     }
 
     async finished(err?: string) {
-
         const timeSpent = Math.round((new Date().getTime() - this.startDate.getTime()) / 1000);
         let message = `WORKER - "${this.name}" has finished in ${timeSpent} sec`;
 
@@ -91,7 +93,9 @@ export class WorkerStatus {
     }
 
     async hasSomethingInProgress() {
-        const worker = await this.workerModel.findOne({_id: this.workerInstance._id}).populate('statusWorkers');
+        const worker = await this.workerModel
+            .findOne({_id: this.workerInstance._id})
+            .populate('statusWorkers');
 
         let oneIsNotFinished = false;
         for (const statusWorker of worker.statusWorkers) {
@@ -102,7 +106,12 @@ export class WorkerStatus {
         return oneIsNotFinished;
     }
 
-    protected async _saveCurrentStep(step: number, explanation?: string, percent?: number, errorStack?: string) {
+    protected async _saveCurrentStep(
+        step: number,
+        explanation?: string,
+        percent?: number,
+        errorStack?: string
+    ) {
         let allWorkersAreAtLeastOnTheSameStatus = true;
         if (!this.workerInstance) {
             return allWorkersAreAtLeastOnTheSameStatus;
@@ -111,8 +120,13 @@ export class WorkerStatus {
         const now = new Date();
         explanation += percent && percent < 100 ? ` in progress: ${percent}%` : ``;
 
-        if (this.workerInstance.statusWorkers.filter(w => w.name === this.name).length === 0) {
-            this.workerInstance.statusWorkers.push({name: this.name, status: step, explanation, updated: now});
+        if (this.workerInstance.statusWorkers.filter((w) => w.name === this.name).length === 0) {
+            this.workerInstance.statusWorkers.push({
+                name: this.name,
+                status: step,
+                explanation,
+                updated: now,
+            });
             await this.workerInstance.save();
         }
 
@@ -125,10 +139,14 @@ export class WorkerStatus {
             workerUpdate['statusWorkers.$[i].errorStack'] = errorStack;
         }
 
-        await this.workerModel.updateOne({_id: this.workerInstance._id}, workerUpdate, {arrayFilters: [{'i.name': this.name}]});
+        await this.workerModel.updateOne({_id: this.workerInstance._id}, workerUpdate, {
+            arrayFilters: [{'i.name': this.name}],
+        });
 
-        const resp = await this.workerModel.findOne({_id: this.workerInstance._id, 'statusWorkers.status': {$lt: step}},
-            {'statusWorkers.$': 1});
+        const resp = await this.workerModel.findOne(
+            {_id: this.workerInstance._id, 'statusWorkers.status': {$lt: step}},
+            {'statusWorkers.$': 1}
+        );
         if (resp) {
             allWorkersAreAtLeastOnTheSameStatus = false;
         }

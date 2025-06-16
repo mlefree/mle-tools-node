@@ -21,17 +21,17 @@ export class Launcher {
 
     private readonly directWorker: any;
 
-    constructor(protected options: {
-                    workerProcessorPathFile: string,
-                    workerStore?: AbstractWorkerStore,
-                    threadStrategy?: string,
-                    queueConcurrency?: QueueConcurrency,
-                    pollingTimeInMilliSec?: number,
-                    disablePolling?: boolean,
-                    name?: string,
-                }
+    constructor(
+        protected options: {
+            workerProcessorPathFile: string;
+            workerStore?: AbstractWorkerStore;
+            threadStrategy?: string;
+            queueConcurrency?: QueueConcurrency;
+            pollingTimeInMilliSec?: number;
+            disablePolling?: boolean;
+            name?: string;
+        }
     ) {
-
         if (!this.options.workerStore) {
             this.options.workerStore = new DefaultWorkerStore();
         }
@@ -48,30 +48,32 @@ export class Launcher {
             this.options.disablePolling = false;
         }
 
-        if (!this.options.disablePolling) {
-            this.directWorker = require('./asDirect');
-        }
+        this.directWorker = require('./asDirect');
 
-        let threadWorker = null;
         if (this.options.threadStrategy === STRATEGIES.QUEUE) {
-            threadWorker = require('./asThreadWorker');
-
-            this.queueLauncher = new QueueLauncher(this.directWorker, threadWorker, loggerFactory.getLogger(), this.options as {
-                workerProcessorPathFile: string,
-                workerStore: AbstractWorkerStore,
-                queueConcurrency: QueueConcurrency,
-                pollingTimeInMilliSec: number,
-                disablePolling: boolean,
-                name: string,
-            });
+            const threadWorker = require('./asThreadWorker');
+            this.queueLauncher = new QueueLauncher(
+                this.directWorker,
+                threadWorker,
+                loggerFactory.getLogger(),
+                this.options as {
+                    workerProcessorPathFile: string;
+                    workerStore: AbstractWorkerStore;
+                    queueConcurrency: QueueConcurrency;
+                    pollingTimeInMilliSec: number;
+                    disablePolling: boolean;
+                    name: string;
+                }
+            );
         }
     }
 
-    async push(workerProcesses: string[],
-               workerData: IWorkerData,
-               workerInstance: string = ''): Promise<boolean> {
-
-        if (await this.getQueueRunningSize() === 0) {
+    async push(
+        workerProcesses: string[],
+        workerData: IWorkerData,
+        workerInstance: string = ''
+    ): Promise<boolean> {
+        if ((await this.getQueueRunningSize()) === 0) {
             await this.resume();
         }
 
@@ -89,7 +91,9 @@ export class Launcher {
             } else if (this.options.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
                 const {Worker} = require('worker_threads');
-                const simpleWorker = new Worker(path.join(__dirname, './asThread.js'), {workerData: params});
+                const simpleWorker = new Worker(path.join(__dirname, './asThread.js'), {
+                    workerData: params,
+                });
                 simpleWorker.on('message', (any) => {
                     console.log('### THREAD message', any);
                 });
@@ -100,11 +104,15 @@ export class Launcher {
                     console.log('### THREAD finished', any);
                 });
             } else if (this.directWorker) {
-                await this.directWorker(params, (e) => {
-                    // console.log('### TO_REMOVE finished', e);
-                }, (error) => {
-                    // console.log('### TO_REMOVE needRetry?', error);
-                });
+                await this.directWorker(
+                    params,
+                    (e) => {
+                        // console.log('### TO_REMOVE finished', e);
+                    },
+                    (error) => {
+                        // console.log('### TO_REMOVE needRetry?', error);
+                    }
+                );
             }
             return true;
         } catch (err) {
@@ -141,14 +149,14 @@ export class Launcher {
     }
 
     async getStats() {
-
-
-        return [{
-            queueName: 'todo',
-            storeWaitingSize: await this.getStoreWaitingSize(),
-            storeRunningSize: await this.getStoreRunningSize(),
-            queueRunningSize: await this.getQueueRunningSize(),
-        }];
+        return [
+            {
+                queueName: 'todo',
+                storeWaitingSize: await this.getStoreWaitingSize(),
+                storeRunningSize: await this.getStoreRunningSize(),
+                queueRunningSize: await this.getQueueRunningSize(),
+            },
+        ];
     }
 
     async stop() {

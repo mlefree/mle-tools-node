@@ -1,51 +1,97 @@
 import {promisify} from 'util';
-import {AbstractWorkerProcessor, IConsole, IWorkerData, Logger, loggerFactory, MError} from '../../src';
+import {
+    AbstractWorkerProcessor,
+    IConsole,
+    IWorkerData,
+    Logger,
+    loggerFactory,
+    MError,
+} from '../../src';
 import {Config, Input, Inputs} from './WorkerProcessorInterfaces';
 
 const sleep = promisify(setTimeout);
 
 export class WorkerProcessor extends AbstractWorkerProcessor {
-
     public connected = false;
 
-    constructor(
-        name: string,
-        workerData: IWorkerData,
-        bypassConnection = false
-    ) {
+    constructor(name: string, workerData: IWorkerData, bypassConnection = false) {
         console.log('WorkerProcessorA++', name);
         super(name, workerData, bypassConnection);
     }
 
     static GetProcesses() {
         return [
-            {fn: WorkerProcessor.sleep, looped: true, stopOnFailure: false, keepInTheQueue: true, inThreadIfPossible: false},
-            {fn: WorkerProcessor.info, looped: true, stopOnFailure: true, keepInTheQueue: false, inThreadIfPossible: true},
-            {fn: WorkerProcessor.fail, looped: false, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
-            {fn: WorkerProcessor.throwError, looped: false, stopOnFailure: true, keepInTheQueue: true, inThreadIfPossible: true},
+            {
+                fn: WorkerProcessor.sleep,
+                looped: true,
+                stopOnFailure: false,
+                keepInTheQueue: true,
+                inThreadIfPossible: false,
+            },
+            {
+                fn: WorkerProcessor.info,
+                looped: true,
+                stopOnFailure: true,
+                keepInTheQueue: false,
+                inThreadIfPossible: true,
+            },
+            {
+                fn: WorkerProcessor.fail,
+                looped: false,
+                stopOnFailure: true,
+                keepInTheQueue: true,
+                inThreadIfPossible: true,
+            },
+            {
+                fn: WorkerProcessor.throwError,
+                looped: false,
+                stopOnFailure: true,
+                keepInTheQueue: true,
+                inThreadIfPossible: true,
+            },
         ];
     }
 
     // Static processes following pattern:
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
-    static async info(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
+    static async info(
+        config: Config,
+        inputs: Inputs,
+        logger: IConsole,
+        count: number
+    ): Promise<boolean> {
         return logger.info('info => ', inputs.messageToWrite);
     }
 
-    static async sleep(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
+    static async sleep(
+        config: Config,
+        inputs: Inputs,
+        logger: IConsole,
+        count: number
+    ): Promise<boolean> {
         logger.info('sleep => ', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
 
-    static async fail(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
+    static async fail(
+        config: Config,
+        inputs: Inputs,
+        logger: IConsole,
+        count: number
+    ): Promise<boolean> {
         logger.info('fail => ', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
 
-    static async throwError(config: Config, inputs: Inputs, logger: IConsole, count: number): Promise<boolean> {
+    static async throwError(
+        config: Config,
+        inputs: Inputs,
+        logger: IConsole,
+        count: number
+    ): Promise<boolean> {
         throw new MError('throwError should see it : ' + inputs.messageToWrite);
     }
 
@@ -79,13 +125,15 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         return this.connected;
     }
 
-    protected async onEnd(done: boolean, logger: IConsole, stats: {
-        timeSpentTotal: number,
-        timeSpentComputing: number,
-        timeSpentWaiting: number
-    }) {
+    protected async onEnd(
+        done: boolean,
+        logger: IConsole,
+        stats: {
+            timeSpentTotal: number;
+            timeSpentComputing: number;
+            timeSpentWaiting: number;
+        }
+    ) {
         console.log('WorkerProcessorA-- ', this.name, done, stats);
     }
-
-
 }

@@ -1,16 +1,21 @@
-import {CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE, CACHE_DEFAULT_OPTIONS_LRU, cacheFactory, CacheFactory, ICacheConfig} from '../tools';
+import {
+    CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE,
+    CACHE_DEFAULT_OPTIONS_LRU,
+    cacheFactory,
+    CacheFactory,
+    ICacheConfig,
+} from '../tools';
 import {loggerFactory} from '../logs';
 
 export enum CACHE_TYPE {
     LRU = 0,
-    INFINITE = 1
+    INFINITE = 1,
 }
 
 export class CacheMiddleware {
     protected cache: CacheFactory;
 
-    constructor(protected config?: ICacheConfig) {
-    }
+    constructor(protected config?: ICacheConfig) {}
 
     private static TimingStart(res: any, step: string) {
         if (typeof res.startTime === 'function') {
@@ -48,7 +53,6 @@ export class CacheMiddleware {
             const key = req.originalUrl; // {url: req.originalUrl};
 
             try {
-
                 let step = 'CacheMiddleware-get';
                 CacheMiddleware.TimingStart(res, step);
                 const cachedResponse = await this.cache.get(key);
@@ -64,7 +68,6 @@ export class CacheMiddleware {
 
                     res.sendResponse = res.jsonp;
                     res.jsonp = async (body: any) => {
-
                         if (res.statusCode >= 400) {
                             return res.sendResponse(body);
                         }
@@ -74,10 +77,11 @@ export class CacheMiddleware {
 
                         if (JSON.stringify(body).length < 10000000) {
                             // No Need to stop response ? :
-                            this.cache.set(key, body, cacheOptions).then(ignored => {
-                            });
+                            this.cache.set(key, body, cacheOptions).then((ignored) => {});
                         } else {
-                            loggerFactory.getLogger().info('@cache body too large to be cached', JSON.stringify(key));
+                            loggerFactory
+                                .getLogger()
+                                .info('@cache body too large to be cached', JSON.stringify(key));
                         }
 
                         CacheMiddleware.TimingEnd(res, step2);
@@ -94,12 +98,12 @@ export class CacheMiddleware {
     }
 }
 
-export const lru = ((options?: ICacheConfig) => {
+export const lru = (options?: ICacheConfig) => {
     const cacheMiddleware = new CacheMiddleware(options);
     return cacheMiddleware.middleWare(CACHE_TYPE.LRU);
-});
+};
 
-export const infinite = ((options?: ICacheConfig) => {
+export const infinite = (options?: ICacheConfig) => {
     const cacheMiddleware = new CacheMiddleware(options);
     return cacheMiddleware.middleWare(CACHE_TYPE.INFINITE);
-});
+};

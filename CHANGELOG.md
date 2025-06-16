@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- No unreleased changes at this time
+- Moved ts-node from dependencies to devDependencies in package.json
+- Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
+- Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled
+- Enhanced Launcher.spec.ts with improved test structure and additional test case
 
 ## [1.12.9] - 2025-06-12
 

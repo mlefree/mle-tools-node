@@ -3,7 +3,6 @@ import {LoggerPerf} from './LoggerPerf';
 import {LoggerLevels} from './LoggerLevels';
 
 export class LoggerFactory {
-
     private static logger: Logger;
 
     constructor(
@@ -13,8 +12,7 @@ export class LoggerFactory {
         public notifyUser?: string,
         public notifyPwd?: string,
         public notifyTo?: string
-    ) {
-    }
+    ) {}
 
     setUp(
         active: boolean,
@@ -24,7 +22,6 @@ export class LoggerFactory {
         notifyPwd?: string,
         notifyTo?: string
     ) {
-
         this.active = active;
         this.consoleLevel = consoleLevel;
         this.logLevel = logLevel;
@@ -33,9 +30,14 @@ export class LoggerFactory {
         this.notifyTo = notifyTo;
 
         if (LoggerFactory.logger) {
-            LoggerFactory.logger.setup(this.active,
-                this.consoleLevel, this.logLevel,
-                this.notifyUser, this.notifyPwd, this.notifyTo);
+            LoggerFactory.logger.setup(
+                this.active,
+                this.consoleLevel,
+                this.logLevel,
+                this.notifyUser,
+                this.notifyPwd,
+                this.notifyTo
+            );
         }
     }
 
@@ -45,9 +47,14 @@ export class LoggerFactory {
         }
 
         const logger = new Logger();
-        logger.setup(this.active,
-            this.consoleLevel, this.logLevel,
-            this.notifyUser, this.notifyPwd, this.notifyTo);
+        logger.setup(
+            this.active,
+            this.consoleLevel,
+            this.logLevel,
+            this.notifyUser,
+            this.notifyPwd,
+            this.notifyTo
+        );
         LoggerFactory.logger = logger;
         return logger;
     }

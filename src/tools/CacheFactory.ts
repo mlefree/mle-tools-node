@@ -16,7 +16,7 @@ export enum CACHE_TTL {
     MINUTE = 60 * 1000,
     TEN_MINUTES = 10 * 60 * 1000,
     HOUR = 60 * 60 * 1000,
-    DAY = 60 * 60 * 24 * 1000
+    DAY = 60 * 60 * 24 * 1000,
 }
 
 export enum CACHE_COUNT {
@@ -27,26 +27,26 @@ export enum CACHE_COUNT {
 }
 
 export interface ICacheOptions {
-    ttl?: CACHE_TTL,
-    store?: CACHE_STORE,
+    ttl?: CACHE_TTL;
+    store?: CACHE_STORE;
 }
 
 export interface ICacheConfig {
-    instanceName: string,
-    redisUrl?: string,
-    redisConfig?: any,
-    ttl?: CACHE_TTL,
-    max?: CACHE_COUNT,
-    store?: CACHE_STORE,
+    instanceName: string;
+    redisUrl?: string;
+    redisConfig?: any;
+    ttl?: CACHE_TTL;
+    max?: CACHE_COUNT;
+    store?: CACHE_STORE;
 }
 
 export const CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE = {
-    ttl: CACHE_TTL.NO
-}
+    ttl: CACHE_TTL.NO,
+};
 
 export const CACHE_DEFAULT_OPTIONS_LRU = {
     ttl: CACHE_TTL.TEN_MINUTES,
-}
+};
 
 export interface ICache {
     set(key: string | any, value: string | any, options?: ICacheOptions): Promise<void>;
@@ -59,7 +59,6 @@ export interface ICache {
 }
 
 export class CacheFactory implements ICache {
-
     protected config: ICacheConfig;
     private memoryCache: MemoryCache;
     private redisCache: Cache<RedisStore<any>>;
@@ -71,8 +70,8 @@ export class CacheFactory implements ICache {
             instanceName: 'default',
             ttl: CACHE_TTL.TEN_MINUTES,
             max: CACHE_COUNT.SMALL,
-            store: CACHE_STORE.MEMORY
-        }
+            store: CACHE_STORE.MEMORY,
+        };
     }
 
     setUp(config: ICacheConfig) {
@@ -111,9 +110,7 @@ export class CacheFactory implements ICache {
         }
     }
 
-    async set(key: string | any,
-              value: string | any,
-              options?: ICacheOptions): Promise<void> {
+    async set(key: string | any, value: string | any, options?: ICacheOptions): Promise<void> {
         if (this.bypass || !value) {
             return;
         }
@@ -127,13 +124,20 @@ export class CacheFactory implements ICache {
         }
 
         if (this.memoryCache && (!options?.store || options.store === CACHE_STORE.MEMORY)) {
-            await this.memoryCache.set(builtKey, valueToStore, options ? options.ttl : this.config.ttl);
+            await this.memoryCache.set(
+                builtKey,
+                valueToStore,
+                options ? options.ttl : this.config.ttl
+            );
         }
 
         if (this.redisCache && (!options?.store || options.store === CACHE_STORE.REDIS)) {
-            await this.redisCache.set(builtKey, valueToStore, options ? options.ttl : this.config.ttl);
+            await this.redisCache.set(
+                builtKey,
+                valueToStore,
+                options ? options.ttl : this.config.ttl
+            );
         }
-
     }
 
     async get(key: string | any): Promise<string | any> {
@@ -168,13 +172,17 @@ export class CacheFactory implements ICache {
         return result;
     }
 
-    async execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]): Promise<any> {
+    async execute(
+        options: ICacheOptions,
+        fn: (...params: any[]) => any,
+        ...params: any[]
+    ): Promise<any> {
         await this.init();
 
         const key = {fnName: fn.name, params};
         let result = await this.get(key);
         if (!result) {
-            result = fn.apply(null, params);
+            result = fn(...params);
             if (result instanceof Promise) {
                 result = await result;
             }
@@ -213,22 +221,30 @@ export class CacheFactory implements ICache {
             valueNumber++;
         }
 
-        await this.set(incrKey, valueNumber.toString(10), CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE);
+        await this.set(
+            incrKey,
+            valueNumber.toString(10),
+            CACHE_DEFAULT_OPTIONS_AS_MUCH_AS_POSSIBLE
+        );
         return Promise.resolve(valueNumber);
     }
 
     protected async init() {
-        if ((this.config.store === CACHE_STORE.MEMORY || this.config.store === CACHE_STORE.ALL)
-            && !this.memoryCache) {
+        if (
+            (this.config.store === CACHE_STORE.MEMORY || this.config.store === CACHE_STORE.ALL) &&
+            !this.memoryCache
+        ) {
             const configMemory = {
-                ...this.config
+                ...this.config,
             } as MemoryConfig;
 
             this.memoryCache = await caching('memory', configMemory);
         }
 
-        if ((this.config.store === CACHE_STORE.REDIS || this.config.store === CACHE_STORE.ALL)
-            && !this.redisCache?.store?.client?.isReady) {
+        if (
+            (this.config.store === CACHE_STORE.REDIS || this.config.store === CACHE_STORE.ALL) &&
+            !this.redisCache?.store?.client?.isReady
+        ) {
             if (!this.config.redisUrl) {
                 this.redisCache = null;
             } else {
@@ -237,7 +253,7 @@ export class CacheFactory implements ICache {
                     configRedis = {
                         ...configRedis,
                         ...this.config.redisConfig,
-                    }
+                    };
                     configRedis = {
                         ...configRedis,
                         url: this.config.redisUrl,
@@ -264,7 +280,6 @@ export class CacheFactory implements ICache {
         }
         return this.config.instanceName + '-' + newKey;
     }
-
 }
 
 export const cacheFactory = new CacheFactory();
@@ -283,6 +298,6 @@ export class CacheFake implements ICache {
     }
 
     execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]) {
-        return fn.apply(null, params);
+        return fn(...params);
     }
 }

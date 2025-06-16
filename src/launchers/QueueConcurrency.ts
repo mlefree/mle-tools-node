@@ -1,7 +1,7 @@
 export interface QueueConcurrency {
-    default: number,
+    default: number;
     keys: {
-        contains: string,
-        concurrency: number,
-    }[]
+        contains: string;
+        concurrency: number;
+    }[];
 }

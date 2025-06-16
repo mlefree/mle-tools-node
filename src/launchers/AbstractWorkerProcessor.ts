@@ -11,7 +11,6 @@ const DEFAULT_POLLING_MS = 500;
 const DEFAULT_POLLING_STEP_MS = 2000;
 
 export class AbstractWorkerProcessor {
-
     protected static NeedToStop: boolean;
     protected config: any;
     protected input: any;
@@ -59,7 +58,7 @@ export class AbstractWorkerProcessor {
         }
 
         const inputs = await this.getInputs(this.config, this.input);
-        const possibleProcessNames = this.processes.map(process => process.fn.name);
+        const possibleProcessNames = this.processes.map((process) => process.fn.name);
         const processNameOrdered = Tools.extractOrderedNames(this.getName(), possibleProcessNames);
         this.getLogger().info(`>> Worker processNameOrdered: ${processNameOrdered}`);
 
@@ -67,7 +66,7 @@ export class AbstractWorkerProcessor {
         let anotherTry = false;
         let allDone = true;
         for (const pn of processNameOrdered) {
-            const process = this.processes.filter(p => p.fn.name === pn)[0];
+            const process = this.processes.filter((p) => p.fn.name === pn)[0];
             let ok = true;
             try {
                 if (process.looped) {
@@ -84,7 +83,9 @@ export class AbstractWorkerProcessor {
                     anotherTry = process.keepInTheQueue;
                 }
             } catch (err) {
-                this.getLogger().warn(`>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`);
+                this.getLogger().warn(
+                    `>> Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`
+                );
                 ok = false;
                 allDone = false;
                 if (err.code === 408) {
@@ -115,23 +116,24 @@ export class AbstractWorkerProcessor {
     }
 
     getProcesses(): {
-        fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
-        looped: boolean,
-        stopOnFailure: boolean,
-        keepInTheQueue: boolean,
-        inThreadIfPossible: boolean,
+        fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;
+        looped: boolean;
+        stopOnFailure: boolean;
+        keepInTheQueue: boolean;
+        inThreadIfPossible: boolean;
     }[] {
         throw new Error('to implement');
     }
 
-    protected async loop(asyncFn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
-                         count: number,
-                         stopOnFailure: boolean,
-                         inputs: any) {
+    protected async loop(
+        asyncFn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
+        count: number,
+        stopOnFailure: boolean,
+        inputs: any
+    ) {
         let ok = false;
         let retryLimit = 0;
         while (!ok && retryLimit < count && !AbstractWorkerProcessor.CheckIfItShouldStop()) {
-
             const dateA = new Date();
             ok = await asyncFn(this.config, inputs, this.logger, retryLimit);
             const dateB = new Date();
@@ -158,7 +160,7 @@ export class AbstractWorkerProcessor {
             return this.logger;
         } else {
             console['getLevel'] = () => {
-                return LoggerLevels.DEBUG
+                return LoggerLevels.DEBUG;
             };
             return console as any;
         }
@@ -180,24 +182,28 @@ export class AbstractWorkerProcessor {
         throw new MError('to implement');
     }
 
-    protected async onEnd(allDone: boolean, logger: IConsole, stats: {
-        timeSpentTotal: number,
-        timeSpentComputing: number,
-        timeSpentWaiting: number
-    }) {
+    protected async onEnd(
+        allDone: boolean,
+        logger: IConsole,
+        stats: {
+            timeSpentTotal: number;
+            timeSpentComputing: number;
+            timeSpentWaiting: number;
+        }
+    ) {
         // to override
     }
 
     private buildStats(): {
-        timeSpentTotal: number,
-        timeSpentComputing: number,
-        timeSpentWaiting: number
+        timeSpentTotal: number;
+        timeSpentComputing: number;
+        timeSpentWaiting: number;
     } {
         const end = new Date();
         return {
             timeSpentTotal: end.getTime() - this.perfBegin.getTime(),
             timeSpentComputing: this.perfTimeSpentComputing,
-            timeSpentWaiting: this.perfTimeSpentWaiting
+            timeSpentWaiting: this.perfTimeSpentWaiting,
         };
     }
 }

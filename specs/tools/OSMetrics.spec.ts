@@ -2,12 +2,9 @@ import {expect} from 'chai';
 import {OSMetrics} from '../../src';
 
 describe('OSMetrics', () => {
-
-    before(() => {
-    });
+    before(() => {});
 
     it('should getMetrics', async () => {
-
         const metrics = await OSMetrics.getMetrics();
         if (metrics.name && metrics.cpuPercent) {
             expect(metrics.name).contains('_');
@@ -22,5 +19,4 @@ describe('OSMetrics', () => {
         }
         // console.log('metrics', JSON.stringify(metrics, null, 3));
     });
-
 });

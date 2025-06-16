@@ -1,15 +1,15 @@
 import {loggerFactory, LoggerLevels} from '../logs';
 
 export interface ITimeTrackingOptions {
-    milliSecBeforeWarning: number
+    milliSecBeforeWarning: number;
 }
 
 export class TimeTrackingMiddleware {
-
-    constructor(private options: ITimeTrackingOptions = {
-        milliSecBeforeWarning: 1000
-    }) {
-    }
+    constructor(
+        private options: ITimeTrackingOptions = {
+            milliSecBeforeWarning: 1000,
+        }
+    ) {}
 
     private static getDurationInMilliseconds(start: [number, number]) {
         const NS_PER_SEC = 1e9;
@@ -20,7 +20,9 @@ export class TimeTrackingMiddleware {
 
     private static async warnIfExceeded(req: any, timeInMs: number, limitInMs: number) {
         if (timeInMs > limitInMs) {
-            loggerFactory.getLogger().warn(`${req.method} ${req.originalUrl} looks too long : ${timeInMs} ms`);
+            loggerFactory
+                .getLogger()
+                .warn(`${req.method} ${req.originalUrl} looks too long : ${timeInMs} ms`);
         }
     }
 
@@ -34,30 +36,43 @@ export class TimeTrackingMiddleware {
             const start = process.hrtime();
 
             res.on('finish', async () => {
-                const durationInMilliseconds = TimeTrackingMiddleware.getDurationInMilliseconds(start);
+                const durationInMilliseconds =
+                    TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
-                    logger.debug(`${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`);
+                    logger.debug(
+                        `${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
+                    );
                 }
-                await TimeTrackingMiddleware.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
+                await TimeTrackingMiddleware.warnIfExceeded(
+                    req,
+                    durationInMilliseconds,
+                    this.options.milliSecBeforeWarning
+                );
             });
 
             res.on('close', async () => {
-                const durationInMilliseconds = TimeTrackingMiddleware.getDurationInMilliseconds(start);
+                const durationInMilliseconds =
+                    TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
-                    logger.debug(`${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`);
+                    logger.debug(
+                        `${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`
+                    );
                 }
-                await TimeTrackingMiddleware.warnIfExceeded(req, durationInMilliseconds, this.options.milliSecBeforeWarning);
+                await TimeTrackingMiddleware.warnIfExceeded(
+                    req,
+                    durationInMilliseconds,
+                    this.options.milliSecBeforeWarning
+                );
             });
 
             next();
         };
     }
-
 }
 
-export const timeTracking = ((options?: ITimeTrackingOptions) => {
+export const timeTracking = (options?: ITimeTrackingOptions) => {
     const timeTrackingMiddleware = new TimeTrackingMiddleware(options);
     return timeTrackingMiddleware.middleWare();
-});
+};

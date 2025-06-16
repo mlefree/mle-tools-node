@@ -1,6 +1,6 @@
-import { expect } from 'chai';
-import { StringUtils } from '../../src/example/StringUtils';
-import { MError } from '../../src/errors/MError';
+import {expect} from 'chai';
+import {StringUtils} from '../../src/example/StringUtils';
+import {MError} from '../../src/errors/MError';
 
 describe('StringUtils', () => {
     describe('reverse', () => {
@@ -11,9 +11,9 @@ describe('StringUtils', () => {
         });
 
         it('should throw an error if input is not a string', () => {
-            // @ts-ignore - Testing invalid input
+            // @ts-expect-error - Testing invalid input
             expect(() => StringUtils.reverse(123)).to.throw(MError, 'Input must be a string');
-            // @ts-ignore - Testing invalid input
+            // @ts-expect-error - Testing invalid input
             expect(() => StringUtils.reverse(null)).to.throw(MError, 'Input must be a string');
         });
     });
@@ -31,9 +31,9 @@ describe('StringUtils', () => {
         });
 
         it('should throw an error if input is not a string', () => {
-            // @ts-ignore - Testing invalid input
+            // @ts-expect-error - Testing invalid input
             expect(() => StringUtils.isPalindrome(123)).to.throw(MError, 'Input must be a string');
-            // @ts-ignore - Testing invalid input
+            // @ts-expect-error - Testing invalid input
             expect(() => StringUtils.isPalindrome(null)).to.throw(MError, 'Input must be a string');
         });
     });

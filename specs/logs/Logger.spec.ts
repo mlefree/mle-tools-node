@@ -5,7 +5,6 @@ import {expect} from 'chai';
 const sleep = promisify(setTimeout);
 
 describe('Logger', () => {
-
     let perfLogger: LoggerPerf;
 
     before(() => {

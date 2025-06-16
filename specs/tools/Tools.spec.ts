@@ -2,14 +2,11 @@ import {expect} from 'chai';
 import {Tools} from '../../src';
 
 describe('Tools', () => {
-
-    before(() => {
-    });
+    before(() => {});
 
     it('should securedSetProperty', async () => {
-
         const src = {
-            test: 1
+            test: 1,
         };
         const target = {};
 
@@ -24,7 +21,6 @@ describe('Tools', () => {
     });
 
     it('should extractOrderedNames', async () => {
-
         const src = 'test1-test2-test1-notExisting-test1-';
         const possibleNames = ['test1', 'test2', 'notHere'];
 
@@ -36,5 +32,4 @@ describe('Tools', () => {
         expect(orderedNames[2]).eq('test1');
         expect(orderedNames[3]).eq('test1');
     });
-
 });

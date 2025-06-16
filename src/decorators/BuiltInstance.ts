@@ -5,9 +5,9 @@ import {MError} from '../errors';
 export interface IBuildModel {
     findById(buildId: any): any;
 
-    deleteMany(param: { buildType: string; updatedAt: { $lte: Date } }): any; // statusWorkers: any[];
+    deleteMany(param: {buildType: string; updatedAt: {$lte: Date}}): any; // statusWorkers: any[];
 
-    deleteOne(param: { _id: any }): any;
+    deleteOne(param: {_id: any}): any;
 }
 
 export interface IBuildContainer {
@@ -18,7 +18,7 @@ export interface IBuildContainer {
 
 export interface IBuild {
     id: string;
-    buildType: string,
+    buildType: string;
     algorithmVersion: string;
     configurationAsJSON: string;
     updatedAt: Date;
@@ -27,13 +27,14 @@ export interface IBuild {
 }
 
 export class BuiltInstance {
-
     constructor(
         private instance: IBuildContainer,
         private buildModel: IBuildModel,
         private algorithmVersion: string,
-        private minutesBeforeGettingOld: number) {
-        if (!instance ||
+        private minutesBeforeGettingOld: number
+    ) {
+        if (
+            !instance ||
             (typeof instance.builds === 'undefined' && typeof instance.getBuilds === 'undefined') ||
             typeof instance.save === 'undefined'
         ) {
@@ -42,7 +43,7 @@ export class BuiltInstance {
     }
 
     async needsToBeRebuilt(configuration: Configuration<any>, buildType: string) {
-        return !await this.getCompliantBuild(configuration, buildType);
+        return !(await this.getCompliantBuild(configuration, buildType));
     }
 
     async getCompliantBuild(configuration: Configuration<any>, buildType: string) {
@@ -68,11 +69,12 @@ export class BuiltInstance {
         return lastCompliantBuild;
     }
 
-    async createBuild(configuration: Configuration<any>,
-                      buildType: string,
-                      timestampBeginIncluded?: number,
-                      timestampEndNotIncluded?: number) {
-
+    async createBuild(
+        configuration: Configuration<any>,
+        buildType: string,
+        timestampBeginIncluded?: number,
+        timestampEndNotIncluded?: number
+    ) {
         const buildModel = this.buildModel;
         const doc: any = {
             buildType,
@@ -83,7 +85,7 @@ export class BuiltInstance {
             doc.timestampBeginIncluded = timestampBeginIncluded;
             doc.timestampEndNotIncluded = timestampEndNotIncluded;
         }
-        // @ts-ignore
+        // @ts-expect-error buildModel is not declared in this lib but by the caller
         const newBuild = new buildModel(doc);
         await newBuild.save();
         this.instance.builds.push(newBuild);
@@ -91,8 +93,11 @@ export class BuiltInstance {
         return newBuild;
     }
 
-    async purgeUselessBuilds(configuration: Configuration<any>, buildType: string, allOldBuild = false) {
-
+    async purgeUselessBuilds(
+        configuration: Configuration<any>,
+        buildType: string,
+        allOldBuild = false
+    ) {
         const buildModel = this.buildModel;
 
         // global remove of older than one hour
@@ -103,7 +108,9 @@ export class BuiltInstance {
         }
 
         // now focus on not empty but
-        const allBuilds = JSON.parse(JSON.stringify(this.instance.builds || this.instance.getBuilds()));
+        const allBuilds = JSON.parse(
+            JSON.stringify(this.instance.builds || this.instance.getBuilds())
+        );
         let count = 0;
         for (const buildId of allBuilds) {
             const build: IBuild = await buildModel.findById(buildId);
@@ -115,7 +122,8 @@ export class BuiltInstance {
                 let shouldBeRemoved = build.statusGlobal !== 1;
                 shouldBeRemoved = shouldBeRemoved && this.isOld(build);
                 if (!allOldBuild) {
-                    shouldBeRemoved = shouldBeRemoved && this.compareBuild(build, buildType, configuration);
+                    shouldBeRemoved =
+                        shouldBeRemoved && this.compareBuild(build, buildType, configuration);
                 }
                 if (shouldBeRemoved) {
                     this.instance.builds.splice(count, 1);
@@ -130,7 +138,11 @@ export class BuiltInstance {
         await this.instance.save();
     }
 
-    async hasSomethingInProgress(configuration: Configuration<any>, buildType: string, allBuild = false) {
+    async hasSomethingInProgress(
+        configuration: Configuration<any>,
+        buildType: string,
+        allBuild = false
+    ) {
         const allBuilds = this.instance.builds || this.instance.getBuilds();
         let oneIsNotFinished = false;
         for (const buildId of allBuilds) {
@@ -169,8 +181,10 @@ export class BuiltInstance {
 
         for (const buildId of allBuilds) {
             const build: IBuild = await buildModel.findById(buildId);
-            if (this.compareBuild(build, buildType, configuration) &&
-                typeof build.getErrorStack !== 'undefined') {
+            if (
+                this.compareBuild(build, buildType, configuration) &&
+                typeof build.getErrorStack !== 'undefined'
+            ) {
                 errorStacks += build.getErrorStack();
             }
         }
@@ -178,12 +192,17 @@ export class BuiltInstance {
         return errorStacks;
     }
 
-    protected compareBuild(build: IBuild, buildType: string, configuration: Configuration<any>): boolean {
-        return build &&
+    protected compareBuild(
+        build: IBuild,
+        buildType: string,
+        configuration: Configuration<any>
+    ): boolean {
+        return (
+            build &&
             build.buildType === buildType &&
             // build.algorithmVersion === this.algorithmVersion &&
             configuration.contains(build.configurationAsJSON)
-            ;
+        );
     }
 
     protected isOld(build: IBuild): boolean {
@@ -195,9 +214,10 @@ export class BuiltInstance {
         const old = delta > this.minutesBeforeGettingOld * 60000;
 
         if (old) {
-            loggerFactory.getLogger().warn('old build?', old, build.id, delta, this.minutesBeforeGettingOld * 60000);
+            loggerFactory
+                .getLogger()
+                .warn('old build?', old, build.id, delta, this.minutesBeforeGettingOld * 60000);
         }
         return old;
-
     }
 }

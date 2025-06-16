@@ -4,13 +4,13 @@ import FormData from 'form-data';
 import {loggerFactory} from '../logs';
 
 export class GoFile {
-
     private initialized: boolean;
     private serverUrl: string;
 
     constructor(
         private account,
-        private password) {
+        private password
+    ) {
         this.initialized = false;
         this.serverUrl = 'srv-file6';
     }
@@ -28,7 +28,6 @@ export class GoFile {
     }
 
     async upload(filePath) {
-
         if (!this.account) {
             return;
         }
@@ -51,5 +50,4 @@ export class GoFile {
             loggerFactory.getLogger().warn(`gofile cannot upload ${filePath}`, e);
         }
     }
-
 }

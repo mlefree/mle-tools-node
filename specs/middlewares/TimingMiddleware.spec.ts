@@ -2,18 +2,15 @@ import {expect} from 'chai';
 import {timing, TimingMiddleware} from '../../src/';
 
 describe('TimingMiddleware', () => {
-
     const req = {};
     const res = {
         on: (a) => {
             return a;
         },
     };
-    const next = () => {
-    };
+    const next = () => {};
 
-    before(() => {
-    });
+    before(() => {});
 
     it('should create time tracking', async () => {
         const timingMiddleware = new TimingMiddleware();
@@ -24,5 +21,4 @@ describe('TimingMiddleware', () => {
     it('should use simple timeTracking', async () => {
         expect(timing()(req, res, next)).eq(undefined);
     });
-
 });

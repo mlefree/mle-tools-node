@@ -76,7 +76,7 @@ export class LoggerPerf {
                 name: null,
                 count: 0,
                 timeSpent: 0,
-                lastBeginDate: null
+                lastBeginDate: null,
             };
         }
     }
@@ -94,8 +94,8 @@ export class LoggerPerf {
         let domains = [];
         loggerFactory.getLogger().info(`
         ########## PERF UPDATE BEGIN ##########`);
-        const intermediateMsg = !!intermediate ? '(for now) ' : '';
-        for (let domainName in PERF_INFOS) {
+        const intermediateMsg = intermediate ? '(for now) ' : '';
+        for (const domainName in PERF_INFOS) {
             const domainObject = PERF_INFOS[domainName];
             domains.push(domainObject);
             // logger.info(`PERF - ${intermediateMsg}${domainName} COUNT: ${domainObject.count} TST: ${domainObject.timeSpent / 1000} sec.
@@ -111,13 +111,16 @@ export class LoggerPerf {
         // const biggestConsumerTotal = (biggestConsumer.timeSpent / 1000);
         // logger.info(`PERF - ${intermediateMsg}BCA: ${biggestConsumer.name} TSA: ${biggestConsumerAverage}`);
         // logger.info(`PERF - ${intermediateMsg}BCT: ${biggestConsumer.name} TST: ${biggestConsumerTotal}`);
-        domains.forEach(domain => {
-            loggerFactory.getLogger().info(`PERF - ${intermediateMsg}${domain.name} COUNT: ${domain.count} TST: ${domain.timeSpent / 1000} sec. TSA: ${domain.timeSpent / 1000 / domain.count} sec.`);
+        domains.forEach((domain) => {
+            loggerFactory
+                .getLogger()
+                .info(
+                    `PERF - ${intermediateMsg}${domain.name} COUNT: ${domain.count} TST: ${domain.timeSpent / 1000} sec. TSA: ${domain.timeSpent / 1000 / domain.count} sec.`
+                );
         });
 
         loggerFactory.getLogger().info(`
         ########## PERF UPDATE END ##########
         `);
     }
-
 }

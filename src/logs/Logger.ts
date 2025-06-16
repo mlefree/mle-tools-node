@@ -10,7 +10,6 @@ const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
 const LOGGER_FILE_DIR = '.logs';
 
 export class Logger implements ILogger {
-
     private readonly transports: any;
     private readonly formats: any;
     private readonly logger: any;
@@ -24,7 +23,7 @@ export class Logger implements ILogger {
 
         this.transports['console'] = new winston.transports.Stream({
             stream: process.stderr,
-            level: LOGGER_DEFAULT_LEVEL
+            level: LOGGER_DEFAULT_LEVEL,
         });
         this.transports['file'] = new DailyRotateFile({
             filename: LOGGER_FILE_DIR + '/log-%DATE%.log',
@@ -37,8 +36,11 @@ export class Logger implements ILogger {
 
         this.formats = winston.format.combine(
             winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
-            winston.format.printf(({level, message, label, timestamp}) =>
-                `${timestamp} ${label || '-'} ${level}: ${message}`)); //  winston.format.simple();
+            winston.format.printf(
+                ({level, message, label, timestamp}) =>
+                    `${timestamp} ${label || '-'} ${level}: ${message}`
+            )
+        ); //  winston.format.simple();
 
         this.logger = winston.createLogger({
             exitOnError: false,
@@ -77,8 +79,11 @@ export class Logger implements ILogger {
 
     info(...extra: any[]): boolean {
         let done: any;
-        if (this.active &&
-            (this.transports.console?.level === LoggerLevels.INFO || this.transports.console?.level === LoggerLevels.DEBUG)) {
+        if (
+            this.active &&
+            (this.transports.console?.level === LoggerLevels.INFO ||
+                this.transports.console?.level === LoggerLevels.DEBUG)
+        ) {
             done = this.logger.info(extra);
         }
         return !!done;
@@ -124,12 +129,14 @@ export class Logger implements ILogger {
         }
     }
 
-    setup(active: boolean,
-          consoleLevel: LoggerLevels,
-          logLevel: LoggerLevels,
-          notifyUser?: string,
-          notifyPwd?: string,
-          notifyTo?: string) {
+    setup(
+        active: boolean,
+        consoleLevel: LoggerLevels,
+        logLevel: LoggerLevels,
+        notifyUser?: string,
+        notifyPwd?: string,
+        notifyTo?: string
+    ) {
         this.active = !!active;
 
         if (this.transports.console) {
@@ -150,8 +157,11 @@ export class Logger implements ILogger {
 
         if (this.active && this.notifyUser && this.notifyPwd) {
             const options = {
-                user: this.notifyUser, pass: this.notifyPwd, to: this.notifyTo,  // [ 'user1@gmail.com', 'user2@gmail.com' ]
-                subject, text,
+                user: this.notifyUser,
+                pass: this.notifyPwd,
+                to: this.notifyTo, // [ 'user1@gmail.com', 'user2@gmail.com' ]
+                subject,
+                text,
             };
             const send = require('gmail-send')(options);
             try {
@@ -167,7 +177,7 @@ export class Logger implements ILogger {
 
     readLastLogs(parentPath: string): string[] {
         const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         const firstPartOfDate = now.toISOString().split('T')[0];
         const secondPartOfDate = now.toISOString().split('T')[1].split(':')[0];
         const formattedDate = firstPartOfDate + '-' + secondPartOfDate;
@@ -190,6 +200,7 @@ export class Logger implements ILogger {
             const dirToRemove = join(parentPath, LOGGER_FILE_DIR);
             await rm(dirToRemove, {recursive: true, force: true});
         } catch (ignored) {
+            // Ignore errors when removing log directory, as it might not exist
         }
     }
 }

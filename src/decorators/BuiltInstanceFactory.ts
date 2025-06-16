@@ -1,7 +1,6 @@
 import {BuiltInstance} from './BuiltInstance';
 
 export class BuiltInstanceFactory {
-
     private algorithmVersion: string;
     private buildModel: any;
     private minutesBeforeGettingOld: number;
@@ -10,9 +9,7 @@ export class BuiltInstanceFactory {
         this.algorithmVersion = '';
     }
 
-    setUp(algorithmVersion: string,
-          buildModel: any,
-          minutesBeforeGettingOld = 60) {
+    setUp(algorithmVersion: string, buildModel: any, minutesBeforeGettingOld = 60) {
         this.algorithmVersion = algorithmVersion;
         this.buildModel = buildModel;
         this.minutesBeforeGettingOld = minutesBeforeGettingOld;
@@ -23,7 +20,12 @@ export class BuiltInstanceFactory {
         if (!buildModelToUse) {
             buildModelToUse = this.buildModel;
         }
-        return new BuiltInstance(instance, buildModelToUse, this.algorithmVersion, this.minutesBeforeGettingOld);
+        return new BuiltInstance(
+            instance,
+            buildModelToUse,
+            this.algorithmVersion,
+            this.minutesBeforeGettingOld
+        );
     }
 }
 

@@ -6,49 +6,24 @@ import fs from 'fs';
 const execute = promisify(exec);
 const sleep = promisify(setTimeout);
 
-export const platform = () => {
-    return process.platform;
-}
-
-export const cpuCount = function () {
-    return os.cpus().length;
-}
-
-export const sysUptime = function () {
-    return os.uptime();
-}
-
-export const processUptime = function () {
-    return process.uptime();
-}
-
-export const freemem = function () {
-    return os.freemem() / (1024 * 1024);
-}
-
-export const totalmem = function () {
-
-    return os.totalmem() / (1024 * 1024);
-}
-
 export const freememPercentage = function () {
     return os.freemem() / os.totalmem();
-}
+};
 
 export const cpuTemperature = async function () {
-
     let result = {
         main: null,
         cores: [],
         max: null,
         socket: [],
-        chipset: null
+        chipset: null,
     };
 
     if (process.platform === 'linux') {
         // CPU Chipset, Socket
         try {
-            const cmd = 'cat /sys/class/thermal/thermal_zone*/type  2>/dev/null; echo "-----"; cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null;';
+            const cmd =
+                'cat /sys/class/thermal/thermal_zone*/type  2>/dev/null; echo "-----"; cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null;';
             const executeCat = await execute(cmd);
             const parts = executeCat.stdout.split('-----\n');
             if (parts.length === 2) {
@@ -69,7 +44,8 @@ export const cpuTemperature = async function () {
         }
 
         try {
-            const cmd = 'for mon in /sys/class/hwmon/hwmon*; do for label in "$mon"/temp*_label; do if [ -f $label ]; then value=${label%_*}_input; echo $(cat "$label")___$(cat "$value"); fi; done; done;';
+            const cmd =
+                'for mon in /sys/class/hwmon/hwmon*; do for label in "$mon"/temp*_label; do if [ -f $label ]; then value=${label%_*}_input; echo $(cat "$label")___$(cat "$value"); fi; done; done;';
             const executeMon = await execute(cmd);
             let stdout = executeMon.stdout;
             const tdiePos = stdout.toLowerCase().indexOf('tdie');
@@ -78,19 +54,26 @@ export const cpuTemperature = async function () {
             }
             let lines = stdout.split('\n');
             let tctl = 0;
-            lines.forEach(line => {
+            lines.forEach((line) => {
                 const parts = line.split('___');
                 const label = parts[0];
                 const value = parts.length > 1 && parts[1] ? parts[1] : '0';
                 if (value && label && label.toLowerCase() === 'tctl') {
                     tctl = result.main = Math.round(parseInt(value, 10) / 100) / 10;
                 }
-                if (value && (label === undefined || (label && label.toLowerCase().startsWith('core')))) {
+                if (
+                    value &&
+                    (label === undefined || (label && label.toLowerCase().startsWith('core')))
+                ) {
                     result.cores.push(Math.round(parseInt(value, 10) / 100) / 10);
-                } else if (value && label && result.main === null &&
-                    (label.toLowerCase().indexOf('package') >= 0
-                        || label.toLowerCase().indexOf('physical') >= 0
-                        || label.toLowerCase() === 'tccd1')) {
+                } else if (
+                    value &&
+                    label &&
+                    result.main === null &&
+                    (label.toLowerCase().indexOf('package') >= 0 ||
+                        label.toLowerCase().indexOf('physical') >= 0 ||
+                        label.toLowerCase() === 'tccd1')
+                ) {
                     result.main = Math.round(parseInt(value, 10) / 100) / 10;
                 }
             });
@@ -100,10 +83,12 @@ export const cpuTemperature = async function () {
 
             if (result.cores.length > 0) {
                 if (result.main === null) {
-                    result.main = Math.round(result.cores.reduce((a, b) => a + b, 0) / result.cores.length);
+                    result.main = Math.round(
+                        result.cores.reduce((a, b) => a + b, 0) / result.cores.length
+                    );
                 }
-                const maxtmp = Math.max.apply(Math, result.cores);
-                result.max = (maxtmp > result.main) ? maxtmp : result.main;
+                const maxtmp = Math.max(...result.cores);
+                result.max = maxtmp > result.main ? maxtmp : result.main;
             }
             if (result.main !== null) {
                 if (result.max === null) {
@@ -160,9 +145,11 @@ export const cpuTemperature = async function () {
             });
 
             if (result.cores.length > 0) {
-                result.main = Math.round(result.cores.reduce((a, b) => a + b, 0) / result.cores.length);
-                const maxtmp = Math.max.apply(Math, result.cores);
-                result.max = (maxtmp > result.main) ? maxtmp : result.main;
+                result.main = Math.round(
+                    result.cores.reduce((a, b) => a + b, 0) / result.cores.length
+                );
+                const maxtmp = Math.max(...result.cores);
+                result.max = maxtmp > result.main ? maxtmp : result.main;
             } else {
                 if (result.main === null && tdieTemp !== null) {
                     result.main = tdieTemp;
@@ -197,14 +184,17 @@ export const cpuTemperature = async function () {
                 }
                 return result;
             }
-
         } catch (e) {
             console.warn(e);
             return result;
         }
     }
 
-    if (process.platform === 'freebsd' || process.platform === 'openbsd' || process.platform === 'netbsd') {
+    if (
+        process.platform === 'freebsd' ||
+        process.platform === 'openbsd' ||
+        process.platform === 'netbsd'
+    ) {
         const executeDev = await execute('sysctl dev.cpu | grep temp');
         const lines = executeDev.stdout.split('\n');
         let sum = 0;
@@ -220,7 +210,7 @@ export const cpuTemperature = async function () {
             }
         });
         if (result.cores.length) {
-            result.main = Math.round(sum / result.cores.length * 100) / 100;
+            result.main = Math.round((sum / result.cores.length) * 100) / 100;
         }
 
         return result;
@@ -251,45 +241,13 @@ export const cpuTemperature = async function () {
 
         return result;
     }
-
-}
-
-/*
-* Returns All the load average usage for 1, 5 or 15 minutes.
-*/
-export const allLoadavg = function () {
-
-    const loads = os.loadavg();
-
-    return loads[0].toFixed(4) + ',' + loads[1].toFixed(4) + ',' + loads[2].toFixed(4);
-}
-
-/*
-* Returns the load average usage for 1, 5 or 15 minutes.
-*/
-export const loadavg = function (_time) {
-
-    if (_time === undefined || (_time !== 5 && _time !== 15)) _time = 1;
-
-    const loads = os.loadavg();
-    let v = 0;
-    if (_time == 1) v = loads[0];
-    if (_time == 5) v = loads[1];
-    if (_time == 15) v = loads[2];
-
-    return v;
-}
-
-export const cpuFree = async function () {
-    return getCPUUsage(true);
-}
+};
 
 export const cpuUsage = async () => {
     return getCPUUsage(false);
-}
+};
 
 async function getCPUUsage(free: boolean) {
-
     const stats1 = getCPUInfo();
     const startIdle = stats1.idle;
     const startTotal = stats1.total;
@@ -303,11 +261,11 @@ async function getCPUUsage(free: boolean) {
     const total = endTotal - startTotal;
     const perc = idle / total;
 
-    if (free === true)
+    if (free === true) {
         return perc;
-    else
-        return (1 - perc);
-
+    } else {
+        return 1 - perc;
+    }
 }
 
 function getCPUInfo() {
@@ -320,7 +278,6 @@ function getCPUInfo() {
     let irq = 0;
 
     for (const cpu in cpus) {
-
         user += cpus[cpu].times.user;
         nice += cpus[cpu].times.nice;
         sys += cpus[cpu].times.sys;
@@ -332,6 +289,6 @@ function getCPUInfo() {
 
     return {
         idle: idle,
-        total: total
+        total: total,
     };
 }
