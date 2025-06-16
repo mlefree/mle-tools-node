@@ -11,10 +11,8 @@ describe('StringUtils', () => {
         });
 
         it('should throw an error if input is not a string', () => {
-            // @ts-expect-error - Testing invalid input
-            expect(() => StringUtils.reverse(123)).to.throw(MError, 'Input must be a string');
-            // @ts-expect-error - Testing invalid input
-            expect(() => StringUtils.reverse(null)).to.throw(MError, 'Input must be a string');
+            expect(() => StringUtils.reverse(123 as any)).to.throw(MError, 'Input must be a string');
+            expect(() => StringUtils.reverse(null as any)).to.throw(MError, 'Input must be a string');
         });
     });
 
@@ -31,10 +29,8 @@ describe('StringUtils', () => {
         });
 
         it('should throw an error if input is not a string', () => {
-            // @ts-expect-error - Testing invalid input
-            expect(() => StringUtils.isPalindrome(123)).to.throw(MError, 'Input must be a string');
-            // @ts-expect-error - Testing invalid input
-            expect(() => StringUtils.isPalindrome(null)).to.throw(MError, 'Input must be a string');
+            expect(() => StringUtils.isPalindrome(123 as any)).to.throw(MError, 'Input must be a string');
+            expect(() => StringUtils.isPalindrome(null as any)).to.throw(MError, 'Input must be a string');
         });
     });
 });
