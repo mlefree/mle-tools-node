@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.12.11] - 2025-06-18
+### Changed
+
+- Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
+- Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
+- Updated DefaultWorkerStore to support the new release method signature
+
+## [1.12.12] - 2025-06-18
 
 ### Changed
 

@@ -35,7 +35,11 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         return null;
     }
 
-    async release(queueName: string, params: IWorkerParams): Promise<void> {
+    async release(
+        queueName: string,
+        params: IWorkerParams,
+        _shouldKeepInQueue: boolean
+    ): Promise<void> {
         let pos = -1;
 
         const paramsAsStr = JSON.stringify(params);

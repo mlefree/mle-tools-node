@@ -69,14 +69,19 @@
 
 ## Current Status
 
-The project is currently at version 1.12.11, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
+The project is currently at version 1.12.12, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
 
 - Removed commented-out logger line in Launcher.ts
 - Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
 - Added '**/*.nolint.*' to the ignorePatterns list in eslint.config.mjs
 - Updated bpstatus.json version from 0.0.13 to 0.0.14
 
-Previous version (1.12.10) changes included:
+Upcoming changes in development include:
+- Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
+- Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
+- Updated DefaultWorkerStore to support the new release method signature
+
+Previous version (1.12.11) changes included:
 - Moved ts-node from dependencies to devDependencies in package.json
 - Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
 - Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled

@@ -86,12 +86,7 @@ export class QueueLauncher {
             this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
         }
 
-        if (shouldKeepInQueue) {
-            // If any process should be kept in Store's queue, don't release it
-            return;
-        }
-
-        await this.options.workerStore.release(queueName, params);
+        await this.options.workerStore.release(queueName, params, shouldKeepInQueue);
     }
 
     public clean() {

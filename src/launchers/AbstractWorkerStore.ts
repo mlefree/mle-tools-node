@@ -10,7 +10,11 @@ export class AbstractWorkerStore {
         throw new MError('Not implemented');
     }
 
-    async release(queueName: string, params: IWorkerParams): Promise<void> {
+    async release(
+        queueName: string,
+        params: IWorkerParams,
+        shouldKeepInQueue: boolean
+    ): Promise<void> {
         throw new MError('Not implemented');
     }
 
