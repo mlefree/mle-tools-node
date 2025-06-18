@@ -18,7 +18,13 @@ The project is currently focused on:
 
 ## Recent Changes
 
-### Version 1.12.10 (Current)
+### Version 1.12.11 (Current)
+- Removed commented-out logger line in Launcher.ts
+- Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
+- Added '**/*.nolint.*' to the ignorePatterns list in eslint.config.mjs
+- Updated bpstatus.json version from 0.0.13 to 0.0.14
+
+### Version 1.12.10 (2025-06-16)
 - Moved ts-node from dependencies to devDependencies in package.json
 - Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
 - Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled

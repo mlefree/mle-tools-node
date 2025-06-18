@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.11] - 2025-06-18
+
+### Changed
+
+- Removed commented-out logger line in Launcher.ts
+- Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
+- Added '**/*.nolint.*' to the ignorePatterns list in eslint.config.mjs
+- Updated bpstatus.json version from 0.0.13 to 0.0.14
+
 ## [1.12.10] - 2025-06-16
 
 ### Changed

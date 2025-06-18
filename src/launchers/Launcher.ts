@@ -83,10 +83,9 @@ export class Launcher {
             workerData,
             workerProcessorPathFile: this.options.workerProcessorPathFile,
         };
-        // loggerFactory.getLogger().info('Launcher.push:', JSON.stringify(params));
 
         try {
-            if (this.queueLauncher) {
+            if (this.queueLauncher && this.options.threadStrategy === STRATEGIES.QUEUE) {
                 await this.queueLauncher.add(params);
             } else if (this.options.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
