@@ -69,7 +69,7 @@
 
 ## Current Status
 
-The project is currently at version 1.12.12, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
+The project is currently at version 1.12.14, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
 
 - Removed commented-out logger line in Launcher.ts
 - Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
@@ -77,6 +77,8 @@ The project is currently at version 1.12.12, with a focus on improving code qual
 - Updated bpstatus.json version from 0.0.13 to 0.0.14
 
 Upcoming changes in development include:
+- Added a new optional `key` property to `IWorkerData` interface to better identify duplicate workers
+- Enhanced duplicate detection in `DefaultWorkerStore` using the new key property
 - Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
 - Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
 - Updated DefaultWorkerStore to support the new release method signature

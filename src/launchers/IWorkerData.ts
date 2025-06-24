@@ -1,4 +1,5 @@
 export interface IWorkerData {
-    config: any;
-    input: any;
+    key?: string; // to identify duplicate
+    config?: any;
+    input?: any;
 }

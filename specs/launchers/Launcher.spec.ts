@@ -47,8 +47,9 @@ describe('Launcher', function () {
         await trackStart(this);
 
         const input: Input = {count: 10};
+        const key = 'direct1';
         const config: Config = {time: 100, label: 'direct', logLevel: LoggerLevels.DEBUG};
-        const data: IWorkerData = {input, config};
+        const data: IWorkerData = {input, key, config};
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorA',
         });
@@ -160,11 +161,12 @@ describe('Launcher', function () {
         });
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
-        const data: IWorkerData = {input, config};
+        const key = 'queue';
+        const data: IWorkerData = {input, key, config};
 
         // 5 launching (- 1 dup)
         let launched = await launcher.push(['info', 'sleep', 'info', 'sleep'], data);
-        launched = await launcher.push(['info', 'sleep', 'info', 'sleep'], data); // Duplicate, should not be considered
+        launched = await launcher.push(['info', 'sleep', 'info', 'sleep'], data); // Duplicate should not be considered
         launched = await launcher.push(['info', 'sleep', 'info'], data);
         launched = await launcher.push(['info', 'sleep', 'sleep'], data);
         launched = await launcher.push(['info', 'sleep', 'sleep', 'info'], data);
@@ -283,7 +285,8 @@ describe('Launcher', function () {
                 label: 'toStopQueue' + count,
                 logLevel: LoggerLevels.DEBUG,
             };
-            const data: IWorkerData = {input, config};
+            const key = 'queue' + count;
+            const data: IWorkerData = {input, key, config};
             const launched = await launcher.push(['info', 'sleep', 'info', 'sleep'], data);
             if (launched) {
                 launchedCount++;

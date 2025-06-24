@@ -16,10 +16,11 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         }
 
         const paramsAsStr = JSON.stringify(params);
+        const key = params.workerData.key ?? paramsAsStr;
 
-        const alreadyThere = this.queues[queueName].filter((q) => q.params === paramsAsStr);
-        if (!alreadyThere.length) {
-            this.queues[queueName].push({params: paramsAsStr, inProgress: false});
+        const alreadyThere = this.queues[queueName].filter((q) => q.key === key);
+        if (alreadyThere.length === 0) {
+            this.queues[queueName].push({key, params: paramsAsStr, inProgress: false});
         }
     }
 

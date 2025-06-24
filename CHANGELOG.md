@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a new optional `key` property to `IWorkerData` interface to better identify duplicate workers
+- Enhanced duplicate detection in `DefaultWorkerStore` using the new key property
+
+## [1.12.13] - 2025-06-19
+
 ### Changed
 
 - Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
