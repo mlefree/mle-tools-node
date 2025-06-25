@@ -24,6 +24,8 @@ The project is currently focused on:
 - Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
 - Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
 - Updated DefaultWorkerStore to support the new release method signature
+- Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were found, preventing future checks on those queues
+- Fixed issue in queue releasing
 
 ### Version 1.12.14 (Current)
 - Removed commented-out logger line in Launcher.ts

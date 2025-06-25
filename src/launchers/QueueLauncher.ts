@@ -147,7 +147,6 @@ export class QueueLauncher {
 
             const params = await this.options.workerStore.take(queueName);
             if (!params) {
-                this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
                 continue;
             }
 

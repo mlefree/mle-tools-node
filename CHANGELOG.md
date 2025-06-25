@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were
+  found, preventing future checks on those queues
+
+## [1.12.14] - 2025-06-24
+
 ### Added
 
 - Added a new optional `key` property to `IWorkerData` interface to better identify duplicate workers
