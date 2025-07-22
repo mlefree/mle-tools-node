@@ -171,6 +171,6 @@ export class Launcher {
     }
 
     setQueueConcurrency(queueConcurrency: QueueConcurrency) {
-        this.queueLauncher.setQueueConcurrency(queueConcurrency);
+        this.queueLauncher?.setQueueConcurrency(queueConcurrency);
     }
 }

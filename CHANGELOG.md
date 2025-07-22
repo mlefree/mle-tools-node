@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- limit to a large response value (e.g., 10MB -> 50MB)
+- prevent queueLauncher setQueueConcurrency undefined
+
+## [1.12.15] - 2025-06-25
+
+### Fixed
+
 - Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were
   found, preventing future checks on those queues
 

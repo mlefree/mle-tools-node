@@ -7,7 +7,7 @@ import {AbstractWorkerStore} from './AbstractWorkerStore';
 export class QueueLauncher {
     private pollingTimer: PollingTimer;
     private queueNames: string[];
-    private runningWorkers: any;
+    private runningWorkers: object;
     private shouldStopAll: boolean;
 
     constructor(
@@ -133,7 +133,7 @@ export class QueueLauncher {
         await this.syncQueuesFromStore();
 
         for (const queueName of this.queueNames) {
-            // check concurrency limit
+            // Get and verify concurrency
             const {concurrency} = this.getKeyConcurrency(queueName);
             const notExists =
                 typeof this.runningWorkers[queueName] === 'undefined' ||
@@ -145,65 +145,69 @@ export class QueueLauncher {
                 continue;
             }
 
+            // Get and verify params
             const params = await this.options.workerStore.take(queueName);
             if (!params) {
                 continue;
             }
 
-            if (typeof this.runningWorkers[queueName] !== 'undefined') {
-                this.runningWorkers[queueName]++;
-            }
+            // Execute queue worker
+            this.executeWorker(queueName, params);
+        }
+    }
 
-            if (!params.workerProcesses) {
-                params.workerProcesses = [
-                    '' + params['workerDescription'] ? params['workerDescription'] : '',
-                ];
-            }
-            params.workerProcessorPathFile = this.options.workerProcessorPathFile;
+    private executeWorker(queueName: string, params: IWorkerParams) {
+        this.runningWorkers[queueName]++;
 
-            let needTread = false;
-            try {
-                const {WorkerProcessor} = require(this.options.workerProcessorPathFile);
-                const allProcesses = WorkerProcessor.GetProcesses();
-                const processes = allProcesses.filter(
-                    (p) => params.workerProcesses.indexOf(p.fn.name) > -1
-                );
-                needTread = processes.filter((p) => p.inThreadIfPossible).length > 0;
-            } catch (e) {
-                this.logger.warn('queue workerProcessor issue:', e);
-            }
+        if (!params.workerProcesses) {
+            params.workerProcesses = [
+                '' + params['workerDescription'] ? params['workerDescription'] : '',
+            ];
+        }
+        params.workerProcessorPathFile = this.options.workerProcessorPathFile;
 
-            if (needTread && this.threadWorker) {
-                this.threadWorker(
-                    params,
-                    () => {
-                        this.end(queueName, params);
-                    },
-                    (code) => {
-                        if (code === 1) {
-                            // => retry
-                            this.error(queueName, params);
-                        } else {
-                            this.end(queueName, params);
-                        }
+        let needTread = false;
+        try {
+            const {WorkerProcessor} = require(this.options.workerProcessorPathFile);
+            const allProcesses = WorkerProcessor.GetProcesses();
+            const processes = allProcesses.filter(
+                (p) => params.workerProcesses.indexOf(p.fn.name) > -1
+            );
+            needTread = processes.filter((p) => p.inThreadIfPossible).length > 0;
+        } catch (e) {
+            this.logger.warn('queue workerProcessor issue:', e);
+        }
+
+        if (needTread && this.threadWorker) {
+            this.threadWorker(
+                params,
+                () => {
+                    this.end(queueName, params).then((_ignored) => {});
+                },
+                (code) => {
+                    if (code === 1) {
+                        // => retry
+                        this.error(queueName, params).then((_ignored) => {});
+                    } else {
+                        this.end(queueName, params).then((_ignored) => {});
                     }
-                );
-            } else if (this.directWorker) {
-                this.directWorker(
-                    params,
-                    () => {
-                        this.end(queueName, params);
-                    },
-                    (code) => {
-                        if (code === 1) {
-                            // => retry
-                            this.error(queueName, params);
-                        } else {
-                            this.end(queueName, params);
-                        }
+                }
+            );
+        } else if (this.directWorker) {
+            this.directWorker(
+                params,
+                () => {
+                    this.end(queueName, params).then((_ignored) => {});
+                },
+                (code) => {
+                    if (code === 1) {
+                        // => retry
+                        this.error(queueName, params).then((_ignored) => {});
+                    } else {
+                        this.end(queueName, params).then((_ignored) => {});
                     }
-                ).then((ignored) => {});
-            }
+                }
+            ).then((_ignored) => {});
         }
     }
 

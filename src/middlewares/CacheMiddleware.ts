@@ -62,7 +62,7 @@ export class CacheMiddleware {
                     loggerFactory.getLogger().info('@cache yes', JSON.stringify(key));
                     res.jsonp(cachedResponse);
                 } else {
-                    loggerFactory.getLogger().info('@cache no', JSON.stringify(key));
+                    loggerFactory.getLogger().info('@cache no_', JSON.stringify(key));
                     step = 'CacheMiddleware-setPrepare';
                     CacheMiddleware.TimingStart(res, step);
 
@@ -75,7 +75,8 @@ export class CacheMiddleware {
                         const step2 = 'CacheMiddleware-set';
                         CacheMiddleware.TimingStart(res, step2);
 
-                        if (JSON.stringify(body).length < 10000000) {
+                        // limit to a large response value (e.g., 10MB -> 50MB)
+                        if (JSON.stringify(body).length < 50000000) {
                             // No Need to stop response ? :
                             this.cache.set(key, body, cacheOptions).then((ignored) => {});
                         } else {
