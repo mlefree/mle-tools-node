@@ -173,4 +173,9 @@ export class Launcher {
     setQueueConcurrency(queueConcurrency: QueueConcurrency) {
         this.queueLauncher?.setQueueConcurrency(queueConcurrency);
     }
+
+    setWorkerStore(store: AbstractWorkerStore) {
+        this.options.workerStore = store;
+        this.queueLauncher.setWorkerStore(store);
+    }
 }

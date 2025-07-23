@@ -154,11 +154,11 @@ describe('Launcher', function () {
         const workerStore = new DefaultWorkerStore();
         const launcher = new Launcher({
             workerProcessorPathFile: __dirname + '/WorkerProcessorA',
-            workerStore,
             threadStrategy: STRATEGIES.QUEUE,
             pollingTimeInMilliSec: 100,
         });
         launcher.setQueueConcurrency(queueConcurrency);
+        launcher.setWorkerStore(workerStore);
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
         const key = 'queue';

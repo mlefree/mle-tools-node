@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### added
+
+- add to the launcher a setWorkerStore hook
+
 ### Fixed
 
 - limit to a large response value (e.g., 10MB -> 50MB)

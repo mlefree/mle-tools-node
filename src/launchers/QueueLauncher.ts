@@ -99,6 +99,10 @@ export class QueueLauncher {
         this.options.queueConcurrency = Object.create(queueConcurrency);
     }
 
+    public setWorkerStore(store: AbstractWorkerStore) {
+        this.options.workerStore = store;
+    }
+
     private init() {
         if (this.options.disablePolling) {
             return;
