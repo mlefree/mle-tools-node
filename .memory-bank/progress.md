@@ -69,21 +69,26 @@
 
 ## Current Status
 
-The project is currently at version 1.12.14, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
+The project is currently at version 1.12.18, with a focus on improving code quality, dependency management, and documentation. Recent changes include:
 
+### Version 1.12.18 (Current)
+- Version bump for internal release
+
+### Version 1.12.17
+- Added to the launcher a setWorkerStore hook
+- Fixed limit to a large response value (e.g., 10MB -> 50MB)
+- Prevented queueLauncher setQueueConcurrency undefined
+
+### Version 1.12.15 - 1.12.16
+- Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were found, preventing future checks on those queues
+
+### Version 1.12.14
 - Removed commented-out logger line in Launcher.ts
 - Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
 - Added '**/*.nolint.*' to the ignorePatterns list in eslint.config.mjs
 - Updated bpstatus.json version from 0.0.13 to 0.0.14
 
-Upcoming changes in development include:
-- Added a new optional `key` property to `IWorkerData` interface to better identify duplicate workers
-- Enhanced duplicate detection in `DefaultWorkerStore` using the new key property
-- Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
-- Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
-- Updated DefaultWorkerStore to support the new release method signature
-
-Previous version (1.12.11) changes included:
+### Version 1.12.11
 - Moved ts-node from dependencies to devDependencies in package.json
 - Refactored Launcher.ts initialization logic to use a switch statement based on threadStrategy
 - Fixed a bug in Launcher.ts where directWorker was only initialized when polling was not disabled

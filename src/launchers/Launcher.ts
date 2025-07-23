@@ -176,6 +176,6 @@ export class Launcher {
 
     setWorkerStore(store: AbstractWorkerStore) {
         this.options.workerStore = store;
-        this.queueLauncher.setWorkerStore(store);
+        this.queueLauncher?.setWorkerStore(store);
     }
 }

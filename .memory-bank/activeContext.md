@@ -4,30 +4,31 @@
 
 The project is currently focused on:
 
-1. **CI/CD Improvements**
-   - Enhancing the GitHub Actions workflow for more reliable tag pushing
-   - Automating the release process
-
-2. **Dependency Management**
+1. **Dependency Management**
    - Updating dependencies to their latest versions
    - Ensuring compatibility with the latest Node.js versions
 
-3. **Documentation Enhancement**
+2. **Documentation Enhancement**
    - Implementing the Memory Bank documentation system
    - Ensuring all documentation is up-to-date and consistent
 
 ## Recent Changes
 
 ### Unreleased Changes
-- Added a new optional `key` property to `IWorkerData` interface to better identify duplicate workers
-- Enhanced duplicate detection in `DefaultWorkerStore` using the new key property
-- Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
-- Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
-- Updated DefaultWorkerStore to support the new release method signature
-- Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were found, preventing future checks on those queues
-- Fixed issue in queue releasing
+- No unreleased changes at this time
 
-### Version 1.12.14 (Current)
+### Version 1.12.18 (Current)
+- Version bump for internal release
+
+### Version 1.12.17 (Previous)
+- Added to the launcher a setWorkerStore hook
+- Fixed limit to a large response value (e.g., 10MB -> 50MB)
+- Prevented queueLauncher setQueueConcurrency undefined
+
+### Version 1.12.15 - 1.12.16
+- Fixed a bug in QueueLauncher.ts where queue names were being removed from the queue list when no parameters were found, preventing future checks on those queues
+
+### Version 1.12.14
 - Removed commented-out logger line in Launcher.ts
 - Fixed a bug in Launcher.ts by adding a check for threadStrategy when using queueLauncher
 - Added '**/*.nolint.*' to the ignorePatterns list in eslint.config.mjs

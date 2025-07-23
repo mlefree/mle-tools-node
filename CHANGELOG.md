@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.18] - 2025-07-23
+
+### Changed
+
+- Version bump for internal release
+
+## [1.12.17] - 2025-07-23
+
 ### added
 
 - add to the launcher a setWorkerStore hook
