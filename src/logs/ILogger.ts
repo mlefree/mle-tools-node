@@ -21,3 +21,13 @@ export interface ILogger extends IConsole {
 
     getLevel(): LoggerLevels;
 }
+
+export interface ILoggerOptions {
+    active?: boolean;
+    consoleLevel?: LoggerLevels;
+    logLevel?: LoggerLevels;
+    notifyUser?: string;
+    notifyPwd?: string;
+    notifyTo?: string;
+    filters?: object;
+}

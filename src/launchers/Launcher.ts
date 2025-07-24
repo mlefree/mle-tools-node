@@ -94,13 +94,13 @@ export class Launcher {
                     workerData: params,
                 });
                 simpleWorker.on('message', (any) => {
-                    console.log('### THREAD message', any);
+                    console.log('[mnt] THREAD message', any);
                 });
                 simpleWorker.on('error', (any) => {
-                    console.log('### THREAD error', any);
+                    console.log('[mnt] THREAD error', any);
                 });
                 simpleWorker.on('exit', (any) => {
-                    console.log('### THREAD finished', any);
+                    console.log('[mnt] THREAD finished', any);
                 });
             } else if (this.directWorker) {
                 await this.directWorker(

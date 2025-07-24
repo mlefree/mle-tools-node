@@ -102,7 +102,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     protected initLogger(config: any): Logger {
-        loggerFactory.setUp(true, config.logLevel, config.logLevel);
+        loggerFactory.setUp({consoleLevel: config.logLevel, logLevel: config.logLevel});
         return loggerFactory.getLogger();
     }
 

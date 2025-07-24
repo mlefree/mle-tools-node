@@ -60,7 +60,7 @@ export class WorkerStatus {
         }
 
         if (changeDone) {
-            loggerFactory.getLogger().debug('worker has done changes', workerInstance._id);
+            loggerFactory.getLogger().debug('[mtn] worker has done changes', workerInstance._id);
             await workerModel.updateOne({_id: workerInstance._id}, {statusWorkers});
         }
     }

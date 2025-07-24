@@ -1,10 +1,11 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import {LoggerLevels} from './LoggerLevels';
-import {ILogger} from './ILogger';
+import {ILogger, ILoggerOptions} from './ILogger';
 import fs from 'fs';
 import {join} from 'node:path';
 import {rm} from 'node:fs/promises';
+import {threadId} from 'node:worker_threads';
 
 const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
 const LOGGER_FILE_DIR = '.logs';
@@ -17,9 +18,11 @@ export class Logger implements ILogger {
     private notifyUser: any;
     private notifyPwd: any;
     private notifyTo: any;
+    private filters: object;
 
     constructor() {
         this.transports = {};
+        this.filters = {};
 
         this.transports['console'] = new winston.transports.Stream({
             stream: process.stderr,
@@ -36,10 +39,12 @@ export class Logger implements ILogger {
 
         this.formats = winston.format.combine(
             winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
+            winston.format.splat(),
             winston.format.printf(
                 ({level, message, label, timestamp}) =>
-                    `${timestamp} ${label || '-'} ${level}: ${message}`
-            )
+                    `${timestamp}|${process.pid}.${threadId} ${label || '-'} ${level}: ${message}`
+            ),
+            winston.format.colorize({all: true})
         ); //  winston.format.simple();
 
         this.logger = winston.createLogger({
@@ -48,30 +53,31 @@ export class Logger implements ILogger {
             transports: [this.transports.console, this.transports.file],
         });
 
-        this.setup(true, LOGGER_DEFAULT_LEVEL, LOGGER_DEFAULT_LEVEL);
+        this.setup();
     }
 
-    log(level: string, message: any, ...extra: any[]): boolean {
+    log(level: LoggerLevels, ...args: any[]): boolean {
         let done: any;
-        if (!this.active) {
+        if (!this.active || this.shouldBeFiltered(level, '' + args[0])) {
             return !!done;
         }
 
-        if (level === 'error') {
-            done = this.logger.error(message, extra);
-        } else if (level === 'warn') {
-            done = this.logger.warn(message, extra);
-        } else if (level === 'info') {
-            done = this.logger.info(message, extra);
+        // For console output, we skip the level parameter and pass only the actual arguments
+        if (level === LoggerLevels.ERROR) {
+            done = this.logger.error(args);
+        } else if (level === LoggerLevels.WARN) {
+            done = this.logger.warn(args);
+        } else if (level === LoggerLevels.INFO) {
+            done = this.logger.info(args);
         } else {
-            done = this.logger.debug(message, extra);
+            done = this.logger.debug(args);
         }
         return !!done;
     }
 
     debug(...extra: any[]): boolean {
         let done: any;
-        if (this.active) {
+        if (this.active && !this.shouldBeFiltered(LoggerLevels.DEBUG, '' + extra[0])) {
             done = this.logger.debug(extra);
         }
         return !!done;
@@ -82,24 +88,27 @@ export class Logger implements ILogger {
         if (
             this.active &&
             (this.transports.console?.level === LoggerLevels.INFO ||
-                this.transports.console?.level === LoggerLevels.DEBUG)
+                this.transports.console?.level === LoggerLevels.DEBUG) &&
+            !this.shouldBeFiltered(LoggerLevels.INFO, '' + extra[0])
         ) {
             done = this.logger.info(extra);
+            // done = this.logger.info(JSON.stringify(this.filters) + extra.join(' '));
         }
         return !!done;
     }
 
     warn(...extra: any[]): boolean {
         let done: any;
-        if (this.active) {
+        if (this.active && !this.shouldBeFiltered(LoggerLevels.WARN, '' + extra[0])) {
             done = this.logger.warn(extra);
+            // done = this.logger.info(JSON.stringify(this.filters) + extra.join(' '));
         }
         return !!done;
     }
 
     error(...extra: any[]): boolean {
         let done: any;
-        if (this.active) {
+        if (this.active && !this.shouldBeFiltered(LoggerLevels.ERROR, '' + extra[0])) {
             done = this.logger.error(extra);
         }
         return !!done;
@@ -108,7 +117,7 @@ export class Logger implements ILogger {
     write(...extra: any[]): boolean {
         let done: any;
         if (this.active) {
-            done = this.logger.debug(extra);
+            done = this.logger.debug(...extra);
         }
         return !!done;
     }
@@ -130,26 +139,29 @@ export class Logger implements ILogger {
     }
 
     setup(
-        active: boolean,
-        consoleLevel: LoggerLevels,
-        logLevel: LoggerLevels,
-        notifyUser?: string,
-        notifyPwd?: string,
-        notifyTo?: string
+        options: ILoggerOptions = {
+            active: true,
+            consoleLevel: LOGGER_DEFAULT_LEVEL,
+            logLevel: LOGGER_DEFAULT_LEVEL,
+            notifyUser: null,
+            notifyPwd: null,
+            filters: [],
+        }
     ) {
-        this.active = !!active;
+        this.active = typeof options.active === 'undefined' ? true : !!options.active;
+        this.filters = options.filters ?? {};
 
         if (this.transports.console) {
-            this.transports.console.level = consoleLevel;
+            this.transports.console.level = options.consoleLevel;
         }
 
         if (this.transports.file) {
-            this.transports.file.level = logLevel;
+            this.transports.file.level = options.logLevel;
         }
 
-        this.notifyUser = notifyUser;
-        this.notifyPwd = notifyPwd;
-        this.notifyTo = notifyTo ? JSON.parse(notifyTo) : notifyUser;
+        this.notifyUser = options.notifyUser;
+        this.notifyPwd = options.notifyPwd;
+        this.notifyTo = options.notifyTo ? JSON.parse(options.notifyTo) : options.notifyUser;
     }
 
     async notify(subject: string, text: string) {
@@ -168,7 +180,7 @@ export class Logger implements ILogger {
                 const {result, full} = await send(options);
                 done = result;
             } catch (error) {
-                console.error('### MAIL ERROR:', error);
+                console.error('[mnt] MAIL ERROR:', error);
             }
         }
 
@@ -202,5 +214,13 @@ export class Logger implements ILogger {
         } catch (ignored) {
             // Ignore errors when removing log directory, as it might not exist
         }
+    }
+
+    protected shouldBeFiltered(level: string, message: string): boolean {
+        if (this.filters[level] && this.filters[level].length > 0) {
+            return message.indexOf(this.filters[level]) < 0;
+        }
+
+        return false;
     }
 }

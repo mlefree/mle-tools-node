@@ -265,7 +265,7 @@ export class CacheFactory implements ICache {
                     // await this.redisCache.store.client.connect();
                     // await redisCache.reset();
                 } catch (e) {
-                    loggerFactory.getLogger().warn('@cache', e);
+                    loggerFactory.getLogger().warn('[mnt] @cache', e);
                     this.redisCache = null;
                     this.ok = false;
                 }

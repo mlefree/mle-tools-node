@@ -38,7 +38,7 @@ describe('Launcher', function () {
     };
 
     before(async () => {
-        loggerFactory.setUp(true, LoggerLevels.DEBUG, LoggerLevels.DEBUG);
+        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.DEBUG});
         await loggerFactory.getLogger().erase(parentPath);
         logger = loggerFactory.getPerfLogger('Launcher');
     });

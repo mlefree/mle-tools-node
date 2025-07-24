@@ -179,16 +179,18 @@ export class QueueLauncher {
             );
             needTread = processes.filter((p) => p.inThreadIfPossible).length > 0;
         } catch (e) {
-            this.logger.warn('queue workerProcessor issue:', e);
+            this.logger.warn('[mnt] queue workerProcessor issue:', e);
         }
 
         if (needTread && this.threadWorker) {
+            this.logger.debug('[mtn] queue needTread');
             this.threadWorker(
                 params,
                 () => {
                     this.end(queueName, params).then((_ignored) => {});
                 },
                 (code) => {
+                    this.logger.debug('[mtn] queue thread has failed:', code);
                     if (code === 1) {
                         // => retry
                         this.error(queueName, params).then((_ignored) => {});
@@ -198,12 +200,14 @@ export class QueueLauncher {
                 }
             );
         } else if (this.directWorker) {
+            this.logger.debug('[mtn] queue is used in a direct worker');
             this.directWorker(
                 params,
                 () => {
                     this.end(queueName, params).then((_ignored) => {});
                 },
                 (code) => {
+                    this.logger.debug('[mtn] queue direct has failed:', code);
                     if (code === 1) {
                         // => retry
                         this.error(queueName, params).then((_ignored) => {});

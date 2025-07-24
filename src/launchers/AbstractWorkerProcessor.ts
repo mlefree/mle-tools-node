@@ -1,7 +1,7 @@
 import {promisify} from 'util';
 import {MError} from '../errors';
 import {Tools} from '../tools';
-import {IConsole, Logger, LoggerLevels} from '../logs';
+import {IConsole, Logger, loggerFactory, LoggerLevels} from '../logs';
 import {IWorkerData} from './IWorkerData';
 import {IWorkerProcess} from './IWorkerProcess';
 
@@ -145,7 +145,7 @@ export class AbstractWorkerProcessor {
 
             if (!ok) {
                 const timeInMs = DEFAULT_POLLING_MS + retryLimit * DEFAULT_POLLING_STEP_MS;
-                this.logger.debug('>> Worker wait for next try', asyncFn.name, timeInMs);
+                this.logger.debug('[mtn] >> Worker wait for next try', asyncFn.name, timeInMs);
                 await sleep(timeInMs);
                 retryLimit++;
                 const dateC = new Date();
@@ -167,7 +167,7 @@ export class AbstractWorkerProcessor {
     }
 
     protected initLogger(config: any): Logger {
-        throw new MError('to implement');
+        return loggerFactory.getLogger();
     }
 
     protected async getInputs(config: any, input: any): Promise<any> {

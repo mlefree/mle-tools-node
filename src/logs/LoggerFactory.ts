@@ -1,61 +1,41 @@
 import {Logger} from './Logger';
 import {LoggerPerf} from './LoggerPerf';
 import {LoggerLevels} from './LoggerLevels';
+import {ILoggerOptions} from './ILogger';
+
+const defaultOptions = {
+    active: true,
+    consoleLevel: LoggerLevels.WARN,
+    logLevel: LoggerLevels.WARN,
+    notifyUser: null,
+    notifyPwd: null,
+    filters: {},
+};
 
 export class LoggerFactory {
-    private static logger: Logger;
+    protected logger: Logger;
+    protected loggerOptions: ILoggerOptions;
 
-    constructor(
-        public active: boolean = true,
-        public consoleLevel: LoggerLevels = LoggerLevels.WARN,
-        public logLevel: LoggerLevels = LoggerLevels.WARN,
-        public notifyUser?: string,
-        public notifyPwd?: string,
-        public notifyTo?: string
-    ) {}
+    constructor() {
+        this.loggerOptions = defaultOptions;
+    }
 
-    setUp(
-        active: boolean,
-        consoleLevel: LoggerLevels,
-        logLevel: LoggerLevels,
-        notifyUser?: string,
-        notifyPwd?: string,
-        notifyTo?: string
-    ) {
-        this.active = active;
-        this.consoleLevel = consoleLevel;
-        this.logLevel = logLevel;
-        this.notifyUser = notifyUser;
-        this.notifyPwd = notifyPwd;
-        this.notifyTo = notifyTo;
+    setUp(options: ILoggerOptions = defaultOptions) {
+        this.loggerOptions = options;
 
-        if (LoggerFactory.logger) {
-            LoggerFactory.logger.setup(
-                this.active,
-                this.consoleLevel,
-                this.logLevel,
-                this.notifyUser,
-                this.notifyPwd,
-                this.notifyTo
-            );
+        if (this.logger) {
+            this.logger.setup(options);
         }
     }
 
     getLogger(): Logger {
-        if (LoggerFactory.logger) {
-            return LoggerFactory.logger;
+        if (this.logger) {
+            return this.logger;
         }
 
         const logger = new Logger();
-        logger.setup(
-            this.active,
-            this.consoleLevel,
-            this.logLevel,
-            this.notifyUser,
-            this.notifyPwd,
-            this.notifyTo
-        );
-        LoggerFactory.logger = logger;
+        logger.setup(this.loggerOptions);
+        this.logger = logger;
         return logger;
     }
 

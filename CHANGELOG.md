@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Logger setup (breaking change)
+- Added some log messages
+- Added log filters
+
+## [1.12.19] - 2025-07-23
+
 ### Fixed
 
 - prevent queueLauncher setWorkerStore undefined
--
 
 ## [1.12.18] - 2025-07-23
 
