@@ -6,7 +6,7 @@ const sleep = promisify(setTimeout);
 
 class WorkerProcessor extends AbstractWorkerProcessor {
     constructor(name, workerData, bypassConnection = false) {
-        console.log('WorkerProcessorB++', name);
+        console.log('TEST WorkerProcessorB++', name);
         super(name, workerData, bypassConnection);
     }
 
@@ -47,23 +47,23 @@ class WorkerProcessor extends AbstractWorkerProcessor {
     //   static async <InSomeWorkerDescription> (config: any, inputs: any, count: number): Promise<boolean>
 
     static async info(config, inputs, logger, _count) {
-        return logger.info('infoB => ', inputs.messageToWrite);
+        return logger.info('TEST infoB => ', inputs.messageToWrite);
     }
 
     static async sleep(config, inputs, logger, _count) {
-        logger.info('sleepB => ', inputs.messageToWrite);
+        logger.info('TEST sleepB => ', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
 
     static async fail(config, inputs, logger, _count) {
-        logger.info('failB => ', inputs.messageToWrite);
+        logger.info('TEST failB => ', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
 
     static async throwError(config, inputs, logger, _count) {
-        throw new MError('throwErrorB should see it : ' + inputs.messageToWrite);
+        throw new MError('TEST throwErrorB should see it : ' + inputs.messageToWrite);
     }
 
     // To implement :
@@ -93,7 +93,7 @@ class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     async onEnd(done, logger, stats) {
-        console.log('WorkerProcessorB--', this.name, done, stats);
+        console.log('TEST WorkerProcessorB--', this.name, done, stats);
     }
 }
 

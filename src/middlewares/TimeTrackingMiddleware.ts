@@ -30,7 +30,7 @@ export class TimeTrackingMiddleware {
         return (req: any, res: any, next: () => void) => {
             const logger = loggerFactory.getLogger();
             if (logger.getLevel() === LoggerLevels.DEBUG) {
-                logger.debug(`${req.method} ${req.originalUrl} [STARTED]`);
+                logger.debug(`[mtn] ${req.method} ${req.originalUrl} [STARTED]`);
             }
 
             const start = process.hrtime();
@@ -41,7 +41,7 @@ export class TimeTrackingMiddleware {
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
                     logger.debug(
-                        `${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
+                        `[mtn] ${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
                     );
                 }
                 await TimeTrackingMiddleware.warnIfExceeded(
@@ -57,7 +57,7 @@ export class TimeTrackingMiddleware {
 
                 if (logger.getLevel() === LoggerLevels.DEBUG) {
                     logger.debug(
-                        `${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`
+                        `[mtn] ${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`
                     );
                 }
                 await TimeTrackingMiddleware.warnIfExceeded(

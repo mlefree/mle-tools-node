@@ -117,7 +117,7 @@ export class Logger implements ILogger {
     write(...extra: any[]): boolean {
         let done: any;
         if (this.active) {
-            done = this.logger.debug(...extra);
+            done = this.logger.debug(extra);
         }
         return !!done;
     }
@@ -138,30 +138,35 @@ export class Logger implements ILogger {
         }
     }
 
-    setup(
-        options: ILoggerOptions = {
-            active: true,
-            consoleLevel: LOGGER_DEFAULT_LEVEL,
-            logLevel: LOGGER_DEFAULT_LEVEL,
-            notifyUser: null,
-            notifyPwd: null,
-            filters: [],
-        }
-    ) {
-        this.active = typeof options.active === 'undefined' ? true : !!options.active;
-        this.filters = options.filters ?? {};
+    setup(options: ILoggerOptions = {}) {
+        this.active =
+            typeof options.active === 'undefined'
+                ? typeof this.active === 'undefined'
+                    ? true
+                    : this.active
+                : !!options.active;
+        this.filters = (options.filters || this.filters) ?? {};
 
         if (this.transports.console) {
-            this.transports.console.level = options.consoleLevel;
+            this.transports.console.level =
+                typeof options.consoleLevel === 'undefined'
+                    ? this.transports.console.level || LOGGER_DEFAULT_LEVEL
+                    : options.consoleLevel;
         }
 
         if (this.transports.file) {
-            this.transports.file.level = options.logLevel;
+            this.transports.file.level =
+                typeof options.logLevel === 'undefined'
+                    ? this.transports.file.level || LOGGER_DEFAULT_LEVEL
+                    : options.logLevel;
         }
 
-        this.notifyUser = options.notifyUser;
-        this.notifyPwd = options.notifyPwd;
-        this.notifyTo = options.notifyTo ? JSON.parse(options.notifyTo) : options.notifyUser;
+        this.notifyUser = (options.notifyUser || this.notifyUser) ?? null;
+        this.notifyPwd = (options.notifyPwd || this.notifyPwd) ?? null;
+        this.notifyTo =
+            options.notifyTo || this.notifyTo
+                ? JSON.parse(options.notifyTo || this.notifyTo)
+                : options.notifyUser;
     }
 
     async notify(subject: string, text: string) {
@@ -180,7 +185,7 @@ export class Logger implements ILogger {
                 const {result, full} = await send(options);
                 done = result;
             } catch (error) {
-                console.error('[mnt] MAIL ERROR:', error);
+                console.error('[mtn] MAIL ERROR:', error);
             }
         }
 

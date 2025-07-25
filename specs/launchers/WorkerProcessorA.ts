@@ -15,7 +15,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     public connected = false;
 
     constructor(name: string, workerData: IWorkerData, bypassConnection = false) {
-        console.log('WorkerProcessorA++', name);
+        console.log('TEST WorkerProcessorA++', name);
         super(name, workerData, bypassConnection);
     }
 
@@ -61,7 +61,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         logger: IConsole,
         count: number
     ): Promise<boolean> {
-        return logger.info('info => ', inputs.messageToWrite);
+        return logger.info('TEST info => ', inputs.messageToWrite);
     }
 
     static async sleep(
@@ -70,7 +70,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         logger: IConsole,
         count: number
     ): Promise<boolean> {
-        logger.info('sleep => ', inputs.messageToWrite);
+        logger.info('TEST sleep => ', inputs.messageToWrite);
         await sleep(inputs.timeToSleep);
         return true;
     }
@@ -81,7 +81,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         logger: IConsole,
         count: number
     ): Promise<boolean> {
-        logger.info('fail => ', inputs.messageToWrite);
+        logger.info('TEST fail => ', inputs.messageToWrite);
         await sleep(1);
         return false;
     }
@@ -92,7 +92,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         logger: IConsole,
         count: number
     ): Promise<boolean> {
-        throw new MError('throwError should see it : ' + inputs.messageToWrite);
+        throw new MError('TEST throwError should see it : ' + inputs.messageToWrite);
     }
 
     // To implement :
@@ -134,6 +134,6 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
             timeSpentWaiting: number;
         }
     ) {
-        console.log('WorkerProcessorA-- ', this.name, done, stats);
+        console.log('TEST WorkerProcessorA-- ', this.name, done, stats);
     }
 }

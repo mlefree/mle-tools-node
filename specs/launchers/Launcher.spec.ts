@@ -184,6 +184,8 @@ describe('Launcher', function () {
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(4);
         expect(await launcher.getQueueRunningSize()).equal(4);
+
+        // Finished
         await sleep(7000);
         expect(await launcher.getStoreWaitingSize()).equal(0);
         expect(await launcher.getStoreRunningSize()).equal(0);
@@ -194,6 +196,8 @@ describe('Launcher', function () {
         expect(relatedLogs.length).greaterThanOrEqual(5, lastLogs.toString());
         // expect(relatedLogs[relatedLogs.length - 3].indexOf('info,queue') > 0).eq(true, lastLogs.toString());
         // expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,queue') > 0).eq(true, lastLogs.toString());
+
+        await launcher.stop();
     });
 
     it('should push as queue and Fail', async function () {
@@ -235,6 +239,8 @@ describe('Launcher', function () {
             true,
             relatedLogs.toString()
         );
+
+        await launcher.stop();
     });
 
     it('should push as queue and Throw Error', async function () {
@@ -266,6 +272,8 @@ describe('Launcher', function () {
             true,
             relatedLogs.toString()
         );
+
+        await launcher.stop();
     });
 
     it('should push as queue and could stop', async function () {
@@ -308,7 +316,7 @@ describe('Launcher', function () {
         expect(await launcher.getStoreRunningSize()).greaterThan(0);
         expect(await launcher.getQueueRunningSize()).greaterThan(0);
 
-        // Stop !
+        // Stop ! (during process)
         const stopped = await launcher.stop();
         await sleep(15000);
         expect(stopped).eq(true);
@@ -354,5 +362,7 @@ describe('Launcher', function () {
         const lastLogs = loggerFactory.getLogger().readLastLogs(parentPath);
         const relatedLogs = lastLogs.filter((l) => l.indexOf('justPushedButNotPolled') > 0);
         expect(relatedLogs.length).eq(0);
+
+        await launcher.stop();
     });
 });

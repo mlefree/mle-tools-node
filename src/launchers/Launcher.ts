@@ -13,8 +13,8 @@ export enum STRATEGIES {
     THREAD = 'thread',
 }
 
-const DEFAULT_CONCURRENCY = 3;
-const DEFAULT_POLLING_MS = 500;
+const DEFAULT_CONCURRENCY = 3; // <= default queueConcurrency
+const DEFAULT_POLLING_MS = 500; // <= default pollingTimeInMilliSec
 
 export class Launcher {
     private readonly queueLauncher: QueueLauncher;
@@ -46,6 +46,9 @@ export class Launcher {
         }
         if (!this.options.disablePolling) {
             this.options.disablePolling = false;
+        }
+        if (!this.options.name) {
+            this.options.name = '[mtn]';
         }
 
         this.directWorker = require('./asDirect');
@@ -94,13 +97,13 @@ export class Launcher {
                     workerData: params,
                 });
                 simpleWorker.on('message', (any) => {
-                    console.log('[mnt] THREAD message', any);
+                    console.log('[mtn] THREAD message', any);
                 });
                 simpleWorker.on('error', (any) => {
-                    console.log('[mnt] THREAD error', any);
+                    console.log('[mtn] THREAD error', any);
                 });
                 simpleWorker.on('exit', (any) => {
-                    console.log('[mnt] THREAD finished', any);
+                    console.log('[mtn] THREAD finished', any);
                 });
             } else if (this.directWorker) {
                 await this.directWorker(

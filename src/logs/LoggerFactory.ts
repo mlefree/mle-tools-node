@@ -20,7 +20,7 @@ export class LoggerFactory {
         this.loggerOptions = defaultOptions;
     }
 
-    setUp(options: ILoggerOptions = defaultOptions) {
+    setUp(options: ILoggerOptions = {}) {
         this.loggerOptions = options;
 
         if (this.logger) {

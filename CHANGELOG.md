@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Some log messages and options
+- Queue & Launcher orders and stop
+
+## [1.13.1] - 2025-07-24
+
 ### Changed
 
 - Logger setup (breaking change)

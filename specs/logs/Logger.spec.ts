@@ -13,13 +13,13 @@ describe('Logger', () => {
     });
 
     it('should log info', async () => {
-        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.WARN});
+        loggerFactory.setUp({logLevel: LoggerLevels.WARN});
         const done = loggerFactory.getLogger().info('test1', 'test2', 123);
         expect(done).eq(true);
     });
 
     it('should log error', async () => {
-        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.WARN});
+        loggerFactory.setUp({logLevel: LoggerLevels.WARN});
         let done = loggerFactory.getLogger().error(321, 'test2');
         expect(done).eq(true);
         done = loggerFactory.getLogger().log(LoggerLevels.ERROR, 321, 'test2');

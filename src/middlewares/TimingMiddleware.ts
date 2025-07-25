@@ -47,10 +47,10 @@ class Timer {
 function setMetric(headers, opts) {
     return (name: string, value: number, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('[mnt] 1st argument name is not string');
+            return console.warn('[mtn] 1st argument name is not string');
         }
         if (typeof value !== 'number') {
-            return console.warn('[mnt] 2nd argument value is not number');
+            return console.warn('[mtn] 2nd argument value is not number');
         }
 
         const dur = Number.isFinite(opts.precision) ? value.toFixed(opts.precision) : value;
@@ -67,7 +67,7 @@ function setMetric(headers, opts) {
 function startTime(timer: Timer) {
     return (name: string, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('[mnt] 1st argument name is not string');
+            return console.warn('[mtn] 1st argument name is not string');
         }
 
         timer.time(name, description);
@@ -77,7 +77,7 @@ function startTime(timer: Timer) {
 function endTime(timer: Timer, res) {
     return (name: string) => {
         if (typeof name !== 'string') {
-            return console.warn('[mnt] 1st argument name is not string');
+            return console.warn('[mtn] 1st argument name is not string');
         }
 
         const obj = timer.timeEnd(name);
