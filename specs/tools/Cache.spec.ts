@@ -4,6 +4,26 @@ import {promisify} from 'util';
 
 const sleep = promisify(setTimeout);
 
+async function isRedisRunning(redisUrl: string): Promise<boolean> {
+    const tempCacheFactory = new CacheFactory();
+    tempCacheFactory.setUp({
+        instanceName: 'redis-check',
+        redisUrl,
+        store: CACHE_STORE.REDIS,
+    });
+
+    // Try to initialize the Redis connection
+    await tempCacheFactory.reset();
+
+    // Check if Redis is connected and ready
+    const isRunning = tempCacheFactory.isOk();
+
+    // Clean up
+    await tempCacheFactory.release();
+
+    return isRunning;
+}
+
 describe('Cache', function () {
     this.timeout(10000);
     const cacheTest = async (store: ICacheConfig) => {
@@ -107,7 +127,15 @@ describe('Cache', function () {
         });
     });
 
-    it('should REDIS cache get and set', async () => {
+    it('should REDIS cache get and set', async function () {
+        const redisAvailable = await isRedisRunning(redisUri);
+
+        if (!redisAvailable) {
+            console.log('Skipping Redis test: Redis is not available at', redisUri);
+            this.skip();
+            return;
+        }
+
         await cacheTest({
             instanceName: 'test',
             redisUrl: redisUri,
@@ -115,7 +143,15 @@ describe('Cache', function () {
         });
     });
 
-    it('should ALL cache get and set', async () => {
+    it('should ALL cache get and set', async function () {
+        const redisAvailable = await isRedisRunning(redisUri);
+
+        if (!redisAvailable) {
+            console.log('Skipping ALL cache test: Redis is not available at', redisUri);
+            this.skip();
+            return;
+        }
+
         await cacheTest({
             instanceName: 'test',
             redisUrl: redisUri,
