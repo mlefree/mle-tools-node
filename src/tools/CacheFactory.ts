@@ -49,13 +49,23 @@ export const CACHE_DEFAULT_OPTIONS_LRU = {
 };
 
 export interface ICache {
-    set(key: string | any, value: string | any, options?: ICacheOptions): Promise<void>;
+    set(key: string | object, value: string | object, options?: ICacheOptions): Promise<void>;
 
-    get(key: string | any): Promise<string | any>;
+    setIfNotExists(
+        key: string | object,
+        value: string | object,
+        options?: ICacheOptions
+    ): Promise<boolean>;
+
+    get(key: string | object): Promise<string | any>;
 
     incr(key: string): Promise<number>;
 
-    execute(options: ICacheOptions, fn: (...params: any[]) => any, ...params: any[]): Promise<any>;
+    execute(
+        options: ICacheOptions,
+        fn: (...params: any[]) => any,
+        ...params: any[]
+    ): Promise<object>;
 }
 
 export class CacheFactory implements ICache {
@@ -110,7 +120,11 @@ export class CacheFactory implements ICache {
         }
     }
 
-    async set(key: string | any, value: string | any, options?: ICacheOptions): Promise<void> {
+    async set(
+        key: string | object,
+        value: string | object,
+        options?: ICacheOptions
+    ): Promise<void> {
         if (this.bypass || !value) {
             return;
         }
@@ -118,10 +132,11 @@ export class CacheFactory implements ICache {
         await this.init();
 
         const builtKey = this.buildUniqueKey(key);
-        let valueToStore = value;
-        if (typeof key !== 'string') {
-            valueToStore = JSON.stringify(value);
-        }
+        // let valueToStore = value;
+        // if (typeof key !== 'string') {
+        //     valueToStore = JSON.stringify(value);
+        // }
+        const valueToStore = JSON.stringify(value);
 
         if (this.memoryCache && (!options?.store || options.store === CACHE_STORE.MEMORY)) {
             await this.memoryCache.set(
@@ -140,7 +155,65 @@ export class CacheFactory implements ICache {
         }
     }
 
-    async get(key: string | any): Promise<string | any> {
+    async setIfNotExists(
+        key: string | object,
+        value: string | object,
+        options?: ICacheOptions
+    ): Promise<boolean> {
+        if (this.bypass || !value) {
+            return false;
+        }
+
+        await this.init();
+
+        const builtKey = this.buildUniqueKey(key);
+        // let valueToStore = value;
+        // if (typeof key !== 'string') {
+        //     valueToStore = JSON.stringify(value);
+        // }
+        const valueToStore = JSON.stringify(value);
+
+        // For Redis - use SET with NX option (atomic operation)
+        if (this.redisCache && (!options?.store || options.store === CACHE_STORE.REDIS)) {
+            const ttl = options ? options.ttl : this.config.ttl;
+            const redisClient = this.redisCache.store.client;
+
+            if (ttl && ttl > 0) {
+                // SET key value NX PX milliseconds
+                const result = await redisClient.sendCommand([
+                    'SET',
+                    builtKey,
+                    valueToStore,
+                    'NX',
+                    'PX',
+                    ttl.toString(),
+                ]);
+                return result === 'OK';
+            } else {
+                // SET key value NX (no expiration)
+                const result = await redisClient.sendCommand(['SET', builtKey, valueToStore, 'NX']);
+                return result === 'OK';
+            }
+        }
+
+        // For memory cache - check and set (not atomic, but single-threaded in Node.js)
+        if (this.memoryCache && (!options?.store || options.store === CACHE_STORE.MEMORY)) {
+            const existing = await this.memoryCache.get(builtKey);
+            if (existing === undefined) {
+                await this.memoryCache.set(
+                    builtKey,
+                    valueToStore,
+                    options ? options.ttl : this.config.ttl
+                );
+                return true;
+            }
+            return false;
+        }
+
+        return false;
+    }
+
+    async get(key: string | object): Promise<string | any> {
         this.ok = true;
         if (this.bypass) {
             return undefined;
@@ -154,19 +227,22 @@ export class CacheFactory implements ICache {
             typeOfValue = 'object';
         }
 
-        let result: any = undefined;
+        let result: string | object;
         if (this.memoryCache) {
             result = await this.memoryCache.get(builtKey);
         }
         if (this.redisCache && !result) {
             result = await this.redisCache.get(builtKey);
         }
-        if (!!result && typeOfValue === 'object') {
-            result = JSON.parse(result);
-        }
 
-        // if (result) {
-        // console.log('#cached cool...', key);
+        // if (!!result && typeOfValue === 'object') {
+        if (typeof result === 'string') {
+            result = JSON.parse(result);
+        } else if (result) {
+            loggerFactory
+                .getLogger()
+                .warn(`[mtn] @cache get typeOfValue issue: ${JSON.stringify(result)}`);
+        }
         // }
 
         return result;
@@ -176,11 +252,11 @@ export class CacheFactory implements ICache {
         options: ICacheOptions,
         fn: (...params: any[]) => any,
         ...params: any[]
-    ): Promise<any> {
+    ): Promise<object> {
         await this.init();
 
         const key = {fnName: fn.name, params};
-        let result = await this.get(key);
+        let result: any = await this.get(key);
         if (!result) {
             result = fn(...params);
             if (result instanceof Promise) {
@@ -188,7 +264,7 @@ export class CacheFactory implements ICache {
             }
 
             await this.set(key, {result}, options);
-        } else {
+        } else if (typeof result === 'object') {
             result = result.result;
         }
 
@@ -214,9 +290,9 @@ export class CacheFactory implements ICache {
 
     async incr(key: string): Promise<number> {
         const incrKey = 'incr-' + key;
-        const value: string = await this.get(incrKey);
+        const value = await this.get(incrKey);
         let valueNumber = 0;
-        if (value) {
+        if (typeof value === 'string') {
             valueNumber = parseInt(value, 10);
             valueNumber++;
         }
@@ -291,6 +367,10 @@ export class CacheFake implements ICache {
 
     set(key: any, value: any): Promise<void> {
         return Promise.resolve(undefined);
+    }
+
+    setIfNotExists(key: any, value: any): Promise<boolean> {
+        return Promise.resolve(true);
     }
 
     incr(key: string): Promise<number> {

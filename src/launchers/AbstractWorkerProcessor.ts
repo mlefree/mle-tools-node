@@ -7,8 +7,8 @@ import {IWorkerProcess} from './IWorkerProcess';
 
 const sleep = promisify(setTimeout);
 
-const DEFAULT_POLLING_MS = 500;
-const DEFAULT_POLLING_STEP_MS = 2000;
+const DEFAULT_POLLING_MS = 500; // <= TODO default Worker waiting time to set as configuration
+const DEFAULT_POLLING_STEP_MS = 2000; // <= TODO default Worker step waiting time to put as configuration
 
 export class AbstractWorkerProcessor {
     protected static NeedToStop: boolean;

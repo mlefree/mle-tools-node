@@ -2,16 +2,6 @@ import {expect} from 'chai';
 import {CACHE_STORE, CACHE_TTL, CacheFactory, ICacheConfig, ICacheOptions} from '../../src';
 import {promisify} from 'util';
 
-// Try to import ioredis-mock, but don't fail if it's not available
-let RedisMock: any;
-let redisMockAvailable = false;
-try {
-    RedisMock = require('ioredis-mock');
-    redisMockAvailable = true;
-} catch (e) {
-    console.warn('ioredis-mock not available, skipping Redis tests');
-}
-
 const sleep = promisify(setTimeout);
 
 describe('Cache', function () {
@@ -37,6 +27,16 @@ describe('Cache', function () {
             {value2: 2},
             {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS}
         );
+        await cacheFactory.setIfNotExists(
+            {key3: true},
+            {value3: 3},
+            {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS}
+        );
+        await cacheFactory.set(
+            'key4',
+            {value4: 4},
+            {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS}
+        );
 
         if (store.store === CACHE_STORE.NONE) {
             expect(await cacheFactory.get('key')).eq(undefined);
@@ -49,9 +49,13 @@ describe('Cache', function () {
             } else if (store.store === CACHE_STORE.REDIS) {
                 expect(await cacheFactory.get({key1: true})).eq(undefined, JSON.stringify(store));
                 expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));
+                expect((await cacheFactory.get({key3: true}))?.value3).eq(3, JSON.stringify(store));
+                expect((await cacheFactory.get('key4'))?.value4).eq(4, JSON.stringify(store));
             } else {
                 expect((await cacheFactory.get({key1: true}))?.value1).eq(1, JSON.stringify(store));
                 expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));
+                expect((await cacheFactory.get({key3: true}))?.value3).eq(3, JSON.stringify(store));
+                expect((await cacheFactory.get('key4'))?.value4).eq(4, JSON.stringify(store));
             }
 
             // cached partially expired
@@ -80,33 +84,9 @@ describe('Cache', function () {
         expect(cacheFactory.isOk()).eq(true);
     };
 
-    let redisUri: string = 'redis://localhost:6379'; // Default fallback URI
+    const redisUri: string = 'redis://localhost:6379'; // Default fallback URI
 
-    before(async () => {
-        if (redisMockAvailable) {
-            // When using ioredis-mock, we can use any URI
-            // The actual connection will be handled by the mock
-            redisUri = 'redis://localhost:6379';
-
-            // Monkey patch the redisStore to use ioredis-mock
-            const originalRedisStore = require('cache-manager-redis-yet');
-            originalRedisStore.redisStore.create = async (config) => {
-                const Redis = require('ioredis-mock');
-                const redisCache = new Redis();
-                return {
-                    name: 'redis',
-                    getClient: () => redisCache,
-                    set: (key, value, ttl) => redisCache.set(key, value, 'PX', ttl || 0),
-                    get: (key) => redisCache.get(key),
-                    del: (...keys) => redisCache.del(...keys),
-                    reset: () => redisCache.flushall(),
-                    keys: (pattern) => redisCache.keys(pattern),
-                    ttl: (key) => redisCache.ttl(key),
-                    client: redisCache,
-                };
-            };
-        }
-    });
+    before(async () => {});
 
     after(async () => {
         // No cleanup needed for ioredis-mock
@@ -127,8 +107,7 @@ describe('Cache', function () {
         });
     });
 
-    // Skip Redis tests when using ioredis-mock since it doesn't fully implement all Redis features
-    it.skip('should REDIS cache get and set', async () => {
+    it('should REDIS cache get and set', async () => {
         await cacheTest({
             instanceName: 'test',
             redisUrl: redisUri,
@@ -136,8 +115,7 @@ describe('Cache', function () {
         });
     });
 
-    // Skip ALL tests when using ioredis-mock since it doesn't fully implement all Redis features
-    it.skip('should ALL cache get and set', async () => {
+    it('should ALL cache get and set', async () => {
         await cacheTest({
             instanceName: 'test',
             redisUrl: redisUri,
@@ -191,7 +169,7 @@ describe('Cache', function () {
         expect(cacheFactory.isOk()).eq(true);
     });
 
-    (redisMockAvailable ? it : it.skip)('should ALL execute function with cache ', async () => {
+    it('should ALL execute function with cache ', async () => {
         const cacheFactory = new CacheFactory();
         cacheFactory.setUp({
             instanceName: 'test',

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Cache setIfNotExists
+
+## [1.13.2] - 2025-07-25
+
 ### Fixed
 
 - Some log messages and options
