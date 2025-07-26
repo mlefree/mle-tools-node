@@ -82,7 +82,7 @@ export class WorkerStatus {
         let step = 0.1 * this.stepCounter;
         if (err) {
             message += err ? ` with some errors : ${err}` : '';
-            loggerFactory.getLogger().error(message);
+            loggerFactory.getLogger().warn(message);
         } else {
             loggerFactory.getLogger().info(message);
             this.stepCounter++;

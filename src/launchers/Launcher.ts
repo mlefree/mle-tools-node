@@ -118,7 +118,7 @@ export class Launcher {
             }
             return true;
         } catch (err) {
-            loggerFactory.getLogger().error(err);
+            loggerFactory.getLogger().error('[mtn] ', err);
         }
 
         return false;

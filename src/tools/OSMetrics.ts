@@ -95,7 +95,7 @@ export class OSMetrics {
 
             stat.diskPercent = Math.round((stat.fs.used / stat.fs.total) * 100 * 100) / 100;
         } catch (e) {
-            logger.error(e);
+            logger.error('[mtn] ', e);
         }
         return stat;
     }
