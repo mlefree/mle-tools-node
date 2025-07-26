@@ -51,7 +51,7 @@ export class QueueLauncher {
             }
 
             if (length === 0) {
-                this.logger.info(`[mtn] Queue - check runningWorkers length === 0 => clean`);
+                this.logger.debug(`[mtn] Queue - check runningWorkers length === 0 => clean`);
                 this.clean();
             }
 
@@ -152,7 +152,7 @@ export class QueueLauncher {
         );
 
         if (this.queueNames.length === 0) {
-            this.logger.info(`[mtn] Queue - no more queue names => clean`);
+            this.logger.debug(`[mtn] Queue - no more queue names => clean`);
             this.clean();
         }
 
