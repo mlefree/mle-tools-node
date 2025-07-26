@@ -71,13 +71,13 @@ export class WorkerStatus {
 
     async goToTheNextStep(explanation?: string) {
         this.stepCounter++;
-        const message = `WORKER - "${this.name}" go next: ${this.stepCounter} ${explanation}`;
+        const message = `[mtn] WORKER - "${this.name}" go next: ${this.stepCounter} ${explanation}`;
         loggerFactory.getLogger().info(message);
     }
 
     async finished(err?: string) {
         const timeSpent = Math.round((new Date().getTime() - this.startDate.getTime()) / 1000);
-        let message = `WORKER - "${this.name}" has finished in ${timeSpent} sec`;
+        let message = `[mtn] WORKER - "${this.name}" has finished in ${timeSpent} sec`;
 
         let step = 0.1 * this.stepCounter;
         if (err) {
