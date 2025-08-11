@@ -2,6 +2,6 @@ export * from './decorators';
 export * from './errors';
 export * from './files';
 export * from './launchers';
-export * from './logs';
+export * from './logger';
 export * from './middlewares';
 export * from './tools';

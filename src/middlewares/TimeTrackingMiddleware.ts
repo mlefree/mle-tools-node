@@ -1,4 +1,4 @@
-import {loggerFactory, LoggerLevels} from '../logs';
+import {loggerFactory, LoggerLevels} from '../logger';
 
 export interface ITimeTrackingOptions {
     milliSecBeforeWarning: number;

@@ -24,10 +24,12 @@ export interface ILogger extends IConsole {
 
 export interface ILoggerOptions {
     active?: boolean;
+    label?: string;
     consoleLevel?: LoggerLevels;
     logLevel?: LoggerLevels;
     notifyUser?: string;
     notifyPwd?: string;
     notifyTo?: string;
     filters?: object;
+    path?: string;
 }

@@ -1,4 +1,4 @@
-import {IConsole} from '../logs';
+import {IConsole} from '../logger';
 
 export interface IWorkerProcess {
     fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;

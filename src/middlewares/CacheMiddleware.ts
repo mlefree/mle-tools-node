@@ -5,7 +5,7 @@ import {
     CacheFactory,
     ICacheConfig,
 } from '../tools';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 
 export enum CACHE_TYPE {
     LRU = 0,

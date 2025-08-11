@@ -2,13 +2,10 @@ import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import {LoggerLevels} from './LoggerLevels';
 import {ILogger, ILoggerOptions} from './ILogger';
-import fs from 'fs';
-import {join} from 'node:path';
-import {rm} from 'node:fs/promises';
 import {threadId} from 'node:worker_threads';
 
 const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
-const LOGGER_FILE_DIR = '.logs';
+export const LOGGER_FILE_DIR = '.logs';
 
 export class Logger implements ILogger {
     private readonly transports: any;
@@ -20,36 +17,38 @@ export class Logger implements ILogger {
     private notifyTo: any;
     private filters: object;
 
-    constructor() {
+    constructor(label?: string) {
         this.transports = {};
         this.filters = {};
+
+        const baseFormat = this.createBaseFormat(label || '');
+        const consoleFormat = this.createConsoleFormat(label || '');
 
         this.transports['console'] = new winston.transports.Stream({
             stream: process.stderr,
             level: LOGGER_DEFAULT_LEVEL,
+            format: consoleFormat,
         });
+
+        const threadSpecificFilename = `${LOGGER_FILE_DIR}/log-%DATE%-${process.pid}.${threadId}.log`;
+
         this.transports['file'] = new DailyRotateFile({
-            filename: LOGGER_FILE_DIR + '/log-%DATE%.log',
+            filename: threadSpecificFilename,
             datePattern: 'YYYY-MM-DD-HH',
             zippedArchive: false,
             maxSize: '20m',
             maxFiles: '14d',
             level: LOGGER_DEFAULT_LEVEL,
+            format: baseFormat,
+            options: {flags: 'a', highWaterMark: 0}, // Force immediate writes
+            handleExceptions: true,
+            handleRejections: true,
+        }).on('error', (error) => {
+            console.error('Logger file transport error:', error);
         });
-
-        this.formats = winston.format.combine(
-            winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
-            winston.format.splat(),
-            winston.format.printf(
-                ({level, message, label, timestamp}) =>
-                    `${timestamp}|${process.pid}.${threadId} ${label || '-'} ${level}: ${message}`
-            ),
-            winston.format.colorize({all: true})
-        ); //  winston.format.simple();
 
         this.logger = winston.createLogger({
             exitOnError: false,
-            format: this.formats,
             transports: [this.transports.console, this.transports.file],
         });
 
@@ -85,14 +84,16 @@ export class Logger implements ILogger {
 
     info(...extra: any[]): boolean {
         let done: any;
+        const filterToRemoveUselessAccess = !(
+            this.transports.console?.level === LoggerLevels.INFO ||
+            this.transports.console?.level === LoggerLevels.DEBUG
+        );
         if (
             this.active &&
-            (this.transports.console?.level === LoggerLevels.INFO ||
-                this.transports.console?.level === LoggerLevels.DEBUG) &&
+            !filterToRemoveUselessAccess &&
             !this.shouldBeFiltered(LoggerLevels.INFO, '' + extra[0])
         ) {
             done = this.logger.info(extra);
-            // done = this.logger.info(JSON.stringify(this.filters) + extra.join(' '));
         }
         return !!done;
     }
@@ -147,6 +148,20 @@ export class Logger implements ILogger {
                 : !!options.active;
         this.filters = (options.filters || this.filters) ?? {};
 
+        // Update winston format label if provided
+        if (typeof options.label !== 'undefined') {
+            const baseFormat = this.createBaseFormat(options.label);
+            const consoleFormat = this.createConsoleFormat(options.label);
+
+            // Update formats for existing transports
+            if (this.transports.console) {
+                this.transports.console.format = consoleFormat;
+            }
+            if (this.transports.file) {
+                this.transports.file.format = baseFormat;
+            }
+        }
+
         if (this.transports.console) {
             this.transports.console.level =
                 typeof options.consoleLevel === 'undefined'
@@ -192,18 +207,6 @@ export class Logger implements ILogger {
         return !!done;
     }
 
-    readLastLogs(parentPath: string): string[] {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        const firstPartOfDate = now.toISOString().split('T')[0];
-        const secondPartOfDate = now.toISOString().split('T')[1].split(':')[0];
-        const formattedDate = firstPartOfDate + '-' + secondPartOfDate;
-
-        const lastLogFilename = join(parentPath, LOGGER_FILE_DIR, '/log-' + formattedDate + '.log');
-        const contents = fs.readFileSync(lastLogFilename, 'utf8');
-        return contents.split(/\r?\n/);
-    }
-
     getLevel(): LoggerLevels {
         if (this.transports.console?.level) {
             return this.transports.console.level;
@@ -212,20 +215,36 @@ export class Logger implements ILogger {
         return LOGGER_DEFAULT_LEVEL;
     }
 
-    async erase(parentPath: string) {
-        try {
-            const dirToRemove = join(parentPath, LOGGER_FILE_DIR);
-            await rm(dirToRemove, {recursive: true, force: true});
-        } catch (ignored) {
-            // Ignore errors when removing log directory, as it might not exist
-        }
-    }
-
     protected shouldBeFiltered(level: string, message: string): boolean {
         if (this.filters[level] && this.filters[level].length > 0) {
             return message.indexOf(this.filters[level]) < 0;
         }
 
         return false;
+    }
+
+    private createBaseFormat(label: string) {
+        return winston.format.combine(
+            winston.format.label({label}),
+            winston.format.timestamp(),
+            winston.format.splat(),
+            winston.format.printf(({level, message, label, timestamp}) => {
+                // Pad process.pid + threadId to consistent width (12 characters)
+                const pidThreadId = `${process.pid}.${threadId}`;
+                const paddedPidThreadId = pidThreadId.padEnd(12, ' ');
+
+                // Pad level to consistent width (5 characters)
+                const paddedLevel = level.padEnd(5, ' ');
+
+                return `${timestamp}|${paddedPidThreadId}|${paddedLevel}:${label ? ' [' + label + '] ' : ' '}${message}`;
+            })
+        );
+    }
+
+    private createConsoleFormat(label: string) {
+        return winston.format.combine(
+            this.createBaseFormat(label),
+            winston.format.colorize({all: true})
+        );
     }
 }

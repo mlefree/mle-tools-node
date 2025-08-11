@@ -70,7 +70,25 @@ npm run test -- -g "pattern"
 
 # Generate test coverage report
 npm run test-coverage
+
+# Run ELK stack integration tests
+npm run test:elk
 ```
+
+### ELK Stack Integration
+The project includes a complete ELK (Elasticsearch, Logstash, Kibana) stack for log processing and visualization:
+
+- **Elasticsearch 8.12.0** - Log storage and indexing with ILM policies
+- **Logstash 8.12.0** - Log processing pipeline with custom configuration
+- **Kibana 8.12.0** - Log visualization and analysis dashboard
+- **Docker Compose** - ELK stack orchestration and service management
+- **Automated Setup Script** - `elk-setup-and-verify.cjs` for complete ELK verification
+
+The ELK integration provides:
+- Automated log collection from application logs
+- Index lifecycle management with 30-day retention
+- Real-time log processing and field mapping
+- Kibana dashboards for log analysis and visualization
 
 ## Technical Constraints
 

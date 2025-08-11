@@ -1,5 +1,5 @@
 import PollingTimer from 'polling-timer';
-import {Logger} from '../logs';
+import {Logger} from '../logger';
 import {IWorkerParams} from './IWorkerParams';
 import {QueueConcurrency} from './QueueConcurrency';
 import {AbstractWorkerStore} from './AbstractWorkerStore';
@@ -101,7 +101,10 @@ export class QueueLauncher {
         const processes = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
         const shouldKeepInQueue = processes.some((p) => p.keepInTheQueue);
 
-        if (this.runningWorkers[queueName]) {
+        if (typeof this.runningWorkers[queueName] === 'undefined') {
+            this.runningWorkers[queueName] = 0;
+        }
+        if (typeof this.runningWorkers[queueName] === 'number') {
             this.runningWorkers[queueName]--;
         }
         if (this.runningWorkers[queueName] === 0) {

@@ -1,7 +1,7 @@
 import {promisify} from 'util';
 import {MError} from '../errors';
 import {Tools} from '../tools';
-import {IConsole, Logger, loggerFactory, LoggerLevels} from '../logs';
+import {IConsole, Logger, loggerFactory, LoggerLevels} from '../logger';
 import {IWorkerData} from './IWorkerData';
 import {IWorkerProcess} from './IWorkerProcess';
 

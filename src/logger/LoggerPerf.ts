@@ -20,7 +20,7 @@ export class LoggerPerf {
         this.name = name;
         this.startDate = new Date();
         this.lastUpdateDate = new Date();
-        loggerFactory.getLogger().info(`PERF - "${this.name}" started ###`);
+        loggerFactory.getLogger().info(`(PERF) - "${this.name}" started ###`);
     }
 
     finished() {
@@ -30,7 +30,7 @@ export class LoggerPerf {
 
         const secSpent = (new Date().getTime() - this.startDate.getTime()) / 1000;
         this._logDetails();
-        loggerFactory.getLogger().info(`PERF - "${this.name}" finished in ${secSpent} sec ###`);
+        loggerFactory.getLogger().info(`(PERF) - "${this.name}" finished in ${secSpent} sec ###`);
     }
 
     inspectBegin(domain) {

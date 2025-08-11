@@ -1,5 +1,5 @@
 import {Configuration} from 'mle-tools-configuration';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 import {MError} from '../errors';
 
 export interface IBuildModel {

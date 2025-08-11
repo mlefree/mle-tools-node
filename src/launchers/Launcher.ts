@@ -1,4 +1,4 @@
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 import {QueueLauncher} from './QueueLauncher';
 import {AbstractWorkerProcessor} from './AbstractWorkerProcessor';
 import {IWorkerParams} from './IWorkerParams';

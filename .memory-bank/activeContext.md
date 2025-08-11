@@ -17,7 +17,29 @@ The project is currently focused on:
 ### Unreleased Changes
 - No unreleased changes at this time
 
-### Version 1.12.18 (Current)
+### Version 1.14.0 (Current) - 2025-08-11
+- **Logger System Enhancements**
+  - Refactored Logger format creation into separate methods (createBaseFormat, createConsoleFormat)
+  - Implemented dynamic label updating functionality for Logger - labels can now be changed after initialization
+  - Improved log formatting with consistent padding for process ID/thread ID and log levels
+  - Fixed LoggerFactory setUp method to merge options instead of replacing them, preventing loss of previously set options
+  - Updated logstash.conf grok patterns to match the new log format with improved separators
+  - Enhanced test:elk script to clean up .gen directory before running ELK setup and verification
+  - Updated Logger tests to verify dynamic label functionality and improved test organization
+  - Added readLastLogs method to LoggerFactory for centralized log reading functionality
+  - Enhanced Logger API with improved method signatures and better path handling
+
+### Version 1.13.6 (Previous)
+- **ELK Stack Integration Improvements**
+  - Fixed critical index configuration mismatch between Logstash and ILM setup
+  - Updated Logstash configuration to use `app-logs` alias instead of dynamic daily indices
+  - Resolved Elasticsearch 400 error in log queries due to missing @timestamp mapping
+  - Ensured full compatibility between ILM policy (`logs_policy`) and Logstash output patterns
+  - Enhanced ELK setup verification script with comprehensive health checks
+  - Successfully validated `npm run test:elk` command with all verification steps passing
+  - Improved log processing pipeline with proper timestamp handling and field mapping
+
+### Version 1.12.18 (Previous)
 - Version bump for internal release
 
 ### Version 1.12.17 (Previous)

@@ -1,15 +1,12 @@
-import {loggerFactory, LoggerLevels, LoggerPerf} from '../../src';
+import {loggerFactory, LoggerLevels} from '../../src';
 import {promisify} from 'util';
 import {expect} from 'chai';
 
 const sleep = promisify(setTimeout);
 
 describe('Logger', () => {
-    let perfLogger: LoggerPerf;
-
-    before(() => {
+    beforeEach(() => {
         loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.DEBUG});
-        perfLogger = loggerFactory.getPerfLogger('Logger');
     });
 
     it('should log info', async () => {
@@ -18,16 +15,19 @@ describe('Logger', () => {
         expect(done).eq(true);
     });
 
-    it('should log error', async () => {
+    it('should log warn & error, with a hot label', async () => {
         loggerFactory.setUp({logLevel: LoggerLevels.WARN});
         let done = loggerFactory.getLogger().error(321, 'test2');
         expect(done).eq(true);
-        done = loggerFactory.getLogger().log(LoggerLevels.ERROR, 321, 'test2');
+        loggerFactory.setUp({label: 'Hot'});
+        done = loggerFactory.getLogger().warn(321, 'test3');
+        expect(done).eq(true);
+        done = loggerFactory.getLogger().log(LoggerLevels.ERROR, 321, 'test4');
         expect(done).eq(true);
     });
 
-    it('should not log info', async () => {
-        loggerFactory.setUp({consoleLevel: LoggerLevels.ERROR, logLevel: LoggerLevels.ERROR});
+    it('should not log if level is higher', async () => {
+        loggerFactory.setUp({consoleLevel: LoggerLevels.WARN, logLevel: LoggerLevels.ERROR});
         const done = loggerFactory.getLogger().info('test1', 'test2', 123);
         expect(done).eq(false);
     });
@@ -46,9 +46,11 @@ describe('Logger', () => {
         expect(done).eq(true);
     });
 
-    it('should push as direct', async () => {
-        perfLogger.inspectBegin('sleep');
+    it('should log perf using another label', async () => {
+        loggerFactory.setUp({label: 'Perf Monitoring'});
+        const testPerfLogger = loggerFactory.getPerfLogger('Logger');
+        testPerfLogger.inspectBegin('sleep');
         await sleep(1000);
-        const timeSpent = perfLogger.inspectEnd('sleep');
+        const timeSpent = testPerfLogger.inspectEnd('sleep');
     });
 });

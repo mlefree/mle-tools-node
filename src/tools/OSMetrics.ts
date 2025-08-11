@@ -2,7 +2,7 @@ import {promisify} from 'util';
 import pidusage from 'pidusage';
 import os from 'os';
 import v8 from 'v8';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 import {cpuTemperature, cpuUsage, freememPercentage} from './OSUtils';
 
 export interface OSMetricsStat {

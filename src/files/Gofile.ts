@@ -1,7 +1,7 @@
 import fs from 'fs';
 import axios from 'axios';
 import FormData from 'form-data';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 
 export class GoFile {
     private initialized: boolean;

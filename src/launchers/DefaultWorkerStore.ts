@@ -1,6 +1,6 @@
 import {AbstractWorkerStore} from './AbstractWorkerStore';
 import {IWorkerParams} from './IWorkerParams';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 
 export class DefaultWorkerStore extends AbstractWorkerStore {
     private queues = {};
@@ -41,8 +41,11 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         params: IWorkerParams,
         _shouldKeepInQueue: boolean
     ): Promise<void> {
-        let pos = -1;
+        if (typeof this.queues[queueName] === 'undefined') {
+            return;
+        }
 
+        let pos = -1;
         const paramsAsStr = JSON.stringify(params);
         for (const [index, value] of this.queues[queueName].entries()) {
             if (value.params === paramsAsStr) {

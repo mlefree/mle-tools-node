@@ -1,6 +1,6 @@
 import {Cache, caching, MemoryCache, MemoryConfig} from 'cache-manager';
 import {redisStore, RedisStore} from 'cache-manager-redis-yet';
-import {loggerFactory} from '../logs';
+import {loggerFactory} from '../logger';
 import hash from 'object-hash';
 
 export enum CACHE_STORE {
