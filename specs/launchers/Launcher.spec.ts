@@ -114,7 +114,7 @@ describe('Launcher', function () {
         );
     });
 
-    xit('should push as thread (in js)', async function () {
+    it('should push as thread (in js)', async function () {
         await trackStart(this);
 
         const launcher = new Launcher({
@@ -146,7 +146,7 @@ describe('Launcher', function () {
         );
     });
 
-    xit('should push as queue', async function () {
+    it('should push as queue', async function () {
         await trackStart(this);
 
         const queueConcurrency: QueueConcurrency = {
@@ -205,7 +205,7 @@ describe('Launcher', function () {
         await launcher.stop();
     });
 
-    xit('should push as queue and Fail', async function () {
+    it('should push as queue and Fail', async function () {
         await trackStart(this);
 
         const workerStore = new WorkerStore();
@@ -248,7 +248,7 @@ describe('Launcher', function () {
         await launcher.stop();
     });
 
-    xit('should push as queue and Throw Error', async function () {
+    it('should push as queue and Throw Error', async function () {
         await trackStart(this);
         const workerStore = new WorkerStore();
         const launcher = new Launcher({
@@ -281,7 +281,7 @@ describe('Launcher', function () {
         await launcher.stop();
     });
 
-    xit('should push as queue and could stop', async function () {
+    it('should push as queue and could stop', async function () {
         await trackStart(this);
 
         const workerStore = new WorkerStore();
@@ -332,7 +332,7 @@ describe('Launcher', function () {
         await trackFinish(this);
     });
 
-    xit('should push as queue but disable polling', async function () {
+    it('should push as queue but disable polling', async function () {
         await trackStart(this);
 
         const workerStore = new WorkerStore();

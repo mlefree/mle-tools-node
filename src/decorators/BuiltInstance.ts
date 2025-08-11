@@ -154,7 +154,7 @@ export class BuiltInstance {
             }
 
             if (isInProgress) {
-                loggerFactory.getLogger().debug('[mtn] hasSomethingInProgress:', buildId);
+                loggerFactory.getLogger().debug('(mtn) hasSomethingInProgress:', buildId);
                 oneIsNotFinished = true;
             }
         }
@@ -217,7 +217,7 @@ export class BuiltInstance {
             loggerFactory
                 .getLogger()
                 .warn(
-                    '[mtn] old build?',
+                    '(mtn) old build?',
                     old,
                     build.id,
                     delta,

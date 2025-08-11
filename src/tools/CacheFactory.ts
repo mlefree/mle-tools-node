@@ -241,7 +241,7 @@ export class CacheFactory implements ICache {
         } else if (result) {
             loggerFactory
                 .getLogger()
-                .warn(`[mtn] @cache get typeOfValue issue: ${JSON.stringify(result)}`);
+                .warn(`(mtn) @cache get typeOfValue issue: ${JSON.stringify(result)}`);
         }
         // }
 
@@ -341,7 +341,7 @@ export class CacheFactory implements ICache {
                     // await this.redisCache.store.client.connect();
                     // await redisCache.reset();
                 } catch (e) {
-                    loggerFactory.getLogger().warn('[mtn] @cache', e);
+                    loggerFactory.getLogger().warn('(mtn) @cache', e);
                     this.redisCache = null;
                     this.ok = false;
                 }

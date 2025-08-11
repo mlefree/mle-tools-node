@@ -78,7 +78,7 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
 
     async size(options?: {queueName?: string; inProgress?: boolean}): Promise<number> {
         if (options?.queueName && !this.queues[options.queueName]) {
-            loggerFactory.getLogger().error('[mtn] WorkerStore queues issue:', this.queues);
+            loggerFactory.getLogger().error('(mtn) WorkerStore queues issue:', this.queues);
             return -1;
         }
 

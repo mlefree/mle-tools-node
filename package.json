@@ -1,6 +1,6 @@
 {
   "name": "mle-tools-node",
-  "version": "1.14.0 in macos docker environnement, the logstash to elastic is working well for my mounted directory: it recognize any *.log file i changed manually (adding lines of logs => in elastic - OK) ... but if i use a winston dailyrotate, creating new *.log files ... logstash doesn't index it in macos docker environnement, the logstash to elastic is working well for my mounted directory: it recognize any *.log file i changed manually (adding lines of logs => in elastic - OK) ... but if i use a winston dailyrotate, creating new *.log files ... logstash doesn't index it",
+  "version": "1.14.1",
   "author": "mle",
   "description": "some node tools",
   "keywords": [],

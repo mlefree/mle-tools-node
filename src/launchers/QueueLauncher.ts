@@ -36,7 +36,7 @@ export class QueueLauncher {
 
     async add(params: IWorkerParams) {
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before add`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before add`
         );
         await this.options.workerStore.push(params.workerProcesses.join('-'), params);
     }
@@ -51,7 +51,7 @@ export class QueueLauncher {
             }
 
             if (length === 0) {
-                this.logger.debug(`[mtn] Queue - check runningWorkers length === 0 => clean`);
+                this.logger.debug(`(mtn) Queue - check runningWorkers length === 0 => clean`);
                 this.clean();
             }
 
@@ -64,7 +64,7 @@ export class QueueLauncher {
 
     stopAll(stop = true) {
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before stopAll`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before stopAll`
         );
         this.shouldStopAll = stop;
         if (stop) {
@@ -74,9 +74,9 @@ export class QueueLauncher {
     }
 
     async end(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`[mtn] Queue - end ${queueName}`);
+        this.logger.debug(`(mtn) Queue - end ${queueName}`);
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before end`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before end`
         );
 
         if (this.runningWorkers[queueName]) {
@@ -91,9 +91,9 @@ export class QueueLauncher {
     }
 
     async error(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`[mtn] Queue - error ${queueName}`);
+        this.logger.debug(`(mtn) Queue - error ${queueName}`);
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before error`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before error`
         );
 
         // Get the worker processor to check if any of the processes should keep in queue
@@ -130,7 +130,7 @@ export class QueueLauncher {
     }
 
     protected stopPolling() {
-        this.logger.info(`[mtn] Queue - stopPolling`);
+        this.logger.info(`(mtn) Queue - stopPolling`);
         this.pollingTimer?.stop();
     }
 
@@ -143,7 +143,7 @@ export class QueueLauncher {
             return;
         }
 
-        this.logger.info(`[mtn] Queue - init polling each ${this.options.pollingTimeInMilliSec}`);
+        this.logger.info(`(mtn) Queue - init polling each ${this.options.pollingTimeInMilliSec}`);
         this.pollingTimer = new PollingTimer(this.options.pollingTimeInMilliSec);
         this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
         this.pollingTimer.start();
@@ -151,17 +151,17 @@ export class QueueLauncher {
 
     protected async syncQueuesFromStore() {
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before syncQueuesFromStore`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before syncQueuesFromStore`
         );
 
         if (this.queueNames.length === 0) {
-            this.logger.debug(`[mtn] Queue - no more queue names => clean`);
+            this.logger.debug(`(mtn) Queue - no more queue names => clean`);
             this.clean();
         }
 
         this.queueNames = await this.options.workerStore.getNamesAfterMemoryCleanUp();
 
-        this.logger.debug(`[mtn] Queue - names (${this.options.name}): ${this.queueNames.length}`);
+        this.logger.debug(`(mtn) Queue - names (${this.options.name}): ${this.queueNames.length}`);
     }
 
     protected async pollerCallback() {
@@ -196,9 +196,9 @@ export class QueueLauncher {
     }
 
     protected executeWorker(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`[mtn] Queue - executeWorker ${queueName}`);
+        this.logger.debug(`(mtn) Queue - executeWorker ${queueName}`);
         this.logger.debug(
-            `[mtn] Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before executeWorker`
+            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before executeWorker`
         );
 
         this.runningWorkers[queueName]++;
@@ -219,18 +219,18 @@ export class QueueLauncher {
             );
             needTread = processes.filter((p) => p.inThreadIfPossible).length > 0;
         } catch (e) {
-            this.logger.warn('[mtn] Queue - executeWorker workerProcessor issue:', e);
+            this.logger.warn('(mtn) Queue - executeWorker workerProcessor issue:', e);
         }
 
         if (needTread && this.threadWorker) {
-            this.logger.debug('[mtn] Queue - executeWorker needTread');
+            this.logger.debug('(mtn) Queue - executeWorker needTread');
             this.threadWorker(
                 params,
                 () => {
                     this.end(queueName, params).then((_ignored) => {});
                 },
                 (code) => {
-                    this.logger.debug('[mtn] Queue - executeWorker thread has failed:', code);
+                    this.logger.debug('(mtn) Queue - executeWorker thread has failed:', code);
                     if (code === 1) {
                         // => retry
                         this.error(queueName, params).then((_ignored) => {});
@@ -240,14 +240,14 @@ export class QueueLauncher {
                 }
             );
         } else if (this.directWorker) {
-            this.logger.debug('[mtn] Queue - executeWorker is used in a direct worker');
+            this.logger.debug('(mtn) Queue - executeWorker is used in a direct worker');
             this.directWorker(
                 params,
                 () => {
                     this.end(queueName, params).then((_ignored) => {});
                 },
                 (code) => {
-                    this.logger.debug('[mtn] Queue - executeWorker direct has failed:', code);
+                    this.logger.debug('(mtn) Queue - executeWorker direct has failed:', code);
                     if (code === 1) {
                         // => retry
                         this.error(queueName, params).then((_ignored) => {});

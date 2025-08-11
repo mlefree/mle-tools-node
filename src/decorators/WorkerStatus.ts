@@ -60,7 +60,7 @@ export class WorkerStatus {
         }
 
         if (changeDone) {
-            loggerFactory.getLogger().debug('[mtn] worker has done changes', workerInstance._id);
+            loggerFactory.getLogger().debug('(mtn) worker has done changes', workerInstance._id);
             await workerModel.updateOne({_id: workerInstance._id}, {statusWorkers});
         }
     }
@@ -71,13 +71,13 @@ export class WorkerStatus {
 
     async goToTheNextStep(explanation?: string) {
         this.stepCounter++;
-        const message = `[mtn] WORKER - "${this.name}" go next: ${this.stepCounter} ${explanation}`;
+        const message = `(mtn) WORKER - "${this.name}" go next: ${this.stepCounter} ${explanation}`;
         loggerFactory.getLogger().info(message);
     }
 
     async finished(err?: string) {
         const timeSpent = Math.round((new Date().getTime() - this.startDate.getTime()) / 1000);
-        let message = `[mtn] WORKER - "${this.name}" has finished in ${timeSpent} sec`;
+        let message = `(mtn) WORKER - "${this.name}" has finished in ${timeSpent} sec`;
 
         let step = 0.1 * this.stepCounter;
         if (err) {

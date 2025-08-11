@@ -97,28 +97,28 @@ export class Launcher {
                     workerData: params,
                 });
                 simpleWorker.on('message', (any) => {
-                    loggerFactory.getLogger().debug('[mtn] THREAD message', any);
+                    loggerFactory.getLogger().debug('(mtn) THREAD message', any);
                 });
                 simpleWorker.on('error', (any) => {
-                    loggerFactory.getLogger().debug('[mtn] THREAD error', any);
+                    loggerFactory.getLogger().debug('(mtn) THREAD error', any);
                 });
                 simpleWorker.on('exit', (any) => {
-                    loggerFactory.getLogger().debug('[mtn] THREAD finished', any);
+                    loggerFactory.getLogger().debug('(mtn) THREAD finished', any);
                 });
             } else if (this.directWorker) {
                 await this.directWorker(
                     params,
                     (e: any) => {
-                        loggerFactory.getLogger().debug('[mtn] Direct Worker finished', e);
+                        loggerFactory.getLogger().debug('(mtn) Direct Worker finished', e);
                     },
                     (error: any) => {
-                        loggerFactory.getLogger().error('[mtn] Direct Worker error:', error);
+                        loggerFactory.getLogger().error('(mtn) Direct Worker error:', error);
                     }
                 );
             }
             return true;
         } catch (err) {
-            loggerFactory.getLogger().error('[mtn] ', err);
+            loggerFactory.getLogger().error('(mtn) ', err);
         }
 
         return false;

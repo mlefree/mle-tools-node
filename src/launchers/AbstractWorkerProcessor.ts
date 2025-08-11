@@ -50,7 +50,7 @@ export class AbstractWorkerProcessor {
                 connected = await this.connect();
             }
         } catch (err) {
-            this.getLogger().error(`[mtn] Worker connection error ${err}`);
+            this.getLogger().error(`(mtn) Worker connection error ${err}`);
         }
 
         if (!connected) {
@@ -60,7 +60,7 @@ export class AbstractWorkerProcessor {
         const inputs = await this.getInputs(this.config, this.input);
         const possibleProcessNames = this.processes.map((process) => process.fn.name);
         const processNameOrdered = Tools.extractOrderedNames(this.getName(), possibleProcessNames);
-        this.getLogger().info(`[mtn] Worker processNameOrdered: ${processNameOrdered}`);
+        this.getLogger().info(`(mtn) Worker processNameOrdered: ${processNameOrdered}`);
 
         let count = 0;
         let anotherTry = false;
@@ -84,7 +84,7 @@ export class AbstractWorkerProcessor {
                 }
             } catch (err) {
                 this.getLogger().warn(
-                    `[mtn] Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`
+                    `(mtn) Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`
                 );
                 ok = false;
                 allDone = false;
@@ -93,7 +93,7 @@ export class AbstractWorkerProcessor {
                 }
             }
 
-            this.getLogger().info(`[mtn] Worker ${process?.fn?.name} ok: "${ok}"`);
+            this.getLogger().info(`(mtn) Worker ${process?.fn?.name} ok: "${ok}"`);
 
             if (process.stopOnFailure && !ok) {
                 break;
@@ -101,7 +101,7 @@ export class AbstractWorkerProcessor {
             count++;
         }
 
-        // this.getLogger().info(`[mtn] Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
+        // this.getLogger().info(`(mtn) Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
         const msg = await this.onEnd(allDone, this.getLogger(), this.buildStats());
 
         if (connected && !this.bypassConnection) {
@@ -145,7 +145,7 @@ export class AbstractWorkerProcessor {
 
             if (!ok) {
                 const timeInMs = DEFAULT_POLLING_MS + retryLimit * DEFAULT_POLLING_STEP_MS;
-                this.logger.debug('[mtn] Worker wait for next try', asyncFn.name, timeInMs);
+                this.logger.debug('(mtn) Worker wait for next try', asyncFn.name, timeInMs);
                 await sleep(timeInMs);
                 retryLimit++;
                 const dateC = new Date();

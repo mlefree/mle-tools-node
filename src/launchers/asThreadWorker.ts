@@ -22,7 +22,7 @@ module.exports = (
         }
     });
     workerThread.on('error', async (err: any) => {
-        console.error('[mtn] WorkerLaunched error:', err);
+        console.error('(mtn) WorkerLaunched error:', err);
         await onError(err);
     });
 };

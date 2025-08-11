@@ -23,7 +23,7 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
         const {WorkerProcessor} = require(wpp);
         WorkerProcessorClass = WorkerProcessor;
     } catch (err) {
-        console.error('[mtn] asThread require issue:', err);
+        console.error('(mtn) asThread require issue:', err);
         process.exit(2);
     }
 
@@ -38,7 +38,7 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
             process.exit(1);
         }
     } catch (err) {
-        console.error('[mtn] asThread processor issue:', err);
+        console.error('(mtn) asThread processor issue:', err);
         process.exit(2);
     }
     process.exit(0);
