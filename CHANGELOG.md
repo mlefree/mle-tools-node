@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.14.0] - 2025-08-11
+## [1.14.2] - 2025-08-21
+
+### Changed
+
+- Increase process max listeners to prevent warnings when using multiple workers
+- Enhanced thread event handlers in Launcher with proper cleanup to prevent memory leaks
+- Improved logging consistency with "(mtn)" prefix across CacheMiddleware and LoggerPerf
+- Logstash new conf
+
+## [1.14.1] - 2025-08-11
 
 ### Changed
 

@@ -20,7 +20,7 @@ export class LoggerPerf {
         this.name = name;
         this.startDate = new Date();
         this.lastUpdateDate = new Date();
-        loggerFactory.getLogger().info(`(PERF) - "${this.name}" started ###`);
+        loggerFactory.getLogger().info(`(mtn) (PERF) - "${this.name}" started ###`);
     }
 
     finished() {
@@ -30,7 +30,9 @@ export class LoggerPerf {
 
         const secSpent = (new Date().getTime() - this.startDate.getTime()) / 1000;
         this._logDetails();
-        loggerFactory.getLogger().info(`(PERF) - "${this.name}" finished in ${secSpent} sec ###`);
+        loggerFactory
+            .getLogger()
+            .info(`(mtn) (PERF) - "${this.name}" finished in ${secSpent} sec ###`);
     }
 
     inspectBegin(domain) {
@@ -92,7 +94,7 @@ export class LoggerPerf {
 
     _logDetails(intermediate?: boolean) {
         let domains = [];
-        loggerFactory.getLogger().info(`
+        loggerFactory.getLogger().info(`(mtn) 
         ########## PERF UPDATE BEGIN ##########`);
         const intermediateMsg = intermediate ? '(for now) ' : '';
         for (const domainName in PERF_INFOS) {
@@ -115,11 +117,11 @@ export class LoggerPerf {
             loggerFactory
                 .getLogger()
                 .info(
-                    `PERF - ${intermediateMsg}${domain.name} COUNT: ${domain.count} TST: ${domain.timeSpent / 1000} sec. TSA: ${domain.timeSpent / 1000 / domain.count} sec.`
+                    `(mtn) PERF - ${intermediateMsg}${domain.name} COUNT: ${domain.count} TST: ${domain.timeSpent / 1000} sec. TSA: ${domain.timeSpent / 1000 / domain.count} sec.`
                 );
         });
 
-        loggerFactory.getLogger().info(`
+        loggerFactory.getLogger().info(`(mtn) 
         ########## PERF UPDATE END ##########
         `);
     }

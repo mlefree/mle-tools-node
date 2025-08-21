@@ -15,7 +15,7 @@ describe('Logger', () => {
         expect(done).eq(true);
     });
 
-    it('should log warn & error, with a hot label', async () => {
+    it('should log warn & error & exception, with a hot label', async () => {
         loggerFactory.setUp({logLevel: LoggerLevels.WARN});
         let done = loggerFactory.getLogger().error(321, 'test2');
         expect(done).eq(true);
@@ -24,6 +24,13 @@ describe('Logger', () => {
         expect(done).eq(true);
         done = loggerFactory.getLogger().log(LoggerLevels.ERROR, 321, 'test4');
         expect(done).eq(true);
+
+        try {
+            throw new Error('exception happens');
+        } catch (e) {
+            done = loggerFactory.getLogger().error(e.stack);
+            expect(done).eq(true);
+        }
     });
 
     it('should not log if level is higher', async () => {

@@ -32,6 +32,8 @@ export class Launcher {
             name?: string;
         }
     ) {
+        // Increase process max listeners to prevent warnings when using multiple workers
+        process.setMaxListeners(50);
         if (!this.options.workerStore) {
             this.options.workerStore = new DefaultWorkerStore();
         }
@@ -96,15 +98,24 @@ export class Launcher {
                 const simpleWorker = new Worker(path.join(__dirname, './asThread.js'), {
                     workerData: params,
                 });
-                simpleWorker.on('message', (any) => {
+
+                const messageHandler = (any) => {
                     loggerFactory.getLogger().debug('(mtn) THREAD message', any);
-                });
-                simpleWorker.on('error', (any) => {
+                };
+                const errorHandler = (any) => {
                     loggerFactory.getLogger().debug('(mtn) THREAD error', any);
-                });
-                simpleWorker.on('exit', (any) => {
+                };
+                const exitHandler = (any) => {
                     loggerFactory.getLogger().debug('(mtn) THREAD finished', any);
-                });
+                    // Clean up event listeners to prevent memory leaks
+                    simpleWorker.removeListener('message', messageHandler);
+                    simpleWorker.removeListener('error', errorHandler);
+                    simpleWorker.removeListener('exit', exitHandler);
+                };
+
+                simpleWorker.on('message', messageHandler);
+                simpleWorker.on('error', errorHandler);
+                simpleWorker.on('exit', exitHandler);
             } else if (this.directWorker) {
                 await this.directWorker(
                     params,

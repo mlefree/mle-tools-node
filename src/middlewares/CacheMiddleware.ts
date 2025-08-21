@@ -59,10 +59,10 @@ export class CacheMiddleware {
                 CacheMiddleware.TimingEnd(res, step);
 
                 if (cachedResponse) {
-                    loggerFactory.getLogger().info('@cache yes', JSON.stringify(key));
+                    loggerFactory.getLogger().info('(mtn) @cache yes', JSON.stringify(key));
                     res.jsonp(cachedResponse);
                 } else {
-                    loggerFactory.getLogger().info('@cache no_', JSON.stringify(key));
+                    loggerFactory.getLogger().info('(mtn) @cache no_', JSON.stringify(key));
                     step = 'CacheMiddleware-setPrepare';
                     CacheMiddleware.TimingStart(res, step);
 
@@ -82,7 +82,10 @@ export class CacheMiddleware {
                         } else {
                             loggerFactory
                                 .getLogger()
-                                .info('@cache body too large to be cached', JSON.stringify(key));
+                                .info(
+                                    '(mtn) @cache body too large to be cached',
+                                    JSON.stringify(key)
+                                );
                         }
 
                         CacheMiddleware.TimingEnd(res, step2);

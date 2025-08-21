@@ -4,7 +4,7 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.14.0-green.svg)](https://github.com/mlefree/mle-tools-node)
+[![Version](https://img.shields.io/badge/version-1.14.2-green.svg)](https://github.com/mlefree/mle-tools-node)
 [![CI](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml/badge.svg)](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml)
 
 ## 🌟 Features
@@ -134,12 +134,11 @@ The `test:elk` command provides fully automated ELK (Elasticsearch, Logstash, Ki
 - **Kibana Integration**: Automatically creates index patterns and provides direct visualization URLs
 - **Health Monitoring**: Comprehensive health checks for all ELK components
 
-**Recent Improvements (v1.14.0)**:
-- ✅ Refactored Logger format creation with separate methods for better maintainability
-- ✅ Implemented dynamic label updating functionality for Logger instances
-- ✅ Added centralized log reading with new readLastLogs method in LoggerFactory
-- ✅ Improved log formatting with consistent padding and better separators
-- ✅ Enhanced Logger API with better path handling and method signatures
+**Recent Improvements (v1.14.2)**:
+- ✅ Enhanced thread event handlers in Launcher with proper cleanup to prevent memory leaks
+- ✅ Increased process max listeners to prevent warnings when using multiple workers
+- ✅ Improved logging consistency with "(mtn)" prefix across CacheMiddleware and LoggerPerf
+- ✅ Updated Logstash configuration for better log processing
 
 For detailed ELK integration documentation, see [src/logger/logstash/README.md](./src/logger/logstash/README.md).
 

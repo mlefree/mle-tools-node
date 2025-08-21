@@ -14,7 +14,12 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
 
     try {
         const tsNode = require('ts-node');
-        tsNode.register();
+        if (!process[Symbol.for('ts-node.register.instance')]) {
+            // Clean up any existing process listeners before registering ts-node
+            process.removeAllListeners('uncaughtException');
+            process.removeAllListeners('unhandledRejection');
+            tsNode.register();
+        }
     } catch (err) {
         console.warn('asThread ts-node issue:', err);
     }
@@ -40,6 +45,10 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
     } catch (err) {
         console.error('(mtn) asThread processor issue:', err);
         process.exit(2);
+    } finally {
+        process.removeAllListeners('uncaughtException');
+        process.removeAllListeners('unhandledRejection');
     }
+
     process.exit(0);
 })();

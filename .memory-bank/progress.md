@@ -77,9 +77,17 @@
 
 ## Current Status
 
-The project is currently at version 1.14.0, with recent focus on logger system enhancements, API improvements, and documentation updates. Recent changes include:
+The project is currently at version 1.14.2, with recent focus on launcher improvements, memory leak prevention, and logging consistency enhancements. Recent changes include:
 
-### Version 1.14.0 (Current) - 2025-08-11
+### Version 1.14.2 (Current) - 2025-08-21
+- **Launcher System Enhancements**
+  - Enhanced thread event handlers in Launcher with proper cleanup to prevent memory leaks
+  - Increased process max listeners to prevent warnings when using multiple workers
+- **Logging Improvements**
+  - Improved logging consistency with "(mtn)" prefix across CacheMiddleware and LoggerPerf
+  - Updated Logstash configuration for better log processing
+
+### Version 1.14.1 - 2025-08-11
 - **Logger System Enhancements**
   - Refactored Logger format creation into separate methods (createBaseFormat, createConsoleFormat)
   - Implemented dynamic label updating functionality for Logger - labels can now be changed after initialization
