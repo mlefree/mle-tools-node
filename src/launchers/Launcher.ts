@@ -33,7 +33,9 @@ export class Launcher {
         }
     ) {
         // Increase process max listeners to prevent warnings when using multiple workers
-        process.setMaxListeners(50);
+        // Set to 0 (unlimited) to avoid MaxListenersExceededWarning when many projects/instances add handlers.
+        // This does not introduce leaks by itself; it only removes the arbitrary warning threshold.
+        // process.setMaxListeners(0);
         if (!this.options.workerStore) {
             this.options.workerStore = new DefaultWorkerStore();
         }

@@ -58,7 +58,7 @@ export class AbstractWorkerProcessor {
         }
 
         const inputs = await this.getInputs(this.config, this.input);
-        const possibleProcessNames = this.processes.map((process) => process.fn.name);
+        const possibleProcessNames = this.processes.map((wp) => wp.fn.name);
         const processNameOrdered = Tools.extractOrderedNames(this.getName(), possibleProcessNames);
         this.getLogger().info(`(mtn) Worker processNameOrdered: ${processNameOrdered}`);
 
@@ -66,21 +66,21 @@ export class AbstractWorkerProcessor {
         let anotherTry = false;
         let allDone = true;
         for (const pn of processNameOrdered) {
-            const process = this.processes.filter((p) => p.fn.name === pn)[0];
+            const iWorkerProcess = this.processes.filter((p) => p.fn.name === pn)[0];
             let ok = true;
             try {
-                if (process.looped) {
-                    ok = await this.loop(process.fn, 10, false, inputs);
+                if (iWorkerProcess.looped) {
+                    ok = await this.loop(iWorkerProcess.fn, 10, false, inputs);
                 } else {
                     const begin = new Date();
-                    ok = await process.fn(this.config, inputs, this.getLogger(), count);
+                    ok = await iWorkerProcess.fn(this.config, inputs, this.getLogger(), count);
                     const end = new Date();
                     this.perfTimeSpentComputing += end.getTime() - begin.getTime();
                 }
 
                 if (!ok) {
                     allDone = false;
-                    anotherTry = process.keepInTheQueue;
+                    anotherTry = iWorkerProcess.keepInTheQueue;
                 }
             } catch (err) {
                 this.getLogger().warn(
@@ -89,13 +89,13 @@ export class AbstractWorkerProcessor {
                 ok = false;
                 allDone = false;
                 if (err.code === 408) {
-                    anotherTry = process.keepInTheQueue;
+                    anotherTry = iWorkerProcess.keepInTheQueue;
                 }
             }
 
-            this.getLogger().info(`(mtn) Worker ${process?.fn?.name} ok: "${ok}"`);
+            this.getLogger().info(`(mtn) Worker ${iWorkerProcess?.fn?.name} ok: "${ok}"`);
 
-            if (process.stopOnFailure && !ok) {
+            if (iWorkerProcess.stopOnFailure && !ok) {
                 break;
             }
             count++;

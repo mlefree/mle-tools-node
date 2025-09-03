@@ -8,6 +8,8 @@ const LOGGER_DEFAULT_LEVEL = LoggerLevels.WARN;
 export const LOGGER_FILE_DIR = '.logs';
 
 export class Logger implements ILogger {
+    private static hasProcessErrorHandlers = false;
+
     private readonly transports: any;
     private readonly formats: any;
     private readonly logger: any;
@@ -24,10 +26,16 @@ export class Logger implements ILogger {
         const baseFormat = this.createBaseFormat(label || '');
         const consoleFormat = this.createConsoleFormat(label || '');
 
-        this.transports['console'] = new winston.transports.Stream({
-            stream: process.stderr,
+        // To avoid
+        // this.transports['console'] = new winston.transports.Stream({
+        //   stream: process.stderr,
+        this.transports['console'] = new winston.transports.Console({
             level: LOGGER_DEFAULT_LEVEL,
             format: consoleFormat,
+
+            // Route error and warn to stderr, others to stdout
+            stderrLevels: ['error', 'warn'],
+            consoleWarnLevels: ['warn'],
         });
 
         const threadSpecificFilename = `${LOGGER_FILE_DIR}/log-%DATE%-${process.pid}.${threadId}.log`;
@@ -41,8 +49,10 @@ export class Logger implements ILogger {
             level: LOGGER_DEFAULT_LEVEL,
             format: baseFormat,
             options: {flags: 'a', highWaterMark: 0}, // Force immediate writes
-            handleExceptions: true,
-            handleRejections: true,
+
+            // Only the very first Logger instance should hook process-level handlers
+            handleExceptions: !Logger.hasProcessErrorHandlers,
+            handleRejections: !Logger.hasProcessErrorHandlers,
         }).on('error', (error) => {
             console.error('Logger file transport error:', error);
         });
@@ -51,6 +61,9 @@ export class Logger implements ILogger {
             exitOnError: false,
             transports: [this.transports.console, this.transports.file],
         });
+
+        // Mark that process-level handlers are already attached
+        Logger.hasProcessErrorHandlers = true;
 
         this.setup();
     }
@@ -125,6 +138,14 @@ export class Logger implements ILogger {
 
     disableAll() {
         this.active = false;
+    }
+
+    dispose() {
+        try {
+            this.logger?.close();
+        } catch (e) {
+            // swallow
+        }
     }
 
     reset() {
