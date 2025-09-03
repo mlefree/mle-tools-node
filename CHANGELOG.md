@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation: README badges and Memory Bank section clarified
 - Routine maintenance: dependency metadata and scripts untouched
 
-## [1.14.3] - 2025-08-25
+## [1.14.3] - 2025-09-03
 
 ### Changed
 
