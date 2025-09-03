@@ -1,31 +1,21 @@
-# Project Brief: mle-tools-node
+# Project Brief
 
-## Project Overview
-mle-tools-node is a collection of Node.js utilities and tools designed to simplify and enhance the development of Node.js applications. It provides a comprehensive set of tools for task processing, caching, monitoring, logging, and utility functions.
+Project: mle-tools-node
+Date: 2025-09-03
 
-## Core Requirements
-1. Provide high-performance task processing capabilities
-2. Implement advanced caching mechanisms
-3. Offer monitoring and metrics collection
-4. Deliver robust logging and debugging tools
-5. Include utility tools for common development tasks
+Purpose
+- Provide reusable Node.js/TypeScript utilities including logging, caching, worker/queue processing, and integrations.
 
-## Project Goals
-- Simplify the development of Node.js applications
-- Improve application performance through optimized utilities
-- Enhance developer productivity with ready-to-use tools
-- Maintain high code quality and test coverage
-- Follow semantic versioning for reliable dependency management
+Scope
+- Logging with Winston and Logstash/ELK support
+- Cache tools and middleware (in-memory and Redis)
+- Launchers/Queue/Workers with direct/thread strategies
+- Utilities: CSV, HTTP, configuration management
 
-## Target Audience
-- Node.js developers
-- TypeScript developers
-- Application developers requiring high-performance utilities
-- Projects needing advanced caching, logging, and monitoring
+Out of Scope (for now)
+- Full-fledged job orchestration UI
+- Non-Node runtimes
 
-## Success Criteria
-- Comprehensive test coverage
-- Clear and consistent API
-- Detailed documentation
-- Regular releases with semantic versioning
-- Active maintenance and issue resolution
+Goals
+- Stable, well-tested utilities for internal and open-source use
+- Clear changelog and documentation (Memory Bank kept up-to-date)

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.4] - 2025-09-03
+
+### Changed
+
+- Bumped package version to 1.14.4 and synchronized bpInfo export
+- Updated documentation: README badges and Memory Bank section clarified
+- Routine maintenance: dependency metadata and scripts untouched
+
+## [1.14.3] - 2025-08-25
+
+### Changed
+
+- Internal maintenance release
+
 ## [1.14.2] - 2025-08-21
 
 ### Changed
