@@ -3,6 +3,6 @@
     "mle-tools-configuration": "file:../mle-tools-configuration/dist"
   },
   "remote.dependencies": {
-    "mle-tools-configuration": "^1.0.15"
+    "mle-tools-configuration": "~1.0.15"
   }
 }

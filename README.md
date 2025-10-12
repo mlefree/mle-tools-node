@@ -4,7 +4,7 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.14.2-green.svg)](https://github.com/mlefree/mle-tools-node)
+[![Version](https://img.shields.io/badge/version-1.14.4-green.svg)](https://github.com/mlefree/mle-tools-node)
 [![CI](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml/badge.svg)](https://github.com/mlefree/mle-tools-node/actions/workflows/ci.yml)
 
 ## 🌟 Features
@@ -45,23 +45,6 @@ npm install mle-tools-node
 ## 📚 Documentation
 
 For detailed documentation, please read the [specifications](./specs).
-
-For development guidelines, please refer to the Memory Bank documentation in the `.memory-bank` directory.
-
-### Memory Bank
-
-This project uses a Memory Bank for comprehensive documentation and context retention. The Memory Bank is located in the
-`.memory-bank` directory and contains the following files:
-
-- `memory-bank-rules.md`: Rules to follow and to consider in all contexts
-- `projectbrief.md`: Overview of the project, core requirements, and goals
-- `productContext.md`: Why the project exists, problems it solves, and how it works
-- `systemPatterns.md`: System architecture, key technical decisions, and design patterns
-- `techContext.md`: Technologies used, development setup, and technical constraints
-- `activeContext.md`: Current work focus, recent changes, and next steps
-- `progress.md`: What works, what's left to build, and known issues
-
-=> !! These files should always be considered as a context and keep up-to-date !!
 
 ## 🚀 Quick Start
 

@@ -32,4 +32,14 @@ describe('Tools', () => {
         expect(orderedNames[2]).eq('test1');
         expect(orderedNames[3]).eq('test1');
     });
+
+    it('should extractOrderedNames with similar names', async () => {
+        const src = 'test1-test-tes-notExisting-test1-';
+        const possibleNames = ['tes', 'notHere'];
+
+        const orderedNames = Tools.extractOrderedNames(src, possibleNames);
+
+        expect(orderedNames.length).eq(1);
+        expect(orderedNames[0]).eq('tes');
+    });
 });

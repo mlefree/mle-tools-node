@@ -2,6 +2,7 @@ import {IConsole} from '../logger';
 
 export interface IWorkerProcess {
     fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;
+    name?: string; // Optional custom name for the process (defaults to fn.name)
     looped: boolean; // Looping step in case of failing
     stopOnFailure: boolean; // Interrupt the processor's chain if fail
     keepInTheQueue: boolean; // Keep in the Queue's store

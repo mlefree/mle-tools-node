@@ -6,7 +6,7 @@ const sleep = promisify(setTimeout);
 
 class WorkerProcessor extends AbstractWorkerProcessor {
     constructor(name, workerData, bypassConnection = false) {
-        console.log('TEST WorkerProcessorB++', name);
+        console.log(new Date().toISOString(), 'TEST WorkerProcessorB++', name);
         super(name, workerData, bypassConnection);
     }
 
@@ -93,7 +93,7 @@ class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     async onEnd(done, logger, stats) {
-        console.log('TEST WorkerProcessorB--', this.name, done, stats);
+        console.log(new Date().toISOString(), 'TEST WorkerProcessorB--', this.name, done, stats);
     }
 }
 

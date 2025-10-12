@@ -10,6 +10,15 @@ const sleep = promisify(setTimeout);
 const DEFAULT_POLLING_MS = 500; // <= TODO default Worker waiting time to set as configuration
 const DEFAULT_POLLING_STEP_MS = 2000; // <= TODO default Worker step waiting time to put as configuration
 
+export type WorkerProcessorProcess = {
+    fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;
+    name?: string;
+    looped: boolean;
+    stopOnFailure: boolean;
+    keepInTheQueue: boolean;
+    inThreadIfPossible: boolean;
+};
+
 export class AbstractWorkerProcessor {
     protected static NeedToStop: boolean;
     protected config: any;
@@ -41,6 +50,10 @@ export class AbstractWorkerProcessor {
         AbstractWorkerProcessor.NeedToStop = stop;
     }
 
+    static GetProcesses(): WorkerProcessorProcess[] {
+        throw new Error('to implement');
+    }
+
     async launch(): Promise<boolean> {
         this.logger = this.initLogger(this.config);
 
@@ -50,7 +63,7 @@ export class AbstractWorkerProcessor {
                 connected = await this.connect();
             }
         } catch (err) {
-            this.getLogger().error(`(mtn) Worker connection error ${err}`);
+            this.getLogger().error(`(mtn) Worker - connection error ${err}`);
         }
 
         if (!connected) {
@@ -58,15 +71,15 @@ export class AbstractWorkerProcessor {
         }
 
         const inputs = await this.getInputs(this.config, this.input);
-        const possibleProcessNames = this.processes.map((wp) => wp.fn.name);
+        const possibleProcessNames = this.processes.map((wp) => wp.name || wp.fn.name);
         const processNameOrdered = Tools.extractOrderedNames(this.getName(), possibleProcessNames);
-        this.getLogger().info(`(mtn) Worker processNameOrdered: ${processNameOrdered}`);
+        this.getLogger().info(`(mtn) Worker - processNameOrdered: ${processNameOrdered}`);
 
         let count = 0;
         let anotherTry = false;
         let allDone = true;
         for (const pn of processNameOrdered) {
-            const iWorkerProcess = this.processes.filter((p) => p.fn.name === pn)[0];
+            const iWorkerProcess = this.processes.filter((p) => (p.name || p.fn.name) === pn)[0];
             let ok = true;
             try {
                 if (iWorkerProcess.looped) {
@@ -84,7 +97,7 @@ export class AbstractWorkerProcessor {
                 }
             } catch (err) {
                 this.getLogger().warn(
-                    `(mtn) Worker "${this.getName()}" failed: ${err} >> stack: ${err.stack}`
+                    `(mtn) Worker - "${this.getName()}" failed: ${err} >> stack: ${err.stack}`
                 );
                 ok = false;
                 allDone = false;
@@ -93,7 +106,9 @@ export class AbstractWorkerProcessor {
                 }
             }
 
-            this.getLogger().info(`(mtn) Worker ${iWorkerProcess?.fn?.name} ok: "${ok}"`);
+            this.getLogger().info(
+                `(mtn) Worker - fn:"${iWorkerProcess?.fn?.name}" ok:${ok} allDone:${allDone} anotherTry:${anotherTry}`
+            );
 
             if (iWorkerProcess.stopOnFailure && !ok) {
                 break;
@@ -101,8 +116,7 @@ export class AbstractWorkerProcessor {
             count++;
         }
 
-        // this.getLogger().info(`(mtn) Worker ${count} finished, ${allDone}... anotherTry:"${anotherTry}"`);
-        const msg = await this.onEnd(allDone, this.getLogger(), this.buildStats());
+        await this.onEnd(allDone, this.getLogger(), this.buildStats());
 
         if (connected && !this.bypassConnection) {
             await this.disconnect();
@@ -115,14 +129,8 @@ export class AbstractWorkerProcessor {
         return '' + this.name;
     }
 
-    getProcesses(): {
-        fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;
-        looped: boolean;
-        stopOnFailure: boolean;
-        keepInTheQueue: boolean;
-        inThreadIfPossible: boolean;
-    }[] {
-        throw new Error('to implement');
+    getProcesses(): WorkerProcessorProcess[] {
+        return AbstractWorkerProcessor.GetProcesses();
     }
 
     protected async loop(
@@ -145,7 +153,7 @@ export class AbstractWorkerProcessor {
 
             if (!ok) {
                 const timeInMs = DEFAULT_POLLING_MS + retryLimit * DEFAULT_POLLING_STEP_MS;
-                this.logger.debug('(mtn) Worker wait for next try', asyncFn.name, timeInMs);
+                this.logger.debug('(mtn) Worker - wait for next try', asyncFn.name, timeInMs);
                 await sleep(timeInMs);
                 retryLimit++;
                 const dateC = new Date();

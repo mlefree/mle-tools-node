@@ -62,10 +62,10 @@ export class Launcher {
             this.queueLauncher = new QueueLauncher(
                 this.directWorker,
                 threadWorker,
+                this.options.workerStore,
                 loggerFactory.getLogger(),
                 this.options as {
                     workerProcessorPathFile: string;
-                    workerStore: AbstractWorkerStore;
                     queueConcurrency: QueueConcurrency;
                     pollingTimeInMilliSec: number;
                     disablePolling: boolean;
@@ -76,17 +76,20 @@ export class Launcher {
     }
 
     async push(
-        workerProcesses: string[],
         workerData: IWorkerData,
-        workerInstance: string = ''
+        options?: {
+            instance?: string;
+        }
     ): Promise<boolean> {
         if ((await this.getQueueRunningSize()) === 0) {
             await this.resume();
         }
 
+        const workerProcesses = workerData.namesToLaunch?.length ? workerData.namesToLaunch : [];
+
         const params: IWorkerParams = {
             workerProcesses,
-            workerInstance,
+            workerInstance: options?.instance ?? '',
             workerData,
             workerProcessorPathFile: this.options.workerProcessorPathFile,
         };
@@ -137,7 +140,7 @@ export class Launcher {
         return false;
     }
 
-    async getStoreWaitingSize() {
+    async getQueueWaitingSize() {
         try {
             return this.options.workerStore.size({inProgress: false});
         } catch (e) {
@@ -146,7 +149,7 @@ export class Launcher {
         }
     }
 
-    async getStoreRunningSize() {
+    async getQueueRunningSize() {
         try {
             return this.options.workerStore.size({inProgress: true});
         } catch (e) {
@@ -155,20 +158,21 @@ export class Launcher {
         }
     }
 
-    async getQueueRunningSize() {
-        if (!this.queueLauncher) {
-            return this.getStoreRunningSize();
+    async getQueueSize() {
+        try {
+            return this.options.workerStore.size();
+        } catch (e) {
+            this.queueLauncher?.clean();
+            return 0;
         }
-
-        return this.queueLauncher.checkAndGetQueueRunningSize();
     }
 
     async getStats() {
         return [
             {
                 queueName: 'todo',
-                storeWaitingSize: await this.getStoreWaitingSize(),
-                storeRunningSize: await this.getStoreRunningSize(),
+                storeWaitingSize: await this.getQueueWaitingSize(),
+                storeRunningSize: await this.getQueueRunningSize(),
                 queueRunningSize: await this.getQueueRunningSize(),
             },
         ];

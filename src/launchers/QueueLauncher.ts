@@ -3,11 +3,10 @@ import {Logger} from '../logger';
 import {IWorkerParams} from './IWorkerParams';
 import {QueueConcurrency} from './QueueConcurrency';
 import {AbstractWorkerStore} from './AbstractWorkerStore';
+import {DefaultWorkerStore} from './DefaultWorkerStore';
 
 export class QueueLauncher {
     protected pollingTimer: PollingTimer;
-    protected queueNames: string[];
-    protected runningWorkers: object;
     protected shouldStopAll: boolean;
 
     constructor(
@@ -21,103 +20,63 @@ export class QueueLauncher {
             onEnd: () => void,
             onError: (code: number) => void
         ) => void,
-        protected logger: Logger,
-        protected options: {
-            workerProcessorPathFile: string;
-            workerStore: AbstractWorkerStore;
-            queueConcurrency: QueueConcurrency;
-            pollingTimeInMilliSec: number;
-            disablePolling: boolean;
-            name: string;
+        protected workerStore?: AbstractWorkerStore,
+        protected logger?: Logger,
+        protected options?: {
+            workerProcessorPathFile?: string;
+            queueConcurrency?: QueueConcurrency;
+            pollingTimeInMilliSec?: number;
+            disablePolling?: boolean;
+            name?: string;
         }
     ) {
+        if (!this.workerStore) {
+            this.workerStore = new DefaultWorkerStore();
+        }
+        if (!this.options) {
+            this.options = {};
+        }
         this.clean();
     }
 
     async add(params: IWorkerParams) {
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before add`
-        );
-        await this.options.workerStore.push(params.workerProcesses.join('-'), params);
-    }
-
-    checkAndGetQueueRunningSize() {
-        let length = 0;
-        try {
-            this.init();
-
-            for (const key of Object.keys(this.runningWorkers)) {
-                length += this.runningWorkers[key] ? this.runningWorkers[key] : 0;
-            }
-
-            if (length === 0) {
-                this.logger.debug(`(mtn) Queue - check runningWorkers length === 0 => clean`);
-                this.clean();
-            }
-
-            return length;
-        } catch (e) {
-            this.clean();
-            return 0;
-        }
+        this.logger?.debug(`(mtn) Queue - add ${params.workerData.namesToLaunch}`);
+        await this.workerStore.push(params);
     }
 
     stopAll(stop = true) {
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before stopAll`
-        );
+        this.logger?.debug(`(mtn) Queue - stopAll ${stop}`);
         this.shouldStopAll = stop;
         if (stop) {
-            this.clean();
             this.stopPolling();
+        } else {
+            this.startPolling();
         }
     }
 
-    async end(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`(mtn) Queue - end ${queueName}`);
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before end`
-        );
-
-        if (this.runningWorkers[queueName]) {
-            this.runningWorkers[queueName]--;
-        }
-        if (this.runningWorkers[queueName] === 0) {
-            delete this.runningWorkers[queueName];
-            this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
-        }
-
-        await this.options.workerStore.remove(queueName, params);
+    async end(params: IWorkerParams) {
+        this.logger?.debug(`(mtn) Queue - end ${params.workerData.namesToLaunch} => remove`);
+        await this.workerStore.remove(params);
     }
 
-    async error(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`(mtn) Queue - error ${queueName}`);
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before error`
+    async error(params: IWorkerParams) {
+        this.logger?.debug(
+            `(mtn) Queue - error ${params.workerData.namesToLaunch} => release (potential keep it, to try back)`
         );
 
         // Get the worker processor to check if any of the processes should keep in queue
-        const WorkerProcessor = require(this.options.workerProcessorPathFile);
-        const processes = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
+        let processes = [];
+        if (this.options.workerProcessorPathFile) {
+            const WorkerProcessor = require(this.options.workerProcessorPathFile);
+            processes = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
+        }
         const shouldKeepInQueue = processes.some((p) => p.keepInTheQueue);
 
-        if (typeof this.runningWorkers[queueName] === 'undefined') {
-            this.runningWorkers[queueName] = 0;
-        }
-        if (typeof this.runningWorkers[queueName] === 'number') {
-            this.runningWorkers[queueName]--;
-        }
-        if (this.runningWorkers[queueName] === 0) {
-            delete this.runningWorkers[queueName];
-            this.queueNames.splice(this.queueNames.indexOf(queueName), 1);
-        }
-
-        await this.options.workerStore.release(queueName, params, shouldKeepInQueue);
+        await this.workerStore.release(params, shouldKeepInQueue);
     }
 
     public clean() {
-        this.queueNames = [];
-        this.runningWorkers = {};
+        this.logger?.debug(`(mtn) Queue - clean => try to not shouldStopAll`);
         this.shouldStopAll = false;
     }
 
@@ -126,42 +85,43 @@ export class QueueLauncher {
     }
 
     public setWorkerStore(store: AbstractWorkerStore) {
-        this.options.workerStore = store;
+        this.logger?.debug(`(mtn) Queue - setWorkerStore`);
+        this.workerStore = store;
     }
 
     protected stopPolling() {
-        this.logger.info(`(mtn) Queue - stopPolling`);
+        this.logger?.warn(`(mtn) Queue - stopPolling`);
         this.pollingTimer?.stop();
     }
 
-    protected init() {
+    protected startPolling() {
         if (this.options.disablePolling) {
             return;
         }
 
-        if (this.pollingTimer && this.pollingTimer.startTime) {
+        if (this.pollingTimer?.startTime) {
             return;
         }
 
-        this.logger.info(`(mtn) Queue - init polling each ${this.options.pollingTimeInMilliSec}`);
-        this.pollingTimer = new PollingTimer(this.options.pollingTimeInMilliSec);
+        const pollingTimeInMilliSec = this.options.pollingTimeInMilliSec
+            ? this.options.pollingTimeInMilliSec
+            : 100;
+        this.logger?.info(`(mtn) Queue - init polling each ${pollingTimeInMilliSec}`);
+        this.pollingTimer = new PollingTimer(pollingTimeInMilliSec);
         this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
         this.pollingTimer.start();
     }
 
     protected async syncQueuesFromStore() {
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before syncQueuesFromStore`
-        );
+        const queueNames = await this.workerStore.getNamesAfterMemoryCleanUp();
+        this.logger?.debug(`(mtn) Queue - syncQueuesFromStore names ${queueNames}`);
 
-        if (this.queueNames.length === 0) {
-            this.logger.debug(`(mtn) Queue - no more queue names => clean`);
+        if (queueNames.length === 0) {
+            this.logger?.debug(`(mtn) Queue - no more queue names => clean`);
             this.clean();
         }
 
-        this.queueNames = await this.options.workerStore.getNamesAfterMemoryCleanUp();
-
-        this.logger.debug(`(mtn) Queue - names (${this.options.name}): ${this.queueNames.length}`);
+        return queueNames;
     }
 
     protected async pollerCallback() {
@@ -169,102 +129,109 @@ export class QueueLauncher {
             return;
         }
 
-        await this.syncQueuesFromStore();
+        const queueNames = await this.syncQueuesFromStore();
 
-        for (const queueName of this.queueNames) {
+        // Randomize queueNames using Fisher-Yates shuffle
+        for (let i = queueNames.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [queueNames[i], queueNames[j]] = [queueNames[j], queueNames[i]];
+        }
+
+        for (const queueProcesses of queueNames) {
             // Get and verify concurrency
-            const {concurrency} = this.getKeyConcurrency(queueName);
-            const notExists =
-                typeof this.runningWorkers[queueName] === 'undefined' ||
-                Number.isNaN(this.runningWorkers[queueName]);
-            if (notExists) {
-                this.runningWorkers[queueName] = 0;
-            }
-            if (this.runningWorkers[queueName] >= concurrency) {
+            const {concurrency} = this.getKeyConcurrency(queueProcesses);
+
+            const size = await this.workerStore.size({names: queueProcesses, inProgress: true});
+
+            this.logger?.debug(
+                `(mtn) Queue - pollerCallback (${queueProcesses}): ${size} ${concurrency}`
+            );
+            if (size >= concurrency) {
                 continue;
             }
 
             // Get and verify params
-            const params = await this.options.workerStore.take(queueName);
+            const params = await this.workerStore.take(queueProcesses);
             if (!params) {
                 continue;
             }
 
             // Execute queue worker
-            this.executeWorker(queueName, params);
+            this.executeWorker(params);
+
+            // One execution by pollerCallback
+            break;
         }
     }
 
-    protected executeWorker(queueName: string, params: IWorkerParams) {
-        this.logger.debug(`(mtn) Queue - executeWorker ${queueName}`);
-        this.logger.debug(
-            `(mtn) Queue - check runningWorkers: ${JSON.stringify(this.runningWorkers)} before executeWorker`
-        );
+    protected executeWorker(params: IWorkerParams) {
+        this.logger?.debug(`(mtn) Queue - executeWorker`);
 
-        this.runningWorkers[queueName]++;
-
-        if (!params.workerProcesses) {
-            params.workerProcesses = [
-                '' + params['workerDescription'] ? params['workerDescription'] : '',
-            ];
-        }
         params.workerProcessorPathFile = this.options.workerProcessorPathFile;
 
         let needTread = false;
         try {
             const {WorkerProcessor} = require(this.options.workerProcessorPathFile);
-            const allProcesses = WorkerProcessor.GetProcesses();
+            const allProcesses = WorkerProcessor.GetProcesses ? WorkerProcessor.GetProcesses() : [];
             const processes = allProcesses.filter(
-                (p) => params.workerProcesses.indexOf(p.fn.name) > -1
+                (p) => params.workerProcesses.indexOf(p.fn.name) >= 0
             );
             needTread = processes.filter((p) => p.inThreadIfPossible).length > 0;
         } catch (e) {
-            this.logger.warn('(mtn) Queue - executeWorker workerProcessor issue:', e);
+            this.logger?.warn('(mtn) Queue - executeWorker workerProcessor issue:', e);
         }
 
         if (needTread && this.threadWorker) {
-            this.logger.debug('(mtn) Queue - executeWorker needTread');
+            this.logger?.debug('(mtn) Queue - executeWorker in thread worker');
             this.threadWorker(
                 params,
                 () => {
-                    this.end(queueName, params).then((_ignored) => {});
+                    this.end(params).then((_ignored) => {});
                 },
                 (code) => {
-                    this.logger.debug('(mtn) Queue - executeWorker thread has failed:', code);
+                    this.logger?.debug(
+                        '(mtn) Queue - executeWorker in thread worker has failed:',
+                        code
+                    );
                     if (code === 1) {
                         // => retry
-                        this.error(queueName, params).then((_ignored) => {});
+                        this.error(params).then((_ignored) => {});
                     } else {
-                        this.end(queueName, params).then((_ignored) => {});
+                        this.end(params).then((_ignored) => {});
                     }
                 }
             );
         } else if (this.directWorker) {
-            this.logger.debug('(mtn) Queue - executeWorker is used in a direct worker');
+            this.logger?.debug('(mtn) Queue - executeWorker in a direct worker');
             this.directWorker(
                 params,
                 () => {
-                    this.end(queueName, params).then((_ignored) => {});
+                    this.end(params).then((_ignored) => {});
                 },
                 (code) => {
-                    this.logger.debug('(mtn) Queue - executeWorker direct has failed:', code);
+                    this.logger?.debug(
+                        '(mtn) Queue - executeWorker in a direct worker has failed:',
+                        code
+                    );
                     if (code === 1) {
                         // => retry
-                        this.error(queueName, params).then((_ignored) => {});
+                        this.error(params).then((_ignored) => {});
                     } else {
-                        this.end(queueName, params).then((_ignored) => {});
+                        this.end(params).then((_ignored) => {});
                     }
                 }
             ).then((_ignored) => {});
         }
     }
 
-    protected getKeyConcurrency(key: string) {
-        let concurrency = this.options.queueConcurrency.default;
+    protected getKeyConcurrency(queueProcesses: string[]) {
+        let concurrency = this.options?.queueConcurrency?.default ?? 1;
+        let key: string;
         for (const filter of this.options.queueConcurrency.keys) {
-            if (key.indexOf(filter.contains) >= 0) {
+            if (queueProcesses.indexOf(filter.contains) >= 0) {
                 key = filter.contains;
                 concurrency = filter.concurrency;
+                break;
             }
         }
 

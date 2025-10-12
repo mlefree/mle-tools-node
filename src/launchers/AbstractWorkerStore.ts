@@ -2,31 +2,58 @@ import {MError} from '../errors';
 import {IWorkerParams} from './IWorkerParams';
 
 export class AbstractWorkerStore {
-    async push(queueName: string, params: IWorkerParams) {
+    async push(params: IWorkerParams) {
         throw new MError('Not implemented');
     }
 
-    async take(queueName: string): Promise<IWorkerParams | null> {
+    async take(names: string[]): Promise<IWorkerParams | null> {
         throw new MError('Not implemented');
     }
 
-    async release(
-        queueName: string,
-        params: IWorkerParams,
-        shouldKeepInQueue: boolean
-    ): Promise<void> {
+    async release(params: IWorkerParams, shouldKeepInQueue: boolean): Promise<void> {
         throw new MError('Not implemented');
     }
 
-    async remove(queueName: string, params: IWorkerParams): Promise<void> {
+    async remove(params: IWorkerParams): Promise<void> {
         throw new MError('Not implemented');
     }
 
-    async size(options?: {queueName?: string; inProgress?: boolean}): Promise<number> {
+    async size(options?: {names?: string[]; inProgress?: boolean}): Promise<number> {
         throw new MError('Not implemented');
     }
 
-    async getNamesAfterMemoryCleanUp(): Promise<string[]> {
+    async getNamesAfterMemoryCleanUp(): Promise<string[][]> {
         throw new MError('Not implemented');
+    }
+
+    protected getQueueName(names?: string[]) {
+        if (!names) {
+            return '';
+        }
+
+        return names.join('-');
+    }
+
+    protected extractQueueName(names?: string) {
+        if (!names) {
+            return [];
+        }
+
+        return names.split('-');
+    }
+
+    protected getKey(params: IWorkerParams) {
+        if (params?.workerData?.key) {
+            return params.workerData.key;
+        }
+
+        if (params?.workerData?.id) {
+            return params.workerData.id;
+        }
+
+        return (
+            JSON.stringify(params.workerData.namesToLaunch) +
+            JSON.stringify(params.workerData.input)
+        );
     }
 }

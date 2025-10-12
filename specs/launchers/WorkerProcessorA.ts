@@ -15,14 +15,15 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     public connected = false;
 
     constructor(name: string, workerData: IWorkerData, bypassConnection = false) {
-        console.log('TEST WorkerProcessorA++', name);
+        console.log(new Date().toISOString(), 'TEST WorkerProcessorA++', name);
         super(name, workerData, bypassConnection);
     }
 
     static GetProcesses() {
         return [
             {
-                fn: WorkerProcessor.sleep,
+                fn: WorkerProcessor.sleeeeep,
+                name: 'sleep',
                 looped: true,
                 stopOnFailure: false,
                 keepInTheQueue: true,
@@ -30,6 +31,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
             },
             {
                 fn: WorkerProcessor.info,
+                name: 'info',
                 looped: true,
                 stopOnFailure: true,
                 keepInTheQueue: false,
@@ -37,6 +39,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
             },
             {
                 fn: WorkerProcessor.fail,
+                name: 'fail',
                 looped: false,
                 stopOnFailure: true,
                 keepInTheQueue: true,
@@ -64,7 +67,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         return logger.info('TEST info => ', inputs.messageToWrite);
     }
 
-    static async sleep(
+    static async sleeeeep(
         config: Config,
         inputs: Inputs,
         logger: IConsole,
@@ -107,9 +110,10 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     protected async getInputs(config: Config, input: Input): Promise<Inputs> {
+        const timeToSleep = input.count * config.time;
         return {
-            timeToSleep: input.count * config.time,
-            messageToWrite: config.label + ' count:' + input.count + ' time:' + config.time,
+            timeToSleep,
+            messageToWrite: `${config.label} count:${input.count} time: ${config.time} => ${timeToSleep}`,
         };
     }
 
@@ -134,6 +138,6 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
             timeSpentWaiting: number;
         }
     ) {
-        console.log('TEST WorkerProcessorA-- ', this.name, done, stats);
+        console.log(new Date().toISOString(), 'TEST WorkerProcessorA-- ', this.name, done, stats);
     }
 }
