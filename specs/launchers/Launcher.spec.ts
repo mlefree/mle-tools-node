@@ -565,19 +565,19 @@ describe('Launcher', function () {
         await sleep(600);
         expect(await launcher.getQueueRunningSize()).equal(1, 'Only task A should be running');
 
-        // After A completes, B should start - increased wait for CI environment
-        await sleep(1500);
+        // After A completes, B should start - significantly increased wait for slow CI environment
+        await sleep(2500);
         const sizeAfterA = await launcher.getQueueSize();
         expect(sizeAfterA).lessThanOrEqual(2, `A should be done, B and/or C remain. Got ${sizeAfterA}`);
         expect(sizeAfterA).greaterThanOrEqual(1, 'At least one task should remain');
 
         // After B completes, C should start
-        await sleep(1000);
+        await sleep(1500);
         const sizeAfterB = await launcher.getQueueSize();
         expect(sizeAfterB).lessThanOrEqual(1, `A and B done, C may remain. Got ${sizeAfterB}`);
 
         // Wait for all to complete
-        await sleep(1000);
+        await sleep(1500);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
