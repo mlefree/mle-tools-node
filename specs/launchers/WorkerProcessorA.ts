@@ -105,6 +105,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
     }
 
     protected initLogger(config: any): Logger {
+        console.log('initLogger:', config);
         loggerFactory.setUp({consoleLevel: config.logLevel, logLevel: config.logLevel});
         return loggerFactory.getLogger();
     }

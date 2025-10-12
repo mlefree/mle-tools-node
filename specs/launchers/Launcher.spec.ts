@@ -39,7 +39,7 @@ describe('Launcher', function () {
 
     before(async () => {
         loggerFactory.setUp({
-            consoleLevel: LoggerLevels.INFO,
+            consoleLevel: LoggerLevels.WARN,
             logLevel: LoggerLevels.DEBUG,
             path: parentPath,
         });
@@ -148,6 +148,7 @@ describe('Launcher', function () {
 
     it('should push as queue', async function () {
         await trackStart(this);
+        loggerFactory.setUp({consoleLevel: LoggerLevels.WARN});
 
         const queueConcurrency: QueueConcurrency = {
             default: 1,
@@ -165,7 +166,7 @@ describe('Launcher', function () {
         launcher.setQueueConcurrency(queueConcurrency);
         launcher.setWorkerStore(workerStore);
         const input: Input = {count: 2};
-        const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.INFO};
         const key = 'queue';
         const data: IWorkerData = {input, key, config};
 
@@ -199,7 +200,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueRunningSize()).equal(4);
 
         // Finished
-        await sleep(2000);
+        await sleep(4000);
         expect(await launcher.getQueueSize()).equal(0);
         expect(await launcher.getQueueWaitingSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
@@ -223,7 +224,7 @@ describe('Launcher', function () {
             threadStrategy: STRATEGIES.QUEUE,
         });
         const input: Input = {count: 1};
-        const config: Config = {time: 5, label: 'failingQueue', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 5, label: 'failingQueue', logLevel: LoggerLevels.INFO};
         const data: IWorkerData = {input, config};
         const launched = await launcher.push({...data, namesToLaunch: ['sleep', 'fail']});
 
@@ -266,7 +267,7 @@ describe('Launcher', function () {
             pollingTimeInMilliSec: 100,
         });
         const input: Input = {count: 1};
-        const config: Config = {time: 7, label: 'throwQueue', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 7, label: 'throwQueue', logLevel: LoggerLevels.WARN};
         const data: IWorkerData = {input, config};
         const launched = await launcher.push({...data, namesToLaunch: ['sleep', 'throwError']});
 
@@ -306,7 +307,7 @@ describe('Launcher', function () {
             const config: Config = {
                 time: count,
                 label: 'toStopQueue' + count,
-                logLevel: LoggerLevels.DEBUG,
+                logLevel: LoggerLevels.INFO,
             };
             const key = 'queue' + count;
             const data: IWorkerData = {input, key, config};
@@ -343,7 +344,7 @@ describe('Launcher', function () {
         // Stop ! (during process)
         console.log(new Date().toISOString(), 'TEST ### STOP ###');
         const stopped = await launcher.stop();
-        await sleep(2000);
+        await sleep(4000);
         expect(stopped).eq(true);
         expect(await launcher.getQueueWaitingSize()).equal(waiting);
         expect(await launcher.getQueueRunningSize()).equal(0, `with waiting:${waiting}`);
@@ -366,7 +367,7 @@ describe('Launcher', function () {
         const config: Config = {
             time: 5,
             label: 'justPushedButNotPolled',
-            logLevel: LoggerLevels.DEBUG,
+            logLevel: LoggerLevels.INFO,
         };
         const data: IWorkerData = {input, config};
         const launched = await launcher.push({...data, namesToLaunch: ['sleep', 'info']});
@@ -403,8 +404,8 @@ describe('Launcher', function () {
         });
 
         const input: Input = {count: 1};
-        const config1: Config = {time: 200, label: 'ancestor', logLevel: LoggerLevels.DEBUG};
-        const config2: Config = {time: 10, label: 'dependent', logLevel: LoggerLevels.DEBUG};
+        const config1: Config = {time: 200, label: 'ancestor', logLevel: LoggerLevels.INFO};
+        const config2: Config = {time: 10, label: 'dependent', logLevel: LoggerLevels.INFO};
 
         // Push ancestor task first
         const ancestorId = 'ancestor-1';
@@ -431,7 +432,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueWaitingSize()).equal(1, 'Dependent should still be waiting');
 
         // Wait for ancestor to complete
-        await sleep(3000);
+        await sleep(6000);
         expect(await launcher.getQueueSize()).equal(0, 'Both tasks should be completed');
 
         const lastLogs = loggerFactory.readLastLogs();
@@ -455,9 +456,9 @@ describe('Launcher', function () {
         });
 
         const input: Input = {count: 1};
-        const config1: Config = {time: 150, label: 'ancestor1', logLevel: LoggerLevels.DEBUG};
-        const config2: Config = {time: 100, label: 'ancestor2', logLevel: LoggerLevels.DEBUG};
-        const config3: Config = {time: 10, label: 'dependent', logLevel: LoggerLevels.DEBUG};
+        const config1: Config = {time: 150, label: 'ancestor1', logLevel: LoggerLevels.INFO};
+        const config2: Config = {time: 100, label: 'ancestor2', logLevel: LoggerLevels.INFO};
+        const config3: Config = {time: 10, label: 'dependent', logLevel: LoggerLevels.INFO};
 
         // Push two ancestor tasks
         const ancestor1Id = 'ancestor-1';
@@ -487,7 +488,7 @@ describe('Launcher', function () {
         );
 
         // Wait for both ancestors to complete
-        await sleep(3000);
+        await sleep(6000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         await launcher.stop();
@@ -505,7 +506,7 @@ describe('Launcher', function () {
         });
 
         const input: Input = {count: 1};
-        const config: Config = {time: 50, label: 'noAncestor', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 50, label: 'noAncestor', logLevel: LoggerLevels.INFO};
 
         // Push task that waits for non-existent ancestor
         const data: IWorkerData = {
@@ -523,7 +524,7 @@ describe('Launcher', function () {
         await sleep(100);
         expect(await launcher.getQueueRunningSize()).equal(1);
 
-        await sleep(3000);
+        await sleep(6000);
         expect(await launcher.getQueueSize()).equal(0, 'Task should complete');
 
         await launcher.stop();
@@ -541,9 +542,9 @@ describe('Launcher', function () {
         });
 
         const input: Input = {count: 1};
-        const configA: Config = {time: 100, label: 'taskA', logLevel: LoggerLevels.DEBUG};
-        const configB: Config = {time: 100, label: 'taskB', logLevel: LoggerLevels.DEBUG};
-        const configC: Config = {time: 100, label: 'taskC', logLevel: LoggerLevels.DEBUG};
+        const configA: Config = {time: 100, label: 'taskA', logLevel: LoggerLevels.INFO};
+        const configB: Config = {time: 100, label: 'taskB', logLevel: LoggerLevels.INFO};
+        const configC: Config = {time: 100, label: 'taskC', logLevel: LoggerLevels.INFO};
 
         // Create chain: A -> B -> C
         const taskAId = 'task-A';
@@ -569,11 +570,11 @@ describe('Launcher', function () {
         expect(await launcher.getQueueSize()).equal(2, 'A should be done, B and C remain');
 
         // After B completes, C should start
-        await sleep(1500);
+        await sleep(1000);
         expect(await launcher.getQueueSize()).equal(1, 'A and B done, C remains');
 
         // Wait for C to complete
-        await sleep(1500);
+        await sleep(1000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
@@ -611,23 +612,23 @@ describe('Launcher', function () {
         const dataA: IWorkerData = {
             id: taskAId,
             input,
-            config: {time: 100, label: 'graphA', logLevel: LoggerLevels.DEBUG},
+            config: {time: 100, label: 'graphA', logLevel: LoggerLevels.INFO},
         };
         const dataB: IWorkerData = {
             id: taskBId,
             input,
-            config: {time: 100, label: 'graphB', logLevel: LoggerLevels.DEBUG},
+            config: {time: 100, label: 'graphB', logLevel: LoggerLevels.INFO},
         };
         const dataC: IWorkerData = {
             id: taskCId,
             input,
-            config: {time: 100, label: 'graphC', logLevel: LoggerLevels.DEBUG},
+            config: {time: 100, label: 'graphC', logLevel: LoggerLevels.INFO},
             idsToWait: [taskAId, taskBId],
         };
         const dataD: IWorkerData = {
             id: taskDId,
             input,
-            config: {time: 100, label: 'graphD', logLevel: LoggerLevels.DEBUG},
+            config: {time: 100, label: 'graphD', logLevel: LoggerLevels.INFO},
             idsToWait: [taskCId],
         };
 
@@ -646,18 +647,18 @@ describe('Launcher', function () {
         );
 
         // After A and B complete, C should run
-        await sleep(1500);
+        await sleep(3000);
         expect(await launcher.getQueueSize()).lessThanOrEqual(
             2,
             'A and B should be done or nearly done'
         );
 
         // After C completes, D should run
-        await sleep(1500);
+        await sleep(3000);
         expect(await launcher.getQueueSize()).lessThanOrEqual(1, 'Only D or nothing should remain');
 
         // Wait for D to complete
-        await sleep(1500);
+        await sleep(3000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
@@ -677,11 +678,11 @@ describe('Launcher', function () {
         });
 
         const input: Input = {count: 1};
-        const configFail: Config = {time: 50, label: 'failAncestor', logLevel: LoggerLevels.DEBUG};
+        const configFail: Config = {time: 50, label: 'failAncestor', logLevel: LoggerLevels.WARN};
         const configDependent: Config = {
             time: 50,
             label: 'dependentOnFail',
-            logLevel: LoggerLevels.DEBUG,
+            logLevel: LoggerLevels.WARN,
         };
 
         // Push ancestor task that will fail

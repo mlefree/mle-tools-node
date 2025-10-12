@@ -168,7 +168,7 @@ export class AbstractWorkerProcessor {
             return this.logger;
         } else {
             console['getLevel'] = () => {
-                return LoggerLevels.DEBUG;
+                return LoggerLevels.INFO;
             };
             return console as any;
         }
