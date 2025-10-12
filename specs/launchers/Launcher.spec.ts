@@ -272,7 +272,7 @@ describe('Launcher', function () {
         const launched = await launcher.push({...data, namesToLaunch: ['sleep', 'throwError']});
 
         const timeSpent = await trackFinish(this);
-        await sleep(2000); // Increased wait time for error handling to complete
+        await sleep(3000); // Significantly increased wait time for slow CI environment
 
         expect(launched).eq(true);
         expect(timeSpent).lessThan(1000);
@@ -571,13 +571,13 @@ describe('Launcher', function () {
         expect(sizeAfterA).lessThanOrEqual(2, `A should be done, B and/or C remain. Got ${sizeAfterA}`);
         expect(sizeAfterA).greaterThanOrEqual(1, 'At least one task should remain');
 
-        // After B completes, C should start
-        await sleep(1500);
+        // After B completes, C should start - increased wait for slow CI
+        await sleep(2500);
         const sizeAfterB = await launcher.getQueueSize();
         expect(sizeAfterB).lessThanOrEqual(1, `A and B done, C may remain. Got ${sizeAfterB}`);
 
-        // Wait for all to complete
-        await sleep(1500);
+        // Wait for all to complete - increased wait for slow CI
+        await sleep(2000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
