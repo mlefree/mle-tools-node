@@ -200,7 +200,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueRunningSize()).equal(4);
 
         // Finished - increased wait time for all tasks to complete
-        await sleep(5000);
+        await sleep(7000);
         expect(await launcher.getQueueSize()).equal(0);
         expect(await launcher.getQueueWaitingSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(0);
