@@ -16,6 +16,7 @@ module.exports = async (
         true
     );
 
+    const launchedId = 'Direct-' + new Date().toISOString();
     try {
         const needRetry = await processor.launch();
         if (needRetry && onError) {
@@ -28,4 +29,5 @@ module.exports = async (
             await onError(e);
         }
     }
+    return launchedId;
 };

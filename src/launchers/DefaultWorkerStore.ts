@@ -2,7 +2,7 @@ import {AbstractWorkerStore} from './AbstractWorkerStore';
 import {IWorkerParams} from './IWorkerParams';
 import {loggerFactory} from '../logger';
 
-type QueueElement = {key: string; params: IWorkerParams; inProgress: boolean};
+export type QueueElement = {key: string; params: IWorkerParams; inProgress: boolean};
 
 export class DefaultWorkerStore extends AbstractWorkerStore {
     private queues = {};
@@ -12,16 +12,21 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
         this.removeAll();
     }
 
-    async push(params: IWorkerParams): Promise<void> {
+    async push(params: IWorkerParams): Promise<string> {
         const queueName = this.getQueueName(params.workerData.namesToLaunch);
         if (!this.queues[queueName]) {
             this.queues[queueName] = [];
         }
 
+        let pushId: string;
         const key = this.getKey(params);
         if (!params.workerData.id) {
             params.workerData.id = key;
+            pushId = key;
+        } else {
+            pushId = params.workerData.id;
         }
+
         if (!params.workerData.idsToWait?.length) {
             params.workerData.idsToWait = [];
         }
@@ -29,14 +34,18 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
             params.workerData.namesToLaunch = [];
         }
 
-        const alreadyThere = this.queues[queueName].filter((q) => q.key === key);
+        const alreadyThere: QueueElement[] = this.queues[queueName].filter((q) => q.key === key);
         if (alreadyThere.length === 0) {
             const queueElement: QueueElement = {key, params, inProgress: false};
             this.queues[queueName].push(queueElement);
+        } else {
+            pushId = alreadyThere[0].key;
         }
+
+        return pushId;
     }
 
-    async take(names: string[]): Promise<IWorkerParams> {
+    async take(names: string[]): Promise<IWorkerParams | undefined> {
         const queueName = this.getQueueName(names);
         const queue: QueueElement[] = this.queues[queueName] ? this.queues[queueName] : [];
         const waitingElements: QueueElement[] = queue.filter((e: QueueElement) => !e.inProgress);

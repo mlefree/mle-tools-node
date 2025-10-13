@@ -41,7 +41,7 @@ export class QueueLauncher {
 
     async add(params: IWorkerParams) {
         this.logger?.debug(`(mtn) Queue - add ${params.workerData.namesToLaunch}`);
-        await this.workerStore.push(params);
+        return await this.workerStore.push(params);
     }
 
     stopAll(stop = true) {

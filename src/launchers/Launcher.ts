@@ -80,7 +80,7 @@ export class Launcher {
         options?: {
             instance?: string;
         }
-    ): Promise<boolean> {
+    ) {
         if ((await this.getQueueRunningSize()) === 0) {
             await this.resume();
         }
@@ -96,7 +96,7 @@ export class Launcher {
 
         try {
             if (this.queueLauncher && this.options.threadStrategy === STRATEGIES.QUEUE) {
-                await this.queueLauncher.add(params);
+                return await this.queueLauncher.add(params);
             } else if (this.options.threadStrategy === STRATEGIES.THREAD) {
                 const path = require('node:path');
                 const {Worker} = require('worker_threads');
@@ -121,8 +121,9 @@ export class Launcher {
                 simpleWorker.on('message', messageHandler);
                 simpleWorker.on('error', errorHandler);
                 simpleWorker.on('exit', exitHandler);
+                return 'Thread-' + new Date().toISOString();
             } else if (this.directWorker) {
-                await this.directWorker(
+                return await this.directWorker(
                     params,
                     (e: any) => {
                         loggerFactory.getLogger().debug('(mtn) Direct Worker finished', e);
@@ -132,12 +133,9 @@ export class Launcher {
                     }
                 );
             }
-            return true;
         } catch (err) {
             loggerFactory.getLogger().error('(mtn) ', err);
         }
-
-        return false;
     }
 
     async getQueueWaitingSize() {

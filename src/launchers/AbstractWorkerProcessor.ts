@@ -10,15 +10,6 @@ const sleep = promisify(setTimeout);
 const DEFAULT_POLLING_MS = 500; // <= TODO default Worker waiting time to set as configuration
 const DEFAULT_POLLING_STEP_MS = 2000; // <= TODO default Worker step waiting time to put as configuration
 
-export type WorkerProcessorProcess = {
-    fn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>;
-    name?: string;
-    looped: boolean;
-    stopOnFailure: boolean;
-    keepInTheQueue: boolean;
-    inThreadIfPossible: boolean;
-};
-
 export class AbstractWorkerProcessor {
     protected static NeedToStop: boolean;
     protected config: any;
@@ -50,7 +41,7 @@ export class AbstractWorkerProcessor {
         AbstractWorkerProcessor.NeedToStop = stop;
     }
 
-    static GetProcesses(): WorkerProcessorProcess[] {
+    static GetProcesses(): IWorkerProcess[] {
         throw new Error('to implement');
     }
 
@@ -129,7 +120,7 @@ export class AbstractWorkerProcessor {
         return '' + this.name;
     }
 
-    getProcesses(): WorkerProcessorProcess[] {
+    getProcesses(): IWorkerProcess[] {
         return AbstractWorkerProcessor.GetProcesses();
     }
 

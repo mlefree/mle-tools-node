@@ -2,11 +2,11 @@ import {MError} from '../errors';
 import {IWorkerParams} from './IWorkerParams';
 
 export class AbstractWorkerStore {
-    async push(params: IWorkerParams) {
+    async push(params: IWorkerParams): Promise<string | undefined> {
         throw new MError('Not implemented');
     }
 
-    async take(names: string[]): Promise<IWorkerParams | null> {
+    async take(names: string[]): Promise<IWorkerParams | undefined> {
         throw new MError('Not implemented');
     }
 

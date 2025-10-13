@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Launcher.push returns the id from workerStore => can be used potentially in 'idsToWait'
+
+## [1.15.1] - 2025-10-12
+
+### Changed
+
 - Queue refacto: breaking changes (1.14.x => 1.15.x)
 
 ## [1.14.4] - 2025-09-03

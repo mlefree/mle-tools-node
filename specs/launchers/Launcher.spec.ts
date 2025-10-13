@@ -61,7 +61,7 @@ describe('Launcher', function () {
         const done = await launcher.push({...data, namesToLaunch: ['info', 'sleep', 'info']});
 
         const timeSpent = await trackFinish(this);
-        expect(done).eq(true);
+        expect(!!done).eq(true);
         expect(timeSpent).greaterThan(1000);
     });
 
@@ -78,7 +78,7 @@ describe('Launcher', function () {
         const done = await launcher.push({...data, namesToLaunch: ['info', 'sleep', 'info']});
 
         const timeSpent = await trackFinish(this);
-        expect(done).eq(true);
+        expect(!!done).eq(true);
         expect(timeSpent).greaterThan(1000);
     });
 
@@ -98,7 +98,7 @@ describe('Launcher', function () {
         const timeSpent = await trackFinish(this);
         await sleep(2000); // Increased wait time for thread to complete and flush logs
 
-        expect(launched).eq(true);
+        expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.readLastLogs();
@@ -130,7 +130,7 @@ describe('Launcher', function () {
         const timeSpent = await trackFinish(this);
         await sleep(2000); // Increased wait time for thread to complete and flush logs
 
-        expect(launched).eq(true);
+        expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.readLastLogs();
@@ -185,7 +185,7 @@ describe('Launcher', function () {
             ...data,
             namesToLaunch: ['info', 'sleep', 'sleep', 'info'],
         });
-        expect(launched).eq(true);
+        expect(launched).eq(key);
         expect(await launcher.getQueueSize()).equal(4);
         expect(await launcher.getQueueWaitingSize()).equal(4);
         expect(await launcher.getQueueRunningSize()).equal(0);
@@ -235,7 +235,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueRunningSize()).equal(1);
         await sleep(1000);
 
-        expect(launched).eq(true);
+        expect(launched).eq('["sleep","fail"]{"count":1}');
         expect(timeSpent).lessThan(1000);
         expect(await launcher.getQueueSize()).equal(1);
         expect(await launcher.getQueueWaitingSize()).equal(0);
@@ -274,7 +274,7 @@ describe('Launcher', function () {
         const timeSpent = await trackFinish(this);
         await sleep(3000); // Significantly increased wait time for slow CI environment
 
-        expect(launched).eq(true);
+        expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
         expect(await launcher.getQueueSize()).equal(0);
         expect(await launcher.getQueueWaitingSize()).equal(0);
@@ -379,7 +379,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueRunningSize()).equal(0);
         await sleep(1000);
 
-        expect(launched).eq(true);
+        expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
         expect(await launcher.getQueueSize()).equal(1);
         expect(await launcher.getQueueWaitingSize()).equal(1);
@@ -422,8 +422,8 @@ describe('Launcher', function () {
         };
         const launched2 = await launcher.push({...data2, namesToLaunch: ['info', 'sleep']});
 
-        expect(launched1).eq(true);
-        expect(launched2).eq(true);
+        expect(launched1).eq('ancestor-1');
+        expect(launched2).eq('dependent-1');
         expect(await launcher.getQueueSize()).equal(2);
 
         // Wait a bit - ancestor should be running, dependent should be waiting
@@ -517,7 +517,7 @@ describe('Launcher', function () {
         };
         const launched = await launcher.push({...data, namesToLaunch: ['info', 'sleep']});
 
-        expect(launched).eq(true);
+        expect(!!launched).eq(true);
         expect(await launcher.getQueueSize()).equal(1);
 
         // Since ancestor doesn't exist, task should run immediately
@@ -568,7 +568,10 @@ describe('Launcher', function () {
         // After A completes, B should start - significantly increased wait for slow CI environment
         await sleep(2500);
         const sizeAfterA = await launcher.getQueueSize();
-        expect(sizeAfterA).lessThanOrEqual(2, `A should be done, B and/or C remain. Got ${sizeAfterA}`);
+        expect(sizeAfterA).lessThanOrEqual(
+            2,
+            `A should be done, B and/or C remain. Got ${sizeAfterA}`
+        );
         expect(sizeAfterA).greaterThanOrEqual(1, 'At least one task should remain');
 
         // After B completes, C should start - increased wait for slow CI
