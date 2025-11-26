@@ -57,6 +57,11 @@ describe('Cache', function () {
             {value4: 4},
             {ttl: 2 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS}
         );
+        await cacheFactory.set(
+            'key_5',
+            {value5: 5},
+            {ttl: 10 * CACHE_TTL.SEC, store: CACHE_STORE.REDIS}
+        );
 
         if (store.store === CACHE_STORE.NONE) {
             expect(await cacheFactory.get('key')).eq(undefined);
@@ -71,6 +76,9 @@ describe('Cache', function () {
                 expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));
                 expect((await cacheFactory.get({key3: true}))?.value3).eq(3, JSON.stringify(store));
                 expect((await cacheFactory.get('key4'))?.value4).eq(4, JSON.stringify(store));
+                expect((await cacheFactory.get('key_5'))?.value5).eq(5, JSON.stringify(store));
+                await cacheFactory.removeByPattern('key_');
+                expect(await cacheFactory.get('key_5')).eq(undefined, JSON.stringify(store));
             } else {
                 expect((await cacheFactory.get({key1: true}))?.value1).eq(1, JSON.stringify(store));
                 expect((await cacheFactory.get({key2: true}))?.value2).eq(2, JSON.stringify(store));

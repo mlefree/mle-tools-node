@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- fix QueueLauncher -> startPolling
+- added to CacheFactory: removeByPattern
+
+## [1.16.1] - 2025-11-26
+
+### Changed
+
 - decorators removed (useless) but breaking changes => 1.16.x
 - Track the polling lastActivity/isRunning
 

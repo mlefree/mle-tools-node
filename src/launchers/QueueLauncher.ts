@@ -37,6 +37,7 @@ export class QueueLauncher {
             this.options = {};
         }
         this.clean();
+        this.startPolling();
     }
 
     isRunning() {

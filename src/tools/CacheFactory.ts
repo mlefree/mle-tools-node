@@ -276,8 +276,48 @@ export class CacheFactory implements ICache {
 
         const builtKey = this.buildUniqueKey(key);
         await this.memoryCache?.del(builtKey);
-        const result = await this.redisCache?.store?.client?.sendCommand(['DEL', builtKey]); // 'OK';
-        // console.log('removed ?', result);
+        await this.redisCache?.store?.client?.sendCommand(['DEL', builtKey]);
+    }
+
+    async removeByPattern(keyPattern: string): Promise<number> {
+        await this.init();
+
+        const pattern = this.buildUniqueKey(keyPattern) + '*';
+        let deletedCount = 0;
+
+        // Remove from Redis cache using SCAN + DEL
+        if (this.redisCache?.store?.client?.isReady) {
+            try {
+                const redisClient = this.redisCache.store.client;
+                let cursor = 0;
+
+                do {
+                    const result = await redisClient.sendCommand([
+                        'SCAN',
+                        cursor.toString(),
+                        'MATCH',
+                        pattern,
+                        'COUNT',
+                        '100',
+                    ]);
+                    cursor = parseInt(result[0] as string, 10);
+                    const keys = result[1] as string[];
+
+                    if (keys.length > 0) {
+                        const delResult = await redisClient.sendCommand(['DEL', ...keys]);
+                        deletedCount += delResult as number;
+                    }
+                } while (cursor !== 0);
+            } catch (err) {
+                loggerFactory.getLogger().error('(mtn) @cache removeByPattern Redis error:', err);
+            }
+        }
+
+        // Note: Memory cache doesn't support pattern-based removal efficiently
+        // For memory cache, we'd need to iterate all keys which is not practical
+        // Memory cache entries will expire naturally based on TTL
+
+        return deletedCount;
     }
 
     setBypass(bypass = true) {
