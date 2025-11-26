@@ -188,6 +188,23 @@ export class Launcher {
         return true;
     }
 
+    async isRunning() {
+        const lastActivity = await this.options.workerStore?.lastActivity();
+        // console.log(new Date().toISOString(), lastActivity);
+
+        const queueLauncherIsRunning = this.queueLauncher?.isRunning() ?? false;
+        if (!queueLauncherIsRunning) {
+            return false;
+        }
+
+        const oneHourAgo = new Date(new Date().getTime() - 60 * 60 * 1000);
+        if (!lastActivity || lastActivity?.date.getTime() <= oneHourAgo.getTime()) {
+            return false;
+        }
+
+        return true;
+    }
+
     setQueueConcurrency(queueConcurrency: QueueConcurrency) {
         this.queueLauncher?.setQueueConcurrency(queueConcurrency);
     }

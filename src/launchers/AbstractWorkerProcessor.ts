@@ -74,7 +74,7 @@ export class AbstractWorkerProcessor {
             let ok = true;
             try {
                 if (iWorkerProcess.looped) {
-                    ok = await this.loop(iWorkerProcess.fn, 10, false, inputs);
+                    ok = await this.loop(iWorkerProcess.fn, 10, inputs);
                 } else {
                     const begin = new Date();
                     ok = await iWorkerProcess.fn(this.config, inputs, this.getLogger(), count);
@@ -127,7 +127,6 @@ export class AbstractWorkerProcessor {
     protected async loop(
         asyncFn: (config: any, inputs: any, logger: IConsole, count: number) => Promise<boolean>,
         count: number,
-        stopOnFailure: boolean,
         inputs: any
     ) {
         let ok = false;
@@ -138,7 +137,7 @@ export class AbstractWorkerProcessor {
             const dateB = new Date();
             this.perfTimeSpentComputing += dateB.getTime() - dateA.getTime();
 
-            if (!ok && stopOnFailure) {
+            if (!ok) {
                 break;
             }
 

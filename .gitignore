@@ -58,3 +58,7 @@ disti/
 bower_components/
 build/
 pids/
+
+# Added by mle-best-practices
+.claude/
+.cursor/

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- decorators removed (useless) but breaking changes => 1.16.x
+- Track the polling lastActivity/isRunning
+
+## [1.15.2] - 2025-10-13
+
+### Changed
+
 - Launcher.push returns the id from workerStore => can be used potentially in 'idsToWait'
 
 ## [1.15.1] - 2025-10-12

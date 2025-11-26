@@ -39,6 +39,17 @@ export class QueueLauncher {
         this.clean();
     }
 
+    isRunning() {
+        if (this.shouldStopAll || this.options.disablePolling) {
+            return false;
+        }
+
+        if (this.pollingTimer?.startTime) {
+            return true;
+        }
+        return false;
+    }
+
     async add(params: IWorkerParams) {
         this.logger?.debug(`(mtn) Queue - add ${params.workerData.namesToLaunch}`);
         return await this.workerStore.push(params);
@@ -75,16 +86,16 @@ export class QueueLauncher {
         await this.workerStore.release(params, shouldKeepInQueue);
     }
 
-    public clean() {
+    clean() {
         this.logger?.debug(`(mtn) Queue - clean => try to not shouldStopAll`);
         this.shouldStopAll = false;
     }
 
-    public setQueueConcurrency(queueConcurrency: QueueConcurrency) {
+    setQueueConcurrency(queueConcurrency: QueueConcurrency) {
         this.options.queueConcurrency = Object.create(queueConcurrency);
     }
 
-    public setWorkerStore(store: AbstractWorkerStore) {
+    setWorkerStore(store: AbstractWorkerStore) {
         this.logger?.debug(`(mtn) Queue - setWorkerStore`);
         this.workerStore = store;
     }
@@ -92,6 +103,7 @@ export class QueueLauncher {
     protected stopPolling() {
         this.logger?.warn(`(mtn) Queue - stopPolling`);
         this.pollingTimer?.stop();
+        this.workerStore?.onStop().then((_) => {});
     }
 
     protected startPolling() {
@@ -99,9 +111,10 @@ export class QueueLauncher {
             return;
         }
 
-        if (this.pollingTimer?.startTime) {
-            return;
-        }
+        // if (this.pollingTimer?.startTime) {
+        //     return;
+        // }
+        this.pollingTimer?.stop();
 
         const pollingTimeInMilliSec = this.options.pollingTimeInMilliSec
             ? this.options.pollingTimeInMilliSec

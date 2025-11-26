@@ -2,6 +2,10 @@ import {MError} from '../errors';
 import {IWorkerParams} from './IWorkerParams';
 
 export class AbstractWorkerStore {
+    async lastActivity(): Promise<{name: string; date: Date} | null> {
+        throw new MError('Not implemented');
+    }
+
     async push(params: IWorkerParams): Promise<string | undefined> {
         throw new MError('Not implemented');
     }
@@ -19,6 +23,10 @@ export class AbstractWorkerStore {
     }
 
     async size(options?: {names?: string[]; inProgress?: boolean}): Promise<number> {
+        throw new MError('Not implemented');
+    }
+
+    async onStop(): Promise<void> {
         throw new MError('Not implemented');
     }
 

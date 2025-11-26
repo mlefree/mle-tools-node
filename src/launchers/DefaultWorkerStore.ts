@@ -6,10 +6,15 @@ export type QueueElement = {key: string; params: IWorkerParams; inProgress: bool
 
 export class DefaultWorkerStore extends AbstractWorkerStore {
     private queues = {};
+    private lastActivityRecorded: {name: string; date: Date} | null;
 
     constructor() {
         super();
         this.removeAll();
+    }
+
+    async lastActivity(): Promise<{name: string; date: Date} | null> {
+        return this.lastActivityRecorded;
     }
 
     async push(params: IWorkerParams): Promise<string> {
@@ -130,6 +135,7 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
 
     removeAll() {
         this.queues = {};
+        this.lastActivityRecorded = null;
     }
 
     async size(options?: {names?: string[]; inProgress?: boolean}): Promise<number> {
@@ -166,6 +172,12 @@ export class DefaultWorkerStore extends AbstractWorkerStore {
 
     async getNamesAfterMemoryCleanUp(): Promise<string[][]> {
         const queueNames = Object.keys(this.queues);
-        return queueNames.map((n) => this.extractQueueName(n));
+        const queues = queueNames.map((n) => this.extractQueueName(n));
+        this.lastActivityRecorded = {name: JSON.stringify(queues), date: new Date()};
+        return queues;
+    }
+
+    async onStop() {
+        this.lastActivityRecorded = null;
     }
 }

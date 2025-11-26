@@ -165,6 +165,8 @@ describe('Launcher', function () {
         });
         launcher.setQueueConcurrency(queueConcurrency);
         launcher.setWorkerStore(workerStore);
+        expect(await launcher.isRunning()).eq(false);
+
         const input: Input = {count: 2};
         const config: Config = {time: 11, label: 'queue', logLevel: LoggerLevels.INFO};
         const key = 'queue';
@@ -198,6 +200,7 @@ describe('Launcher', function () {
         expect(await launcher.getQueueSize()).equal(4);
         expect(await launcher.getQueueWaitingSize()).equal(0);
         expect(await launcher.getQueueRunningSize()).equal(4);
+        expect(await launcher.isRunning()).eq(true);
 
         // Finished - increased wait time for all tasks to complete
         await sleep(7000);
@@ -211,7 +214,9 @@ describe('Launcher', function () {
         // expect(relatedLogs[relatedLogs.length - 3].indexOf('info,queue') > 0).eq(true, lastLogs.toString());
         // expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep,queue') > 0).eq(true, lastLogs.toString());
 
+        expect(await launcher.isRunning()).eq(true);
         await launcher.stop();
+        expect(await launcher.isRunning()).eq(false);
     });
 
     it('should push as queue and Fail', async function () {
@@ -343,7 +348,9 @@ describe('Launcher', function () {
 
         // Stop ! (during process)
         console.log(new Date().toISOString(), 'TEST ### STOP ###');
+        expect(await launcher.isRunning()).eq(true);
         const stopped = await launcher.stop();
+        expect(await launcher.isRunning()).eq(false);
         await sleep(4000);
         expect(stopped).eq(true);
         expect(await launcher.getQueueWaitingSize()).equal(waiting);

@@ -5,7 +5,7 @@ import {
     IWorkerData,
     Logger,
     loggerFactory,
-    MError,
+    MErrorCode,
 } from '../../src';
 import {Config, Input, Inputs} from './WorkerProcessorInterfaces';
 
@@ -95,7 +95,7 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         logger: IConsole,
         count: number
     ): Promise<boolean> {
-        throw new MError('TEST throwError should see it : ' + inputs.messageToWrite);
+        throw new MErrorCode('TEST throwError should see it : ' + inputs.messageToWrite, 500);
     }
 
     // To implement :
