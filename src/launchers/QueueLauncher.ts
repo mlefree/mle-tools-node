@@ -112,15 +112,17 @@ export class QueueLauncher {
             return;
         }
 
-        // if (this.pollingTimer?.startTime) {
-        //     return;
-        // }
-        this.pollingTimer?.stop();
+        if (this.pollingTimer?.startTime) {
+            return;
+        }
 
+        this.pollingTimer?.stop();
         const pollingTimeInMilliSec = this.options.pollingTimeInMilliSec
             ? this.options.pollingTimeInMilliSec
             : 100;
-        this.logger?.info(`(mtn) Queue - init polling each ${pollingTimeInMilliSec}`);
+        this.logger?.info(
+            `(mtn) Queue - reset polling each ${pollingTimeInMilliSec} ${JSON.stringify(this.options)}`
+        );
         this.pollingTimer = new PollingTimer(pollingTimeInMilliSec);
         this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));
         this.pollingTimer.start();
