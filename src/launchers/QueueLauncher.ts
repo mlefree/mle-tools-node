@@ -120,8 +120,13 @@ export class QueueLauncher {
         const pollingTimeInMilliSec = this.options.pollingTimeInMilliSec
             ? this.options.pollingTimeInMilliSec
             : 100;
+        const logOptions = {
+            pollingTimeInMilliSec: this.options?.pollingTimeInMilliSec,
+            disablePolling: this.options?.disablePolling,
+            name: this.options?.name,
+        };
         this.logger?.info(
-            `(mtn) Queue - reset polling each ${pollingTimeInMilliSec} ${JSON.stringify(this.options)}`
+            `(mtn) Queue - reset polling each ${pollingTimeInMilliSec} ${JSON.stringify(logOptions)}`
         );
         this.pollingTimer = new PollingTimer(pollingTimeInMilliSec);
         this.pollingTimer.setRunCallback(this.pollerCallback.bind(this));

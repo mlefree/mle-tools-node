@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.3] - 2025-12-02
+
 ### Fixed
 
 - do not start already started QueueLauncher polling: this.pollingTimer?.startTime
