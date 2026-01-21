@@ -34,7 +34,7 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
 
     try {
         const processor = new WorkerProcessorClass(
-            wn + '-#THREAD(' + process.pid + '/' + threadId + ')-' + wi,
+            wn + '-#T(' + process.pid + '/' + threadId + ')-' + wi,
             wd,
             false
         );

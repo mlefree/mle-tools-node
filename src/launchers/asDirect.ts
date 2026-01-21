@@ -4,14 +4,15 @@ import {IWorkerParams} from './IWorkerParams';
 module.exports = async (
     params: IWorkerParams,
     onEnd?: () => Promise<void>,
-    onError?: (code: number) => Promise<void>
+    onRetry?: (reason?: string) => Promise<void>,
+    onError?: (error: any) => Promise<void>
 ) => {
     const wn = params.workerProcesses.join('-');
     const wi = params.workerInstance;
     const wd = params.workerData;
     const {WorkerProcessor} = require(params.workerProcessorPathFile);
     const processor: AbstractWorkerProcessor = new WorkerProcessor(
-        wn + '-#DIRECT(' + process.pid + ')-' + wi,
+        wn + '-#D(' + process.pid + ')-' + wi,
         wd,
         true
     );
@@ -19,8 +20,8 @@ module.exports = async (
     const launchedId = 'Direct-' + new Date().toISOString();
     try {
         const needRetry = await processor.launch();
-        if (needRetry && onError) {
-            await onError(1);
+        if (needRetry && onRetry) {
+            await onRetry('Worker returned needRetry=true');
         } else if (onEnd) {
             await onEnd();
         }

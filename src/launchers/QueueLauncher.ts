@@ -13,12 +13,14 @@ export class QueueLauncher {
         protected directWorker: (
             params: any,
             onEnd: () => void,
-            onError: (code: number) => void
+            onRetry: (reason?: string) => void,
+            onError: (error: any) => void
         ) => Promise<void>,
         protected threadWorker: (
             params: any,
             onEnd: () => void,
-            onError: (code: number) => void
+            onRetry: (reason?: string) => void,
+            onError: (error: any) => void
         ) => void,
         protected workerStore?: AbstractWorkerStore,
         protected logger?: Logger,
@@ -209,17 +211,13 @@ export class QueueLauncher {
                 () => {
                     this.end(params).then((_ignored) => {});
                 },
-                (code) => {
-                    this.logger?.debug(
-                        '(mtn) Queue - executeWorker in thread worker has failed:',
-                        code
-                    );
-                    if (code === 1) {
-                        // => retry
-                        this.error(params).then((_ignored) => {});
-                    } else {
-                        this.end(params).then((_ignored) => {});
-                    }
+                (reason?: string) => {
+                    this.logger?.info('(mtn) Queue - thread worker needs retry:', reason);
+                    this.error(params).then((_ignored) => {});
+                },
+                (error) => {
+                    this.logger?.error('(mtn) Queue - thread worker error:', error);
+                    this.end(params).then((_ignored) => {});
                 }
             );
         } else if (this.directWorker) {
@@ -229,17 +227,13 @@ export class QueueLauncher {
                 () => {
                     this.end(params).then((_ignored) => {});
                 },
-                (code) => {
-                    this.logger?.debug(
-                        '(mtn) Queue - executeWorker in a direct worker has failed:',
-                        code
-                    );
-                    if (code === 1) {
-                        // => retry
-                        this.error(params).then((_ignored) => {});
-                    } else {
-                        this.end(params).then((_ignored) => {});
-                    }
+                (reason?: string) => {
+                    this.logger?.info('(mtn) Queue - direct worker needs retry:', reason);
+                    this.error(params).then((_ignored) => {});
+                },
+                (error) => {
+                    this.logger?.error('(mtn) Queue - direct worker error:', error);
+                    this.end(params).then((_ignored) => {});
                 }
             ).then((_ignored) => {});
         }

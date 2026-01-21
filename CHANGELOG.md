@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.16.3] - 2025-12-02
+## [1.16.5] - 2026-01-21
+
+### Changed
+
+- Refactored worker callbacks: separated `onEnd`, `onRetry`, and `onError` handlers for clearer control flow
+- Improved thread worker exit code handling: exit code 1 triggers retry, other codes trigger error
+- Enhanced logging with more descriptive retry and error messages
+
+## [1.16.4] - 2025-12-02
 
 ### Fixed
 

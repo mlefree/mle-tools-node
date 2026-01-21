@@ -6,7 +6,8 @@ let WORKERS_COUNT = 0;
 module.exports = (
     params: IWorkerParams,
     onEnd?: () => Promise<void>,
-    onError?: (code: number) => Promise<void>
+    onRetry?: (reason?: string) => Promise<void>,
+    onError?: (error: any) => Promise<void>
 ) => {
     // console.log('### WorkerLaunched:', ++WORKERS_COUNT);
     const path = require('node:path');
@@ -15,14 +16,18 @@ module.exports = (
     workerThread.on('exit', async (exitCode) => {
         --WORKERS_COUNT;
         // console.log('### WorkerLaunched done:', exitCode, WORKERS_COUNT);
-        if (exitCode && onError) {
-            await onError(exitCode);
+        if (exitCode === 1 && onRetry) {
+            await onRetry('Thread exited with retry code');
+        } else if (exitCode && exitCode !== 1 && onError) {
+            await onError(new Error(`Thread exited with error code ${exitCode}`));
         } else if (onEnd) {
             await onEnd();
         }
     });
     workerThread.on('error', async (err: any) => {
         console.error('(mtn) WorkerLaunched error:', err);
-        await onError(err);
+        if (onError) {
+            await onError(err);
+        }
     });
 };

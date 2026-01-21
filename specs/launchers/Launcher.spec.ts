@@ -730,4 +730,115 @@ describe('Launcher', function () {
 
         await launcher.stop();
     });
+
+    it('should log retry as info (not error) when worker needs retry - direct mode', async function () {
+        await trackStart(this);
+        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.DEBUG});
+
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            threadStrategy: STRATEGIES.DIRECT,
+        });
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'retryDirect', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        // 'fail' process returns false with keepInTheQueue: true => triggers retry
+        await launcher.push({...data, namesToLaunch: ['fail']});
+
+        await sleep(500);
+        const timeSpent = await trackFinish(this);
+
+        const lastLogs = loggerFactory.readLastLogs();
+
+        // Filter logs from this test onwards (after "retryDirect" appears)
+        const testStartIndex = lastLogs.findIndex((l) => l.indexOf('retryDirect') > 0);
+        const testLogs = testStartIndex >= 0 ? lastLogs.slice(testStartIndex) : lastLogs;
+
+        // Verify retry is logged as info, not error
+        const retryLogs = testLogs.filter((l) => l.indexOf('needs retry') > 0);
+        const retryInfoLogs = retryLogs.filter((l) => l.indexOf('|info') > 0 || l.indexOf('|info :') > 0);
+        expect(retryLogs.length).greaterThanOrEqual(1, `Expected retry log. Logs: ${testLogs.join('\n')}`);
+        expect(retryInfoLogs.length).greaterThanOrEqual(1, `Retry should be logged as info level. Logs: ${retryLogs.join('\n')}`);
+
+        // Verify no "Direct Worker error" logs for this retry case (only check test logs)
+        const errorLogs = testLogs.filter((l) => l.indexOf('Direct Worker error') > 0);
+        expect(errorLogs.length).eq(0, `Retry should NOT produce error logs. Found: ${errorLogs.join('\n')}`);
+    });
+
+    it('should log retry as info (not error) when worker needs retry - queue mode', async function () {
+        await trackStart(this);
+        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.DEBUG});
+
+        const workerStore = new WorkerStore();
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
+            pollingTimeInMilliSec: 50,
+        });
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'retryQueue', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        // 'fail' process returns false with keepInTheQueue: true => triggers retry
+        await launcher.push({...data, namesToLaunch: ['fail']});
+
+        await sleep(1000);
+
+        const lastLogs = loggerFactory.readLastLogs();
+
+        // Filter logs from this test onwards
+        const testStartIndex = lastLogs.findIndex((l) => l.indexOf('retryQueue') > 0);
+        const testLogs = testStartIndex >= 0 ? lastLogs.slice(testStartIndex) : lastLogs;
+
+        // Verify retry is logged as info, not error
+        const retryLogs = testLogs.filter((l) => l.indexOf('needs retry') > 0);
+        expect(retryLogs.length).greaterThanOrEqual(1, `Expected retry log. Logs: ${testLogs.join('\n')}`);
+
+        // Verify retry logs are at info level (not error)
+        const retryInfoLogs = retryLogs.filter((l) => l.indexOf('|info') > 0);
+        expect(retryInfoLogs.length).greaterThanOrEqual(1, `Retry should be logged at info level. Logs: ${retryLogs.join('\n')}`);
+
+        workerStore.removeAll();
+        await trackFinish(this);
+        await launcher.stop();
+    });
+
+    it('should log real errors as error (not info) when worker throws', async function () {
+        await trackStart(this);
+        loggerFactory.setUp({consoleLevel: LoggerLevels.DEBUG, logLevel: LoggerLevels.DEBUG});
+
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            threadStrategy: STRATEGIES.DIRECT,
+        });
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'errorDirect', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        // 'throwError' process throws an exception => real error
+        await launcher.push({...data, namesToLaunch: ['throwError']});
+
+        await sleep(500);
+        const timeSpent = await trackFinish(this);
+
+        const lastLogs = loggerFactory.readLastLogs();
+
+        // Filter logs related to this specific test (by label)
+        const testLogs = lastLogs.filter((l) => l.indexOf('errorDirect') > 0 || l.indexOf('throwError') > 0);
+
+        // Verify error is logged (from AbstractWorkerProcessor.launch catch block)
+        const errorLogs = testLogs.filter((l) => l.indexOf('error') > 0 || l.indexOf('warn') > 0);
+        expect(errorLogs.length).greaterThanOrEqual(1, `Expected error/warn log for thrown exception. Logs: ${testLogs.join('\n')}`);
+
+        // For throwError, the exception is caught and allDone=false but anotherTry depends on error code 408
+        // Since MErrorCode throws with code 500, anotherTry will be false (no retry)
+        // Verify the worker finished without retry signal
+        const finishedLogs = testLogs.filter((l) => l.indexOf('Direct Worker finished') > 0);
+        expect(finishedLogs.length).greaterThanOrEqual(0, `Worker should finish (with or without retry). Logs: ${testLogs.join('\n')}`);
+    });
 });

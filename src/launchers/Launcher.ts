@@ -125,8 +125,11 @@ export class Launcher {
             } else if (this.directWorker) {
                 return await this.directWorker(
                     params,
-                    (e: any) => {
-                        loggerFactory.getLogger().debug('(mtn) Direct Worker finished', e);
+                    () => {
+                        loggerFactory.getLogger().debug('(mtn) Direct Worker finished');
+                    },
+                    (reason?: string) => {
+                        loggerFactory.getLogger().info('(mtn) Direct Worker needs retry:', reason);
                     },
                     (error: any) => {
                         loggerFactory.getLogger().error('(mtn) Direct Worker error:', error);
