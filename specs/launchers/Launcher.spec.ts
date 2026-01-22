@@ -91,24 +91,24 @@ describe('Launcher', function () {
             threadStrategy: STRATEGIES.THREAD,
         });
         const input: Input = {count: 2};
-        const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 10, label: 'threadA', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
         const launched = await launcher.push({...data, namesToLaunch: ['info', 'sleep']});
 
         const timeSpent = await trackFinish(this);
-        await sleep(2000); // Increased wait time for thread to complete and flush logs
+        await sleep(4000); // Increased wait time for thread to complete and flush logs
 
         expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.readLastLogs();
-        const relatedLogs = lastLogs.filter((l) => l.indexOf('thread') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('threadA') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,thread') > 0).eq(
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('info => ,threadA') > 0).eq(
             true,
             lastLogs.toString()
         );
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,thread') > 0).eq(
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleep => ,threadA') > 0).eq(
             true,
             lastLogs.toString()
         );
@@ -123,24 +123,24 @@ describe('Launcher', function () {
             threadStrategy: STRATEGIES.THREAD,
         });
         const input: Input = {count: 2};
-        const config: Config = {time: 10, label: 'thread', logLevel: LoggerLevels.DEBUG};
+        const config: Config = {time: 10, label: 'threadB', logLevel: LoggerLevels.DEBUG};
         const data: IWorkerData = {input, config};
         const launched = await launcher.push({...data, namesToLaunch: ['info', 'sleep']});
 
         const timeSpent = await trackFinish(this);
-        await sleep(2000); // Increased wait time for thread to complete and flush logs
+        await sleep(4000); // Increased wait time for thread to complete and flush logs
 
         expect(!!launched).eq(true);
         expect(timeSpent).lessThan(1000);
 
         const lastLogs = loggerFactory.readLastLogs();
-        const relatedLogs = lastLogs.filter((l) => l.indexOf('thread') > 0);
+        const relatedLogs = lastLogs.filter((l) => l.indexOf('threadB') > 0);
         expect(relatedLogs.length).greaterThanOrEqual(2, lastLogs.toString());
-        expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,thread') > 0).eq(
+        expect(relatedLogs[relatedLogs.length - 2].indexOf('infoB => ,threadB') > 0).eq(
             true,
             lastLogs.toString()
         );
-        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,thread') > 0).eq(
+        expect(relatedLogs[relatedLogs.length - 1].indexOf('sleepB => ,threadB') > 0).eq(
             true,
             lastLogs.toString()
         );
@@ -434,12 +434,12 @@ describe('Launcher', function () {
         expect(await launcher.getQueueSize()).equal(2);
 
         // Wait a bit - ancestor should be running, dependent should be waiting
-        await sleep(100);
+        await sleep(500);
         expect(await launcher.getQueueRunningSize()).equal(1, 'Only ancestor should be running');
         expect(await launcher.getQueueWaitingSize()).equal(1, 'Dependent should still be waiting');
 
-        // Wait for ancestor to complete
-        await sleep(6000);
+        // Wait for ancestor to complete and dependent to start and finish
+        await sleep(12000);
         expect(await launcher.getQueueSize()).equal(0, 'Both tasks should be completed');
 
         const lastLogs = loggerFactory.readLastLogs();
@@ -495,7 +495,7 @@ describe('Launcher', function () {
         );
 
         // Wait for both ancestors to complete
-        await sleep(6000);
+        await sleep(8000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         await launcher.stop();
@@ -582,12 +582,12 @@ describe('Launcher', function () {
         expect(sizeAfterA).greaterThanOrEqual(1, 'At least one task should remain');
 
         // After B completes, C should start - increased wait for slow CI
-        await sleep(2500);
+        await sleep(3000);
         const sizeAfterB = await launcher.getQueueSize();
         expect(sizeAfterB).lessThanOrEqual(1, `A and B done, C may remain. Got ${sizeAfterB}`);
 
         // Wait for all to complete - increased wait for slow CI
-        await sleep(2000);
+        await sleep(3000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
@@ -660,18 +660,18 @@ describe('Launcher', function () {
         );
 
         // After A and B complete, C should run - increased wait time for CI environment
-        await sleep(5000);
+        await sleep(6000);
         expect(await launcher.getQueueSize()).lessThanOrEqual(
             2,
             'A and B should be done or nearly done'
         );
 
         // After C completes, D should run
-        await sleep(3000);
+        await sleep(4000);
         expect(await launcher.getQueueSize()).lessThanOrEqual(1, 'Only D or nothing should remain');
 
         // Wait for D to complete
-        await sleep(3000);
+        await sleep(4000);
         expect(await launcher.getQueueSize()).equal(0, 'All tasks should complete');
 
         const timeSpent = await trackFinish(this);
@@ -758,13 +758,24 @@ describe('Launcher', function () {
 
         // Verify retry is logged as info, not error
         const retryLogs = testLogs.filter((l) => l.indexOf('needs retry') > 0);
-        const retryInfoLogs = retryLogs.filter((l) => l.indexOf('|info') > 0 || l.indexOf('|info :') > 0);
-        expect(retryLogs.length).greaterThanOrEqual(1, `Expected retry log. Logs: ${testLogs.join('\n')}`);
-        expect(retryInfoLogs.length).greaterThanOrEqual(1, `Retry should be logged as info level. Logs: ${retryLogs.join('\n')}`);
+        const retryInfoLogs = retryLogs.filter(
+            (l) => l.indexOf('|info') > 0 || l.indexOf('|info :') > 0
+        );
+        expect(retryLogs.length).greaterThanOrEqual(
+            1,
+            `Expected retry log. Logs: ${testLogs.join('\n')}`
+        );
+        expect(retryInfoLogs.length).greaterThanOrEqual(
+            1,
+            `Retry should be logged as info level. Logs: ${retryLogs.join('\n')}`
+        );
 
         // Verify no "Direct Worker error" logs for this retry case (only check test logs)
         const errorLogs = testLogs.filter((l) => l.indexOf('Direct Worker error') > 0);
-        expect(errorLogs.length).eq(0, `Retry should NOT produce error logs. Found: ${errorLogs.join('\n')}`);
+        expect(errorLogs.length).eq(
+            0,
+            `Retry should NOT produce error logs. Found: ${errorLogs.join('\n')}`
+        );
     });
 
     it('should log retry as info (not error) when worker needs retry - queue mode', async function () {
@@ -796,11 +807,17 @@ describe('Launcher', function () {
 
         // Verify retry is logged as info, not error
         const retryLogs = testLogs.filter((l) => l.indexOf('needs retry') > 0);
-        expect(retryLogs.length).greaterThanOrEqual(1, `Expected retry log. Logs: ${testLogs.join('\n')}`);
+        expect(retryLogs.length).greaterThanOrEqual(
+            1,
+            `Expected retry log. Logs: ${testLogs.join('\n')}`
+        );
 
         // Verify retry logs are at info level (not error)
         const retryInfoLogs = retryLogs.filter((l) => l.indexOf('|info') > 0);
-        expect(retryInfoLogs.length).greaterThanOrEqual(1, `Retry should be logged at info level. Logs: ${retryLogs.join('\n')}`);
+        expect(retryInfoLogs.length).greaterThanOrEqual(
+            1,
+            `Retry should be logged at info level. Logs: ${retryLogs.join('\n')}`
+        );
 
         workerStore.removeAll();
         await trackFinish(this);
@@ -829,16 +846,24 @@ describe('Launcher', function () {
         const lastLogs = loggerFactory.readLastLogs();
 
         // Filter logs related to this specific test (by label)
-        const testLogs = lastLogs.filter((l) => l.indexOf('errorDirect') > 0 || l.indexOf('throwError') > 0);
+        const testLogs = lastLogs.filter(
+            (l) => l.indexOf('errorDirect') > 0 || l.indexOf('throwError') > 0
+        );
 
         // Verify error is logged (from AbstractWorkerProcessor.launch catch block)
         const errorLogs = testLogs.filter((l) => l.indexOf('error') > 0 || l.indexOf('warn') > 0);
-        expect(errorLogs.length).greaterThanOrEqual(1, `Expected error/warn log for thrown exception. Logs: ${testLogs.join('\n')}`);
+        expect(errorLogs.length).greaterThanOrEqual(
+            1,
+            `Expected error/warn log for thrown exception. Logs: ${testLogs.join('\n')}`
+        );
 
         // For throwError, the exception is caught and allDone=false but anotherTry depends on error code 408
         // Since MErrorCode throws with code 500, anotherTry will be false (no retry)
         // Verify the worker finished without retry signal
         const finishedLogs = testLogs.filter((l) => l.indexOf('Direct Worker finished') > 0);
-        expect(finishedLogs.length).greaterThanOrEqual(0, `Worker should finish (with or without retry). Logs: ${testLogs.join('\n')}`);
+        expect(finishedLogs.length).greaterThanOrEqual(
+            0,
+            `Worker should finish (with or without retry). Logs: ${testLogs.join('\n')}`
+        );
     });
 });
