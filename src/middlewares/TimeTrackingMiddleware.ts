@@ -26,6 +26,18 @@ export class TimeTrackingMiddleware {
         }
     }
 
+    private static TimingStart(res: any, step: string) {
+        if (typeof res.startTime === 'function') {
+            res.startTime(step);
+        }
+    }
+
+    private static TimingEnd(res: any, step: string) {
+        if (typeof res.endTime === 'function') {
+            res.endTime(step);
+        }
+    }
+
     public middleWare() {
         return (req: any, res: any, next: () => void) => {
             const logger = loggerFactory.getLogger();
@@ -34,8 +46,11 @@ export class TimeTrackingMiddleware {
             }
 
             const start = process.hrtime();
+            const step = 'TimeTracking';
+            TimeTrackingMiddleware.TimingStart(res, step);
 
             res.on('finish', async () => {
+                TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
@@ -52,6 +67,7 @@ export class TimeTrackingMiddleware {
             });
 
             res.on('close', async () => {
+                TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);
 

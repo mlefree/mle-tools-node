@@ -53,18 +53,16 @@ export class CacheMiddleware {
             const key = req.originalUrl; // {url: req.originalUrl};
 
             try {
-                let step = 'CacheMiddleware-get';
-                CacheMiddleware.TimingStart(res, step);
+                const step1 = 'CacheM-get';
+                CacheMiddleware.TimingStart(res, step1);
                 const cachedResponse = await this.cache.get(key);
-                CacheMiddleware.TimingEnd(res, step);
+                CacheMiddleware.TimingEnd(res, step1);
 
                 if (cachedResponse) {
                     loggerFactory.getLogger().info('(mtn) @cache yes', JSON.stringify(key));
                     res.jsonp(cachedResponse);
                 } else {
                     loggerFactory.getLogger().info('(mtn) @cache no_', JSON.stringify(key));
-                    step = 'CacheMiddleware-setPrepare';
-                    CacheMiddleware.TimingStart(res, step);
 
                     res.sendResponse = res.jsonp;
                     res.jsonp = async (body: any) => {
@@ -72,8 +70,8 @@ export class CacheMiddleware {
                             return res.sendResponse(body);
                         }
 
-                        const step2 = 'CacheMiddleware-set';
-                        CacheMiddleware.TimingStart(res, step2);
+                        const step3 = 'CacheM-set';
+                        CacheMiddleware.TimingStart(res, step3);
 
                         // limit to a large response value (e.g., 10MB -> 50MB)
                         if (JSON.stringify(body).length < 50000000) {
@@ -88,11 +86,10 @@ export class CacheMiddleware {
                                 );
                         }
 
-                        CacheMiddleware.TimingEnd(res, step2);
+                        CacheMiddleware.TimingEnd(res, step3);
                         return res.sendResponse(body);
                     };
 
-                    CacheMiddleware.TimingEnd(res, step);
                     next();
                 }
             } catch (err) {
