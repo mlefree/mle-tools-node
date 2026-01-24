@@ -47,9 +47,14 @@ export class TimeTrackingMiddleware {
 
             const start = process.hrtime();
             const step = 'TimeTracking';
+            let timingEnded = false;
             TimeTrackingMiddleware.TimingStart(res, step);
 
             res.on('finish', async () => {
+                if (timingEnded) {
+                    return;
+                }
+                timingEnded = true;
                 TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);
@@ -67,6 +72,10 @@ export class TimeTrackingMiddleware {
             });
 
             res.on('close', async () => {
+                if (timingEnded) {
+                    return;
+                }
+                timingEnded = true;
                 TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);

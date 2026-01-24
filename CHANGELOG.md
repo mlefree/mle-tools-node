@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.8] - 2026-01-24
+
+### Fixed
+
+- TimeTrackingMiddleware: Prevent duplicate timing events when both 'finish' and 'close' fire
+
 ## [1.16.6] - 2026-01-22
 
 ## [1.16.5] - 2026-01-21
