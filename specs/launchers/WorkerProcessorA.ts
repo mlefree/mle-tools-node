@@ -52,6 +52,13 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
                 keepInTheQueue: true,
                 inThreadIfPossible: true,
             },
+            {
+                fn: WorkerProcessor.throwBlockingError,
+                looped: false,
+                stopOnFailure: true,
+                keepInTheQueue: false,
+                inThreadIfPossible: true,
+            },
         ];
     }
 
@@ -96,6 +103,15 @@ export class WorkerProcessor extends AbstractWorkerProcessor {
         count: number
     ): Promise<boolean> {
         throw new MErrorCode('TEST throwError should see it : ' + inputs.messageToWrite, 500);
+    }
+
+    static async throwBlockingError(
+        config: Config,
+        inputs: Inputs,
+        logger: IConsole,
+        count: number
+    ): Promise<boolean> {
+        throw new MErrorCode('TEST blocking error: DB stuck - ' + inputs.messageToWrite, 503);
     }
 
     // To implement :

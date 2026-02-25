@@ -40,7 +40,7 @@ export const cpuTemperature = async function () {
                 }
             }
         } catch (e) {
-            console.warn(e);
+            console.warn('(mtn) ', e);
         }
 
         try {
@@ -185,7 +185,7 @@ export const cpuTemperature = async function () {
                 return result;
             }
         } catch (e) {
-            console.warn(e);
+            console.warn('(mtn) ', e);
             return result;
         }
     }

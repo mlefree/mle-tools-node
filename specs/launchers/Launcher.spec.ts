@@ -1,4 +1,5 @@
 import {
+    AbstractWorkerProcessor,
     DefaultWorkerStore,
     IWorkerData,
     Launcher,
@@ -865,5 +866,85 @@ describe('Launcher', function () {
             0,
             `Worker should finish (with or without retry). Logs: ${testLogs.join('\n')}`
         );
+    });
+
+    it('should detect blocking error (code 503) in direct mode', async function () {
+        await trackStart(this);
+        AbstractWorkerProcessor.ResetBlocking();
+
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            threadStrategy: STRATEGIES.DIRECT,
+        });
+
+        expect(launcher.hasBlockingError()).eq(false);
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'blockingDirect', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        await launcher.push({...data, namesToLaunch: ['throwBlockingError']});
+        await sleep(500);
+
+        expect(launcher.hasBlockingError()).eq(true, 'Launcher should detect blocking error');
+
+        const lastLogs = loggerFactory.readLastLogs();
+        const blockingLogs = lastLogs.filter((l) => l.indexOf('BLOCKING') > 0);
+        expect(blockingLogs.length).greaterThanOrEqual(1, 'Should log blocking error');
+
+        AbstractWorkerProcessor.ResetBlocking();
+        await trackFinish(this);
+    });
+
+    it('should detect blocking error (code 503) in queue mode', async function () {
+        await trackStart(this);
+        AbstractWorkerProcessor.ResetBlocking();
+
+        const workerStore = new DefaultWorkerStore();
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            workerStore,
+            threadStrategy: STRATEGIES.QUEUE,
+            pollingTimeInMilliSec: 50,
+        });
+
+        expect(launcher.hasBlockingError()).eq(false);
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'blockingQueue', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        await launcher.push({...data, namesToLaunch: ['throwBlockingError']});
+        await sleep(3000);
+
+        expect(launcher.hasBlockingError()).eq(
+            true,
+            'Launcher should detect blocking error in queue mode'
+        );
+
+        AbstractWorkerProcessor.ResetBlocking();
+        await trackFinish(this);
+        await launcher.stop();
+    });
+
+    it('should not flag blocking for normal errors (code 500)', async function () {
+        await trackStart(this);
+        AbstractWorkerProcessor.ResetBlocking();
+
+        const launcher = new Launcher({
+            workerProcessorPathFile: __dirname + '/WorkerProcessorA',
+            threadStrategy: STRATEGIES.DIRECT,
+        });
+
+        const input: Input = {count: 1};
+        const config: Config = {time: 5, label: 'nonBlocking', logLevel: LoggerLevels.DEBUG};
+        const data: IWorkerData = {input, config};
+
+        await launcher.push({...data, namesToLaunch: ['throwError']});
+        await sleep(500);
+
+        expect(launcher.hasBlockingError()).eq(false, 'Normal errors should NOT trigger blocking');
+
+        await trackFinish(this);
     });
 });

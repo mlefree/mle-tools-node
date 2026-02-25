@@ -191,6 +191,12 @@ export class Launcher {
         return true;
     }
 
+    hasBlockingError(): boolean {
+        return (
+            this.queueLauncher?.hasBlockingError() || AbstractWorkerProcessor.IsBlockingDetected()
+        );
+    }
+
     async isRunning() {
         const lastActivity = await this.options.workerStore?.lastActivity();
         // console.log(new Date().toISOString(), lastActivity);

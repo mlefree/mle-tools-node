@@ -10,8 +10,23 @@ const sleep = promisify(setTimeout);
 const DEFAULT_POLLING_MS = 500; // <= TODO default Worker waiting time to set as configuration
 const DEFAULT_POLLING_STEP_MS = 2000; // <= TODO default Worker step waiting time to put as configuration
 
+// Error codes with special handling in launch()
+export const WORKER_ERROR_CODES = {
+    TIMEOUT: 408, // Retry-eligible timeout
+    BLOCKING: 503, // Blocking error (DB stuck, resource exhaustion) — signals unhealthy state
+};
+
+// Thread exit codes used by asThread.js
+export const THREAD_EXIT_CODES = {
+    SUCCESS: 0,
+    RETRY: 1,
+    ERROR: 2,
+    BLOCKING: 3, // Blocking error — main process should mark service unhealthy
+};
+
 export class AbstractWorkerProcessor {
     protected static NeedToStop: boolean;
+    protected static BlockingDetected: boolean;
     protected config: any;
     protected input: any;
     protected logger: Logger;
@@ -39,6 +54,14 @@ export class AbstractWorkerProcessor {
 
     static ForceStop(stop = true) {
         AbstractWorkerProcessor.NeedToStop = stop;
+    }
+
+    static IsBlockingDetected(): boolean {
+        return AbstractWorkerProcessor.BlockingDetected;
+    }
+
+    static ResetBlocking() {
+        AbstractWorkerProcessor.BlockingDetected = false;
     }
 
     static GetProcesses(): IWorkerProcess[] {
@@ -92,8 +115,14 @@ export class AbstractWorkerProcessor {
                 );
                 ok = false;
                 allDone = false;
-                if (err.code === 408) {
+                if (err.code === WORKER_ERROR_CODES.TIMEOUT) {
                     anotherTry = iWorkerProcess.keepInTheQueue;
+                }
+                if (err.code === WORKER_ERROR_CODES.BLOCKING) {
+                    AbstractWorkerProcessor.BlockingDetected = true;
+                    this.getLogger().error(
+                        `(mtn) Worker - BLOCKING error detected in "${this.getName()}": ${err.message}`
+                    );
                 }
             }
 

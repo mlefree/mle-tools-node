@@ -22,19 +22,7 @@ export class TimeTrackingMiddleware {
         if (timeInMs > limitInMs) {
             loggerFactory
                 .getLogger()
-                .warn(`${req.method} ${req.originalUrl} looks too long : ${timeInMs} ms`);
-        }
-    }
-
-    private static TimingStart(res: any, step: string) {
-        if (typeof res.startTime === 'function') {
-            res.startTime(step);
-        }
-    }
-
-    private static TimingEnd(res: any, step: string) {
-        if (typeof res.endTime === 'function') {
-            res.endTime(step);
+                ?.warn(`${req.method} ${req.originalUrl} looks too long : ${timeInMs} ms`);
         }
     }
 
@@ -46,16 +34,13 @@ export class TimeTrackingMiddleware {
             }
 
             const start = process.hrtime();
-            const step = 'TimeTracking';
             let timingEnded = false;
-            TimeTrackingMiddleware.TimingStart(res, step);
 
             res.on('finish', async () => {
                 if (timingEnded) {
                     return;
                 }
                 timingEnded = true;
-                TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);
 
@@ -76,7 +61,6 @@ export class TimeTrackingMiddleware {
                     return;
                 }
                 timingEnded = true;
-                TimeTrackingMiddleware.TimingEnd(res, step);
                 const durationInMilliseconds =
                     TimeTrackingMiddleware.getDurationInMilliseconds(start);
 

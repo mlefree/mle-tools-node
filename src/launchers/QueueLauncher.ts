@@ -8,6 +8,7 @@ import {DefaultWorkerStore} from './DefaultWorkerStore';
 export class QueueLauncher {
     protected pollingTimer: PollingTimer;
     protected shouldStopAll: boolean;
+    protected blockingDetected: boolean;
 
     constructor(
         protected directWorker: (
@@ -20,7 +21,8 @@ export class QueueLauncher {
             params: any,
             onEnd: () => void,
             onRetry: (reason?: string) => void,
-            onError: (error: any) => void
+            onError: (error: any) => void,
+            onBlocking?: (error: any) => void
         ) => void,
         protected workerStore?: AbstractWorkerStore,
         protected logger?: Logger,
@@ -92,6 +94,11 @@ export class QueueLauncher {
     clean() {
         this.logger?.debug(`(mtn) Queue - clean => try to not shouldStopAll`);
         this.shouldStopAll = false;
+        this.blockingDetected = false;
+    }
+
+    hasBlockingError(): boolean {
+        return this.blockingDetected;
     }
 
     setQueueConcurrency(queueConcurrency: QueueConcurrency) {
@@ -217,6 +224,11 @@ export class QueueLauncher {
                 },
                 (error) => {
                     this.logger?.error('(mtn) Queue - thread worker error:', error);
+                    this.end(params).then((_ignored) => {});
+                },
+                (error) => {
+                    this.logger?.error('(mtn) Queue - thread worker BLOCKING error:', error);
+                    this.blockingDetected = true;
                     this.end(params).then((_ignored) => {});
                 }
             );

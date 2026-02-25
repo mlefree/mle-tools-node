@@ -21,7 +21,7 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
             tsNode.register();
         }
     } catch (err) {
-        console.warn('asThread ts-node issue:', err);
+        console.warn('(mtn) asThread ts-node issue:', err);
     }
 
     try {
@@ -39,6 +39,13 @@ const {isMainThread, workerData, threadId} = require('worker_threads');
             false
         );
         const needRetry = await processor.launch();
+
+        // Check for blocking error before normal exit
+        if (WorkerProcessorClass.IsBlockingDetected && WorkerProcessorClass.IsBlockingDetected()) {
+            console.error('(mtn) asThread blocking error detected');
+            process.exit(3); // BLOCKING — signals unhealthy state to main process
+        }
+
         if (needRetry) {
             process.exit(1);
         }

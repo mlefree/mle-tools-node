@@ -1,4 +1,5 @@
 import onHeaders from 'on-headers';
+import {loggerFactory} from '../logger';
 
 class Timer {
     protected _times: Map<
@@ -24,10 +25,11 @@ class Timer {
         });
     }
 
-    timeEnd(name: string) {
+    timeEnd(name: string): {name: string; value: number; description: string} | undefined {
         const timeObj = this._times.get(name);
         if (!timeObj) {
-            return console.warn(`No such name ${name}`);
+            loggerFactory.getLogger()?.warn(`(mtn) No such name ${name}`);
+            return undefined;
         }
         const duration = process.hrtime(timeObj.start);
         timeObj.value = duration[0] * 1e3 + duration[1] * 1e-6;
@@ -47,10 +49,10 @@ class Timer {
 function setMetric(headers, opts) {
     return (name: string, value: number, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('(mtn) 1st argument name is not string');
+            return loggerFactory.getLogger()?.warn('(mtn) 1st argument name is not string');
         }
         if (typeof value !== 'number') {
-            return console.warn('(mtn) 2nd argument value is not number');
+            return loggerFactory.getLogger()?.warn('(mtn) 2nd argument value is not number');
         }
 
         const dur = Number.isFinite(opts.precision) ? value.toFixed(opts.precision) : value;
@@ -67,7 +69,7 @@ function setMetric(headers, opts) {
 function startTime(timer: Timer) {
     return (name: string, description: string) => {
         if (typeof name !== 'string') {
-            return console.warn('(mtn) 1st argument name is not string');
+            return loggerFactory.getLogger()?.warn('(mtn) 1st argument name is not string');
         }
 
         timer.time(name, description);
@@ -77,7 +79,7 @@ function startTime(timer: Timer) {
 function endTime(timer: Timer, res) {
     return (name: string) => {
         if (typeof name !== 'string') {
-            return console.warn('(mtn) 1st argument name is not string');
+            return loggerFactory.getLogger()?.warn('(mtn) 1st argument name is not string');
         }
 
         const obj = timer.timeEnd(name);

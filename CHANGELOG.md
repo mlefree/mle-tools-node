@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.9] - 2026-02-25
+
+### Added
+
+- Blocking error detection (code 503) across Launcher, QueueLauncher, and thread workers to signal unhealthy state (
+  e.g., DB stuck, resource exhaustion)
+- `hasBlockingError()` method on Launcher and QueueLauncher for health checking
+- `WORKER_ERROR_CODES` and `THREAD_EXIT_CODES` constants for structured error handling
+- `onBlocking` callback in thread worker for blocking error propagation
+
 ## [1.16.8] - 2026-01-24
 
 ### Fixed
@@ -40,20 +50,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- decorators removed (useless) but breaking changes => 1.16.x
+- decorators removed (useless) but breaking changes ⇒ 1.16.x
 - Track the polling lastActivity/isRunning
 
 ## [1.15.2] - 2025-10-13
 
 ### Changed
 
-- Launcher.push returns the id from workerStore => can be used potentially in 'idsToWait'
+- Launcher.push returns the id from workerStore ⇒ can be used potentially in 'idsToWait'
 
 ## [1.15.1] - 2025-10-12
 
 ### Changed
 
-- Queue refacto: breaking changes (1.14.x => 1.15.x)
+- Queue refacto: breaking changes (1.14.x ⇒ 1.15.x)
 
 ## [1.14.4] - 2025-09-03
 
@@ -157,8 +167,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Enhanced AbstractWorkerStore.release method to accept a shouldKeepInQueue parameter
-- Refactored QueueLauncher to pass shouldKeepInQueue parameter to workerStore.release
+- Enhanced `AbstractWorkerStore.release` method to accept a shouldKeepInQueue parameter
+- Refactored QueueLauncher to pass shouldKeepInQueue parameter to `workerStore.release`
 - Updated DefaultWorkerStore to support the new release method signature
 
 ## [1.12.12] - 2025-06-18
@@ -290,7 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Launcher optimisation (concurrency, filtering)
+- Launcher optimization (concurrency, filtering)
 
 ## [1.2.x] - 2024-02-15
 
